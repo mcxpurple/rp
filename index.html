@@ -336,7 +336,7 @@
 
     <div id="ioMain" class="io-list">
       <button type="button" id="ioExport"><span class="ico">⬇️</span><span><b>匯出目前存檔</b><small id="ioExportSub">下載成一個檔案，可以備份或搬到其他裝置</small></span></button>
-      <button type="button" id="ioExportMem"><span class="ico">📜</span><span><b>匯出記憶（txt）</b><small>常駐記憶檔＋全部記憶片段，不含對話，可拿去其他平台接續</small></span></button>
+      <button type="button" id="ioExportMem"><span class="ico">📜</span><span><b>匯出記憶（txt）</b><small>常駐記憶檔＋全部記憶片段，格式同 Claude Code 版，不含對話</small></span></button>
       <button type="button" id="ioImport"><span class="ico">⬆️</span><span><b>匯入存檔檔案</b><small>會新增成一個存檔，不會覆蓋現有的故事</small></span></button>
       <button type="button" id="ioContinue"><span class="ico">🔁</span><span><b>從其他平台接續</b><small>帶著 Gemini／ChatGPT 的記憶，在這裡接著玩</small></span></button>
       <input type="file" id="ioFile" accept=".json,application/json" hidden>
@@ -559,6 +559,11 @@ function loadHistory() {
   const r = numberPages(history, s.base || 0);
   if (r.changed) store.set(historyKey(), history);
   if (s.pages !== r.pages) { s.pages = r.pages; saveSlots(); }
+  // 舊存檔漏存角色卡：從對話紀錄補回
+  if (!s.card) {
+    const c = findCardInHistory(history);
+    if (c) { s.card = c; saveSlots(); }
+  }
 }
 function saveHistory() {
   const s = curSlot();
@@ -668,6 +673,69 @@ function emotionLayer(text) {
   let b = lines.findIndex((l, k) => k > a && /世界狀態層/.test(l));
   if (b < 0) b = lines.findIndex((l, k) => k > a && /當前狀態總結/.test(l));
   return lines.slice(a, b < 0 ? lines.length : b).join("\n").trim();
+}
+
+// ---------- 記憶匯出（Claude Code 版格式）----------
+// 劇情日期區間：從這幾頁 5.1 頁首抓日期，例：2026.10.04 或 2026.10.04-10.05
+function storyDates(list) {
+  const ds = [];
+  for (const m of list) {
+    if (m.role !== "model") continue;
+    const head = String(m.text).split("\n").slice(0, 4).join("\n");
+    const d = head.match(/(20\d{2})[\/.\-](\d{1,2})[\/.\-](\d{1,2})/);
+    if (d) ds.push(`${d[1]}.${d[2].padStart(2, "0")}.${d[3].padStart(2, "0")}`);
+  }
+  if (!ds.length) return "";
+  ds.sort();
+  const a = ds[0], b = ds[ds.length - 1];
+  return a === b ? a : a.slice(0, 4) === b.slice(0, 4) ? `${a}-${b.slice(5)}` : `${a}-${b}`;
+}
+
+// 記錄角色：A-1 取「記錄角色｜」，A-2 取各「━ X情感記憶 ━」
+function recNames(text) {
+  const t = String(text);
+  const multi = [...t.matchAll(/^\s*━\s*(.+?)情感記憶\s*━/gm)].map((m) => m[1].trim()).filter((n) => n && n !== "");
+  if (multi.length) return multi;
+  const one = t.match(/記錄角色｜([^｜\n]+)/);
+  return one ? one[1].split(/[、,，]/).map((x) => x.trim()).filter(Boolean) : [];
+}
+
+function archiveText(mem, slotName) {
+  const user = playerName() || "玩家";
+  const all = [];
+  for (const f of mem.frags) for (const n of recNames(f.text)) if (!all.includes(n)) all.push(n);
+  const names = (all.length ? all : [settings.characterName || "角色"]).join("、");
+  const fragName = (f) => {
+    const n = recNames(f.text);
+    return `【Page.${f.from}-${f.to}｜${(n.length ? n : [settings.characterName || "角色"]).join("、")}遊玩記憶片段】`;
+  };
+  const when = (f) => f.story || storyDates(sliceTranscript(history, f.from, f.to)) || f.date || "";
+
+  const out = [
+    `【${names}×${user}｜${slotName}｜常駐記憶檔】`,
+    `玩家名稱｜${user}｜記錄角色｜${names}`,
+    "━ 事件總目錄 ━ # 權重：S=核心劇情 / A=重要事件 / B=一般過渡 / C=瑣碎細節",
+  ];
+  mem.frags.forEach((f, i) => {
+    if (i) out.push("");
+    out.push(f.imported ? `其他平台匯入｜Page.1-${f.to}｜${when(f)}` : `${fragName(f)}｜Page.${f.from}-${f.to}｜${when(f)}`);
+    for (const [, t] of fragEvts(f.text)) out.push(t);
+  });
+  const last = mem.frags[mem.frags.length - 1].text;
+  const i = last.indexOf("當前狀態總結");
+  out.push("", (i >= 0 ? last.slice(i) : last).trim());
+
+  const frags = mem.frags.map((f) => {
+    if (f.imported) return f.text.trim();
+    const nums = fragEvts(f.text).map(([n]) => n);
+    const evt = nums.length
+      ? `EVT.${String(Math.min(...nums)).padStart(2, "0")}-EVT.${String(Math.max(...nums)).padStart(2, "0")}`
+      : "EVT.—";
+    const n = recNames(f.text);
+    const head = `【Page.${f.from}-${f.to}｜${(n.length ? n : [settings.characterName || "角色"]).join("、")}｜${evt}｜${when(f)}｜歷史封存，現況以常駐記憶檔為準】`;
+    return `${head}\n${f.text.trim()}`;
+  });
+  return [out.join("\n"), ...frags].join("\n\n━━━━━━━━━━━━━━━━\n\n") + "\n";
 }
 
 // ---------- EVT 回查 ----------
@@ -847,31 +915,67 @@ function inline(s) {
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 }
 
-// 從玩家角色卡讀出名字，接受多種寫法：
-//   【玩家角色卡】名字｜沐梓璃｜…　／　玩家角色卡：\n沐梓璃｜女｜…　／　姓名：沐梓璃
+// 從玩家角色卡讀出名字，不限寫法：
+//   標籤（名字／姓名／名稱／Name）→ 自我介紹句（我叫／我是／叫我）→ 第一段第一格 → 記憶片段裡的「玩家名稱」
 function playerName(card = currentCard()) {
-  if (!card) return "";
-  const SEP = /[｜|│┃丨／\/,，、;；\n]/;
-  const clean = (s) => s.replace(/（.*?）|\(.*?\)/g, "").replace(/^[\s\-•*・◦]+/, "").trim();
-  const ok = (s) => (s && s.length <= 20 ? s : "");
-
-  // 1. 有「名字／姓名」標籤
-  const m = card.match(/(?:名字|姓名|名稱)\s*[：:｜|]\s*([^\n]+)/);
-  if (m) {
-    const v = clean(m[1].split(SEP)[0]);
-    if (v && !/^(性別|年齡|生日)$/.test(v)) return ok(v);
+  const SEP = /[｜|│┃丨／\/,，、;；。\n]/;
+  const clean = (x) =>
+    x.replace(/（.*?）|\(.*?\)|「|」|『|』|\*\*/g, "").replace(/^[\s\-•*・◦#>：:｜|＝=]+/, "").replace(/(就好|就可以|就行|吧|喔|哦|啦)$/, "").trim();
+  const ok = (x) => (x && x.length <= 12 && !/^(性別|年齡|生日|身高|外貌|職業|女|男)$/.test(x) ? x : "");
+  if (card) {
+    card = card.replace(/\*\*/g, "");
+    // 1. 標籤
+    const m = card.match(/(?:名字|姓名|名稱|稱呼|name)\s*(?:是|叫|為)?\s*[：:｜|＝=]?\s*([^\n]+)/i);
+    if (m) { const v = ok(clean(m[1].split(SEP)[0])); if (v) return v; }
+    // 2. 自我介紹句
+    const intro = card.match(/(?:我叫|我是|叫我|名叫|本名)\s*([^\s，,。.、｜|：:！!？?（(\n]{1,12})/);
+    if (intro) { const v = ok(clean(intro[1])); if (v) return v; }
+    // 3. 「玩家角色卡」標題之後（沒有標題就從頭）第一段的第一格
+    const h = card.match(/【?玩家角色卡】?\s*[：:]?/);
+    const rest = h ? card.slice(h.index + h[0].length) : card;
+    const first = rest.split("\n").map((l) => l.trim()).find(Boolean) || "";
+    const v = ok(clean(first.split(SEP)[0]));
+    if (v) return v;
   }
-  // 2. 「玩家角色卡」標題之後第一段的第一格；沒有標題就從頭開始
-  const h = card.match(/【?玩家角色卡】?\s*[：:]?/);
-  const rest = h ? card.slice(h.index + h[0].length) : card;
-  const first = rest.split("\n").map((l) => l.trim()).find(Boolean) || "";
-  return ok(clean(first.split(SEP)[0]));
+  // 4. 記憶片段裡模型寫下的玩家名稱
+  try {
+    const frags = curSlot() ? loadMem().frags : [];
+    for (let i = frags.length - 1; i >= 0; i--) {
+      const t = String(frags[i].text);
+      const a = t.match(/玩家名稱｜([^｜\n]+)/);
+      if (a && a[1].trim() && a[1].trim() !== "玩家") return a[1].trim();
+      const b = t.match(/玩家（([^）]{1,12})）/);
+      if (b) return b[1].trim();
+    }
+  } catch {}
+  return "";
 }
 
 // 玩家在聊天中送出的是不是角色卡：開頭是「玩家角色卡」，而且後面有分隔或換行
+// 角色剛請玩家填角色卡（上一則提到「角色卡」），且這個存檔還沒有卡：玩家接著送出的那一則就是角色卡，不論格式
+function isCardReply(msg, prevModelText) {
+  const t = String(msg || "").trim();
+  return !currentCard() && /角色卡/.test(prevModelText || "") && !t.startsWith("/") && t.length >= 8;
+}
+// 舊存檔補救：從對話紀錄找出「角色請填卡 → 玩家回覆」的那一則
+function findCardInHistory(list) {
+  for (let i = 1; i < list.length; i++) {
+    const m = list[i];
+    if (m.role !== "user" || m.text.startsWith("/")) continue;
+    if (m.text.includes(CARD_MARK) || isCardMessage(m.text)) return m.text;
+    const prev = list[i - 1];
+    if (prev.role === "model" && /角色卡/.test(prev.text) && m.text.trim().length >= 8) return m.text;
+  }
+  return "";
+}
+
 function isCardMessage(msg) {
   return /^\s*【?玩家角色卡】?\s*[：:]?[\s\S]*[｜|\n]/.test(msg) && /^\s*【?玩家角色卡/.test(msg);
 }
+
+// 小幫手的裝飾框線（◆‧₊˚ … ◆）與單純分隔線（*** 或 ---）
+function isFrameLine(l) { return /^\s*[◆◇]/.test(l) || isRuleLine(l); }
+function isRuleLine(l) { return /^\s*(\*{3,}|-{3,}|＊{3,})\s*$/.test(l); }
 
 function isTrackerLine(l) {
   return /｜/.test(l) || /^\s*(·|⊱|✦|🧨|㊙️)/.test(l) || /行動建議/.test(l);
@@ -903,6 +1007,20 @@ function renderPage(text, latest) {
   while (j >= start && (!lines[j].trim() || isTrackerLine(lines[j]))) j--;
   const tail = lines.slice(j + 1);
   if (tail.some((l) => l.includes("｜"))) end = j + 1;
+
+  // 5.2 的小幫手區塊（◆ 框線包起來，或 *** 分隔線之後）緊接在狀態行前面時，一起收進狀態
+  if (end < lines.length) {
+    let k = end - 1;
+    while (k >= start && !lines[k].trim()) k--;
+    if (k >= start && isFrameLine(lines[k])) {
+      if (isRuleLine(lines[k])) end = k;
+      else {
+        let o = k - 1;
+        while (o >= start && !isFrameLine(lines[o])) o--;
+        end = o >= start && !isRuleLine(lines[o]) ? o : k;
+      }
+    }
+  }
 
   // 中間：小說段落、5.3 通訊、5.4 音樂卡
   let para = [];
@@ -953,7 +1071,14 @@ function renderPage(text, latest) {
     sum.textContent = "狀態";
     const box = document.createElement("div");
     box.className = "lines";
-    box.innerHTML = lines.slice(end).join("\n").trim().split("\n").map(inline).join("\n");
+    box.innerHTML = lines
+      .slice(end)
+      .filter((l) => !isRuleLine(l))
+      .join("\n")
+      .trim()
+      .split("\n")
+      .map(inline)
+      .join("\n");
     det.append(sum, box);
     page.append(det);
   }
@@ -1129,7 +1254,7 @@ async function runSave(manual = false) {
     // 存檔期間若開了新遊戲或回捲，這份結果就作廢
     const now = loadMem(cid, sid);
     if ((now.epoch || 0) !== job.epoch || now.saved !== from - 1) return false;
-    now.frags.push({ from, to, date: today(), text: data.text, at: Date.now() });
+    now.frags.push({ from, to, date: today(), story: storyDates(transcript), text: data.text, at: Date.now() });
     now.saved = to;
     saveMem(cid, sid, now);
     if (sameSlot(job)) { showSaveMark(to, "done", `Page.${from}-${to}`); if (manual) toast(`已存檔 Page.${from}-${to} ✧`); }
@@ -1272,7 +1397,8 @@ async function send(text, { addUser = true } = {}) {
   }
 
   // 玩家在聊天中送出角色卡 → 自動存成這個存檔的卡
-  if (message.includes(CARD_MARK) || isCardMessage(message)) {
+  const prevModel = [...prior].reverse().find((m) => m.role === "model");
+  if (message.includes(CARD_MARK) || isCardMessage(message) || isCardReply(message, prevModel && prevModel.text)) {
     setCard(message);
     $("pasteCard").hidden = false;
   }
@@ -1607,15 +1733,13 @@ $("ioFile").onchange = async () => {
   toast(`已匯入「${s.name}」✧`);
 };
 
-// 匯出記憶 txt：常駐記憶檔＋全部記憶片段，不含對話
+// 匯出記憶 txt
 $("ioExportMem").onclick = () => {
   const s = curSlot();
   const mem = loadMem();
   if (!s || !mem.frags.length) { ioStatus("這個存檔還沒有記憶可以匯出", true); return; }
-  const text = [
-    buildMemory(mem, s.name),
-    ...mem.frags.map((f) => `\n━━━━━━━━━━━━━━━━\n${f.text.trim()}`),
-  ].join("\n");
+  // 與 Claude Code 版相同：常駐記憶檔＋每份記憶片段（加封存檔頭），不含對話
+  const text = archiveText(mem, s.name);
   const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
