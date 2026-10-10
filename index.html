@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1420">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>mcx_purple</title>
+<style>
+  :root {
+    --bg: #15111a;
+    --panel: #1f1926;
+    --panel-2: #2a2233;
+    --line: #3a3045;
+    --text: #ece6f2;
+    --muted: #a99bb8;
+    --accent: #b48ce0;
+    --accent-ink: #1a1220;
+    --user: #3b2d4d;
+    --danger: #e28a9a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; height: 100dvh; }
+
+  header { display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+    padding-top: max(10px, env(safe-area-inset-top)); background: var(--panel); border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 16px; margin: 0; flex: 1; font-weight: 600; letter-spacing: .02em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  header small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+
+  button { font: inherit; color: var(--text); background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  button.ghost { background: transparent; }
+
+  #chat { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .msg { max-width: 100%; line-height: 1.8; white-space: pre-wrap; word-break: break-word; font-size: 15.5px; }
+  .msg.model { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .msg.user { align-self: flex-end; max-width: 85%; background: var(--user); border-radius: 14px 14px 4px 14px; padding: 10px 14px; }
+  .msg.error { color: var(--danger); font-size: 14px; text-align: center; }
+  .msg.system { color: var(--muted); font-size: 13px; text-align: center; }
+  .typing { color: var(--muted); font-size: 14px; padding: 4px 2px; }
+  .empty { margin: auto; text-align: center; color: var(--muted); line-height: 1.9; max-width: 320px; }
+
+  footer { background: var(--panel); border-top: 1px solid var(--line); padding: 10px 12px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+  .tools { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .tools button { font-size: 13px; padding: 6px 10px; }
+  .composer { display: flex; gap: 8px; align-items: flex-end; }
+  textarea { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 12px; padding: 10px 12px; width: 100%; resize: none; }
+  #input { min-height: 44px; max-height: 40vh; }
+
+  /* 設定面板 */
+  #settings { position: fixed; inset: 0; background: rgba(10, 8, 14, .7); display: none;
+    align-items: flex-end; justify-content: center; z-index: 10; }
+  #settings.open { display: flex; }
+  .sheet { background: var(--panel); width: 100%; max-width: 560px; max-height: 92dvh; overflow-y: auto;
+    border-radius: 18px 18px 0 0; padding: 20px 16px; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  .sheet h2 { margin: 0 0 4px; font-size: 18px; }
+  .sheet p.note { color: var(--muted); font-size: 13px; margin: 0 0 16px; line-height: 1.7; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 14px 0 6px; }
+  input, select { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 10px; padding: 10px 12px; width: 100%; }
+  .row { display: flex; gap: 8px; }
+  .row > *:first-child { flex: 1; }
+  #card { min-height: 120px; }
+  .sheet .actions { display: flex; gap: 8px; margin-top: 20px; }
+  .sheet .actions button { flex: 1; padding: 12px; }
+  .status { font-size: 13px; color: var(--muted); margin-top: 6px; min-height: 1em; }
+  .status.err { color: var(--danger); }
+
+  @media (min-width: 720px) {
+    #chat { padding: 24px max(24px, calc((100vw - 760px) / 2)); }
+    footer { padding-left: max(12px, calc((100vw - 760px) / 2)); padding-right: max(12px, calc((100vw - 760px) / 2)); }
+    #settings { align-items: center; }
+    .sheet { border-radius: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="title">mcx_purple</h1>
+  <button class="ghost" id="openSettings" aria-label="設定">⚙︎ 設定</button>
+</header>
+
+<main id="chat"></main>
+
+<footer>
+  <div class="tools">
+    <button id="newGame">開始新遊戲</button>
+    <button id="retry">重來最後一則</button>
+  </div>
+  <div class="composer">
+    <textarea id="input" rows="1" placeholder="輸入你的行動或對話…"></textarea>
+    <button class="primary" id="send">送出</button>
+  </div>
+</footer>
+
+<div id="settings">
+  <div class="sheet">
+    <h2>遊玩設定</h2>
+    <p class="note">API key 只存在這支手機的瀏覽器裡，每次對話經轉送後即丟棄，作者端不會留存。</p>
+
+    <label for="invite">邀請碼</label>
+    <input id="invite" autocomplete="off">
+
+    <label for="apikey">Gemini API key</label>
+    <div class="row">
+      <input id="apikey" type="password" autocomplete="off">
+      <button id="toggleKey" type="button">顯示</button>
+    </div>
+
+    <label for="model">模型</label>
+    <div class="row">
+      <select id="model"><option value="">先按「載入」</option></select>
+      <button id="loadModels" type="button">載入</button>
+    </div>
+
+    <label for="character">角色</label>
+    <div class="row">
+      <select id="character"><option value="">先按「載入」</option></select>
+      <button id="loadChars" type="button">載入</button>
+    </div>
+
+    <label for="card">玩家角色卡</label>
+    <textarea id="card" placeholder="【玩家角色卡】名字｜性別｜年齡｜生日｜身高｜外貌｜職業｜喜歡/討厭的事物"></textarea>
+
+    <div class="status" id="status"></div>
+
+    <div class="actions">
+      <button id="closeSettings" type="button">取消</button>
+      <button class="primary" id="saveSettings" type="button">儲存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 設定：把這裡換成妳的 Worker 網址
+// ============================================================
+const WORKER_URL = "https://rp.mcxpurple.workers.dev";
+
+// ---------- 儲存（包 try/catch，私密瀏覽等情況下不會壞掉）----------
+const store = {
+  get(k, fallback) {
+    try { const v = localStorage.getItem(k); return v === null ? fallback : JSON.parse(v); }
+    catch { return fallback; }
+  },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  remove(k) { try { localStorage.removeItem(k); } catch {} },
+};
+
+let settings = store.get("rp_settings", { invite: "", key: "", model: "", character: "", characterName: "", card: "" });
+let history = [];
+let busy = false;
+
+const $ = (id) => document.getElementById(id);
+const chatEl = $("chat");
+
+function historyKey() { return `rp_history_${settings.character || "none"}`; }
+function loadHistory() { history = store.get(historyKey(), []); }
+function saveHistory() { store.set(historyKey(), history); }
+
+// ---------- 畫面 ----------
+function render() {
+  $("title").innerHTML = "";
+  $("title").append(document.createTextNode(settings.characterName || "mcx_purple"));
+  if (settings.characterName) {
+    const s = document.createElement("small");
+    s.textContent = settings.model || "";
+    $("title").append(s);
+  }
+
+  chatEl.innerHTML = "";
+  if (!history.length) {
+    const d = document.createElement("div");
+    d.className = "empty";
+    d.textContent = settings.character
+      ? "按「開始新遊戲」，角色會先登場，接著請你填寫玩家角色卡。"
+      : "先到右上角「設定」填好邀請碼、API key，載入模型與角色。";
+    chatEl.append(d);
+  }
+  for (const m of history) addBubble(m.role, m.text, false);
+  scrollDown();
+}
+
+function addBubble(role, text, scroll = true) {
+  const d = document.createElement("div");
+  d.className = `msg ${role}`;
+  d.textContent = text;
+  const empty = chatEl.querySelector(".empty");
+  if (empty) empty.remove();
+  chatEl.append(d);
+  if (scroll) scrollDown();
+  return d;
+}
+
+function scrollDown() { chatEl.scrollTop = chatEl.scrollHeight; }
+
+function setBusy(on) {
+  busy = on;
+  for (const id of ["send", "retry", "newGame"]) $(id).disabled = on;
+  const old = chatEl.querySelector(".typing");
+  if (old) old.remove();
+  if (on) {
+    const t = document.createElement("div");
+    t.className = "typing";
+    t.textContent = "角色正在回應…";
+    chatEl.append(t);
+    scrollDown();
+  }
+}
+
+// ---------- 呼叫 Worker ----------
+async function callWorker(path, payload) {
+  const res = await fetch(WORKER_URL + path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ invite: settings.invite, ...payload }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `連線失敗（${res.status}）`);
+  return data;
+}
+
+function ready() {
+  if (!settings.invite || !settings.key || !settings.model || !settings.character) {
+    openSettings("請先完成設定");
+    return false;
+  }
+  return true;
+}
+
+async function send(text, { addUser = true } = {}) {
+  if (busy || !ready()) return;
+  const message = text.trim();
+  if (!message) return;
+
+  const prior = history.slice();
+  if (addUser) {
+    history.push({ role: "user", text: message });
+    saveHistory();
+    addBubble("user", message);
+  }
+
+  setBusy(true);
+  try {
+    const data = await callWorker("/chat", {
+      key: settings.key,
+      model: settings.model,
+      character: settings.character,
+      playerCard: settings.card,
+      history: prior,
+      message,
+    });
+    history.push({ role: "model", text: data.text });
+    saveHistory();
+    setBusy(false);
+    addBubble("model", data.text);
+  } catch (e) {
+    setBusy(false);
+    addBubble("error", e.message);
+  }
+}
+
+// ---------- 按鈕 ----------
+$("send").onclick = () => {
+  const v = $("input").value;
+  $("input").value = "";
+  autoGrow();
+  send(v);
+};
+
+$("input").addEventListener("keydown", (e) => {
+  // 電腦上 Ctrl/⌘ + Enter 送出；手機鍵盤的換行照常
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); $("send").click(); }
+});
+
+function autoGrow() {
+  const t = $("input");
+  t.style.height = "auto";
+  t.style.height = Math.min(t.scrollHeight, window.innerHeight * 0.4) + "px";
+}
+$("input").addEventListener("input", autoGrow);
+
+$("newGame").onclick = () => {
+  if (!ready()) return;
+  if (history.length && !confirm("開始新遊戲會清除這個角色目前的對話，確定嗎？")) return;
+  history = [];
+  saveHistory();
+  render();
+  send("/新玩家");
+};
+
+$("retry").onclick = () => {
+  if (busy || !history.length) return;
+  // 移除最後一則角色回覆，用最後一則玩家訊息重新送出
+  if (history[history.length - 1].role === "model") history.pop();
+  const lastUser = history[history.length - 1];
+  if (!lastUser || lastUser.role !== "user") return;
+  history.pop();
+  saveHistory();
+  render();
+  history.push(lastUser);
+  saveHistory();
+  addBubble("user", lastUser.text);
+  send(lastUser.text, { addUser: false });
+};
+
+// ---------- 設定面板 ----------
+function openSettings(msg = "") {
+  $("invite").value = settings.invite;
+  $("apikey").value = settings.key;
+  $("card").value = settings.card;
+  fillSelect($("model"), settings.model ? [{ id: settings.model, name: settings.model }] : [], settings.model, "先按「載入」");
+  fillSelect($("character"), settings.character ? [{ id: settings.character, name: settings.characterName }] : [], settings.character, "先按「載入」");
+  status(msg);
+  $("settings").classList.add("open");
+}
+
+function fillSelect(sel, items, current, placeholder) {
+  sel.innerHTML = "";
+  if (!items.length) {
+    const o = document.createElement("option");
+    o.value = ""; o.textContent = placeholder;
+    sel.append(o);
+    return;
+  }
+  for (const it of items) {
+    const o = document.createElement("option");
+    o.value = it.id; o.textContent = it.name || it.id;
+    if (it.id === current) o.selected = true;
+    sel.append(o);
+  }
+}
+
+function status(msg, err = false) {
+  $("status").textContent = msg;
+  $("status").className = "status" + (err ? " err" : "");
+}
+
+$("openSettings").onclick = () => openSettings();
+$("closeSettings").onclick = () => $("settings").classList.remove("open");
+
+$("toggleKey").onclick = () => {
+  const i = $("apikey");
+  i.type = i.type === "password" ? "text" : "password";
+  $("toggleKey").textContent = i.type === "password" ? "顯示" : "隱藏";
+};
+
+$("loadModels").onclick = async () => {
+  settings.invite = $("invite").value.trim();
+  const key = $("apikey").value.trim();
+  status("載入模型中…");
+  try {
+    const data = await callWorker("/models", { key });
+    fillSelect($("model"), data.models, settings.model, "沒有可用的模型");
+    status(data.models.length ? `找到 ${data.models.length} 個可用模型` : "這把 key 沒有可用的模型", !data.models.length);
+  } catch (e) { status(e.message, true); }
+};
+
+$("loadChars").onclick = async () => {
+  settings.invite = $("invite").value.trim();
+  status("載入角色中…");
+  try {
+    const data = await callWorker("/characters", {});
+    fillSelect($("character"), data.characters, settings.character, "目前沒有角色");
+    status(data.characters.length ? "角色已載入" : "目前沒有角色", !data.characters.length);
+  } catch (e) { status(e.message, true); }
+};
+
+$("saveSettings").onclick = () => {
+  const charSel = $("character");
+  const prevChar = settings.character;
+  settings = {
+    invite: $("invite").value.trim(),
+    key: $("apikey").value.trim(),
+    model: $("model").value,
+    character: charSel.value,
+    characterName: charSel.value ? charSel.options[charSel.selectedIndex].textContent : "",
+    card: $("card").value.trim(),
+  };
+  store.set("rp_settings", settings);
+  if (settings.character !== prevChar) loadHistory();
+  $("settings").classList.remove("open");
+  render();
+};
+
+// ---------- 啟動 ----------
+loadHistory();
+render();
+if (!settings.key || !settings.invite) openSettings();
+
+// 要求瀏覽器盡量不要自動清除這個網站的資料
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+</script>
+</body>
+</html>
