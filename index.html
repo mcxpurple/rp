@@ -379,27 +379,77 @@ function historyKey(cid = settings.character, sid) {
   if (sid === undefined) { const s = slotOf(cid); sid = s ? s.id : ""; }
   return `rp_history_${cid}__${sid}`;
 }
-function loadHistory() { history = curSlot() ? store.get(historyKey(), []) : []; }
+function loadHistory() {
+  const s = curSlot();
+  history = s ? store.get(historyKey(), []) : [];
+  if (!s) return;
+  // 舊存檔沒有頁碼：依角色回覆順序補上，並校正頁首（不更動最後遊玩時間）
+  const r = numberPages(history);
+  if (r.changed) store.set(historyKey(), history);
+  if (s.pages !== r.pages) { s.pages = r.pages; saveSlots(); }
+}
 function saveHistory() {
   const s = curSlot();
   if (!s) return;
+  s.pages = numberPages(history).pages;
   store.set(historyKey(), history);
   s.updated = Date.now();
   s.count = history.length;
   saveSlots();
 }
 
+// ---------- 頁數 ----------
+// 一則角色回覆＝一頁；/新玩家 之後的第一則（登場）就是 page.1
+// 重來最後一則：舊回覆移除後新回覆補回同一個位置，頁碼自然沿用
+function numberPages(list) {
+  let n = 0, changed = false;
+  for (const m of list) {
+    if (m.role === "user" && m.text === NEW_GAME) n = 0;
+    if (m.role !== "model") continue;
+    n++;
+    if (m.page !== n) { m.page = n; changed = true; }
+    const fixed = fixHeadPage(m.text, n);
+    if (fixed !== m.text) { m.text = fixed; changed = true; }
+  }
+  return { pages: n, changed };
+}
+
+// 把 5.1 頁首（開頭最多 3 行帶「｜」的行）裡的 page.X 改成程式計數；沒有 page 欄就原樣保留
+function fixHeadPage(text, n) {
+  if (typeof text !== "string") return text;
+  const lines = text.split("\n");
+  let i = 0;
+  while (i < lines.length && !lines[i].trim()) i++;
+  for (let k = i; k < Math.min(i + 3, lines.length) && lines[k].includes("｜"); k++) {
+    const re = /(page\s*[.．:：]?\s*)\d+/i;
+    if (re.test(lines[k])) {
+      lines[k] = lines[k].replace(re, `$1${n}`);
+      return lines.join("\n");
+    }
+  }
+  return text;
+}
+
+function slotPages(cid, s) {
+  if (typeof s.pages === "number") return s.pages;
+  return numberPages(store.get(historyKey(cid, s.id), [])).pages;
+}
+
 // ---------- 畫面 ----------
-function render() {
+// 標題小字：存檔名・page.X・模型
+function renderTitle() {
   $("title").innerHTML = "";
   $("title").append(document.createTextNode(settings.characterName || "mcx_purple"));
   if (settings.characterName) {
     const s = document.createElement("small");
     const slot = curSlot();
-    s.textContent = [slot && slot.name, settings.model].filter(Boolean).join("・");
+    s.textContent = [slot && slot.name, slot && slot.pages ? `page.${slot.pages}` : "", settings.model].filter(Boolean).join("・");
     $("title").append(s);
   }
+}
 
+function render() {
+  renderTitle();
   chatEl.innerHTML = "";
   if (!history.length) {
     const d = document.createElement("div");
@@ -695,9 +745,10 @@ async function send(text, { addUser = true } = {}) {
       message,
     });
     history.push({ role: "model", text: data.text, usage: data.usage });
-    saveHistory();
+    saveHistory(); // 這一步會把頁首 page.X 校正成程式計數
     setBusy(false);
-    addBubble("model", data.text, true, data.usage);
+    renderTitle();
+    addBubble("model", history[history.length - 1].text, true, data.usage);
   } catch (e) {
     setBusy(false);
     addBubble("error", e.message);
@@ -872,7 +923,7 @@ function showSlotStep(c) {
     const note = document.createElement("small");
     const info = [];
     if (s.id === active) info.push("目前存檔");
-    info.push(s.count ? `${s.count} 則` : "尚未開始");
+    info.push(s.count ? `${slotPages(c.id, s)} 頁` : "尚未開始");
     if (s.count && s.updated) info.push(`最後遊玩 ${fmtTime(s.updated)}`);
     if (!s.card) info.push("未填角色卡");
     note.textContent = info.join("・");
