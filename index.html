@@ -160,6 +160,21 @@
   #slotNew { margin-top: 14px; }
   #slotNew[hidden] { display: none; }
 
+  /* ☰ 選單 */
+  #menuBtn { font-size: 22px; line-height: 1; padding: 6px 10px; }
+  .menu-wrap { position: fixed; inset: 0; z-index: 20; display: none; }
+  .menu-wrap.open { display: block; }
+  .menu { position: absolute; right: 12px; top: calc(max(10px, env(safe-area-inset-top)) + 46px);
+    min-width: 220px; background: var(--page); border: 1px solid var(--line); border-radius: 16px;
+    padding: 6px; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+  .menu a, .menu button { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    font: inherit; font-size: 15px; color: var(--text); text-decoration: none; background: transparent;
+    border: 0; border-radius: 10px; padding: 12px 14px; cursor: pointer; }
+  .menu a:hover, .menu button:hover { background: var(--accent-soft); }
+  .menu .ico { width: 1.4em; text-align: center; flex-shrink: 0; }
+  .menu .ext { margin-left: auto; color: var(--muted); font-size: 12px; }
+  .menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 8px; }
+
   @media (min-width: 720px) {
     #chat { padding: 40px 24px 48px; }
     .page { font-size: 17.5px; }
@@ -172,9 +187,20 @@
 
 <header>
   <h1 id="title">mcx_purple</h1>
-  <button class="ghost" id="openChars" aria-label="切換角色">👤 切換角色</button>
-  <button class="ghost" id="openSettings" aria-label="設定">⚙︎ 設定</button>
+  <button class="ghost" id="menuBtn" aria-label="選單" aria-haspopup="true" aria-expanded="false">☰</button>
 </header>
+
+<div id="menu" class="menu-wrap">
+  <nav class="menu" aria-label="選單">
+    <button type="button" id="openChars"><span class="ico">👤</span>切換角色</button>
+    <hr>
+    <a id="linkChars" target="_blank" rel="noopener"><span class="ico">🩷</span>角色們（單人）<span class="ext">↗</span></a>
+    <a id="linkWorlds" target="_blank" rel="noopener"><span class="ico">💜</span>開放世界（多人）<span class="ext">↗</span></a>
+    <a id="linkGuide" target="_blank" rel="noopener"><span class="ico">❔</span>使用說明<span class="ext">↗</span></a>
+    <hr>
+    <button type="button" id="openSettings"><span class="ico">⚙︎</span>設定</button>
+  </nav>
+</div>
 
 <main id="chat"></main>
 
@@ -257,6 +283,11 @@
 // 設定：把這裡換成妳的 Worker 網址
 // ============================================================
 const WORKER_URL = "https://rp.mcxpurple.workers.dev";
+
+// ☰ 選單的外部連結：換網址只改這三行
+const CHARS_URL = "https://obvious-tenor-7aa.notion.site/210f4e50bb4b80008d28edd7fbe3da7c";  // 角色們（單人）
+const WORLDS_URL = "https://obvious-tenor-7aa.notion.site/2d1f4e50bb4b802d9c80e60a76446428"; // 開放世界（多人）
+const GUIDE_URL = "https://obvious-tenor-7aa.notion.site/3f5f4e50bb4b81e184d4eed446634734";  // 使用說明
 
 // ---------- 儲存（包 try/catch，私密瀏覽等情況下不會壞掉）----------
 const store = {
@@ -375,7 +406,7 @@ function render() {
     d.className = "empty";
     d.textContent = settings.character
       ? `「${(curSlot() || {}).name || "存檔"}」還沒開始。按「開始新遊戲」，角色會先登場，接著請你填寫玩家角色卡。`
-      : "先到右上角「設定」填好邀請碼、API key，載入模型與角色。";
+      : "先到右上角 ☰ →「設定」填好邀請碼、API key，載入模型與角色。";
     chatEl.append(d);
   }
   history.forEach((m, i) => addBubble(m.role, m.text, false, m.usage, i === history.length - 1));
@@ -966,6 +997,22 @@ applyTheme($("theme").value);
 if (window.matchMedia) {
   window.matchMedia("(prefers-color-scheme: light)").addEventListener?.("change", () => applyTheme(store.get("rp_theme", "auto")));
 }
+
+// ---------- ☰ 選單 ----------
+$("linkChars").href = CHARS_URL;
+$("linkWorlds").href = WORLDS_URL;
+$("linkGuide").href = GUIDE_URL;
+
+function setMenu(open) {
+  $("menu").classList.toggle("open", open);
+  $("menuBtn").setAttribute("aria-expanded", open ? "true" : "false");
+}
+$("menuBtn").onclick = (e) => { e.stopPropagation(); setMenu(!$("menu").classList.contains("open")); };
+// 點選單外面關閉；點任何一項後也關閉（項目本身的動作照常執行）
+$("menu").addEventListener("click", (e) => {
+  if (e.target === $("menu") || e.target.closest(".menu a, .menu button")) setMenu(false);
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") setMenu(false); });
 
 // ---------- 啟動 ----------
 if (settings.character) ensureSlot(settings.character);
