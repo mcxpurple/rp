@@ -7,84 +7,158 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>mcx_purple</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
 <style>
+  /* 深色：夜讀 */
   :root {
-    --bg: #15111a;
-    --panel: #1f1926;
-    --panel-2: #2a2233;
-    --line: #3a3045;
-    --text: #ece6f2;
-    --muted: #a99bb8;
-    --accent: #b48ce0;
-    --accent-ink: #1a1220;
-    --user: #3b2d4d;
-    --danger: #e28a9a;
+    --bg: #17131d; --page: #1e1925; --panel: #221c2a; --panel-2: #2c2436; --line: #3a3046;
+    --text: #e7e0ee; --muted: #9d92ab; --accent: #c3a3e6; --accent-ink: #1b1424;
+    --accent-soft: rgba(195, 163, 230, .13); --danger: #e8909f;
+    --phone: #141018; --bubble-them: #2c2436; --bubble-me: #5b4378; --bubble-me-ink: #f4ecfb;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+    color-scheme: dark;
   }
+  /* 淺色：霧紫信紙 */
+  :root[data-theme="light"] {
+    --bg: #eeebf2; --page: #f9f7fb; --panel: #ffffff; --panel-2: #ebe5f1; --line: #ddd5e6;
+    --text: #2e2638; --muted: #7d7189; --accent: #7a4e92; --accent-ink: #ffffff;
+    --accent-soft: rgba(122, 78, 146, .10); --danger: #b04a5c;
+    --phone: #f1edf6; --bubble-them: #ffffff; --bubble-me: #7a4e92; --bubble-me-ink: #ffffff;
+    --shadow: 0 10px 28px rgba(60, 40, 80, .12);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]):not([data-theme="light"]) {
+      --bg: #eeebf2; --page: #f9f7fb; --panel: #ffffff; --panel-2: #ebe5f1; --line: #ddd5e6;
+      --text: #2e2638; --muted: #7d7189; --accent: #7a4e92; --accent-ink: #ffffff;
+      --accent-soft: rgba(122, 78, 146, .10); --danger: #b04a5c;
+      --phone: #f1edf6; --bubble-them: #ffffff; --bubble-me: #7a4e92; --bubble-me-ink: #ffffff;
+      --shadow: 0 10px 28px rgba(60, 40, 80, .12);
+      color-scheme: light;
+    }
+  }
+
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
     font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif; }
   body { display: flex; flex-direction: column; height: 100dvh; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  header { display: flex; align-items: center; gap: 8px; padding: 10px 16px;
-    padding-top: max(10px, env(safe-area-inset-top)); background: var(--panel); border-bottom: 1px solid var(--line); }
-  header h1 { font-size: 16px; margin: 0; flex: 1; font-weight: 600; letter-spacing: .02em;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-  header small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+  header { display: flex; align-items: center; gap: 6px; padding: 10px 14px;
+    padding-top: max(10px, env(safe-area-inset-top)); background: var(--bg); border-bottom: 1px solid var(--line); }
+  header h1 { margin: 0; flex: 1; min-width: 0; cursor: pointer; font-family: "Noto Serif TC", serif;
+    font-size: 18px; font-weight: 600; letter-spacing: .06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  header h1 small { display: block; font-family: "Noto Sans TC", sans-serif; font-size: 11.5px; font-weight: 400;
+    letter-spacing: 0; color: var(--muted); margin-top: 1px; }
 
   button { font: inherit; color: var(--text); background: var(--panel-2); border: 1px solid var(--line);
     border-radius: 10px; padding: 8px 12px; cursor: pointer; }
   button:disabled { opacity: .5; cursor: default; }
-  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
-  button.ghost { background: transparent; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+  button.ghost { background: transparent; border-color: transparent; color: var(--muted); padding: 8px; white-space: nowrap; font-size: 14px; }
+  button.ghost:hover { color: var(--text); }
 
-  #chat { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
-  .msg { max-width: 100%; line-height: 1.8; white-space: pre-wrap; word-break: break-word; font-size: 15.5px; }
-  .msg.model { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
-  .msg.user { align-self: flex-end; max-width: 85%; background: var(--user); border-radius: 14px 14px 4px 14px; padding: 10px 14px; }
-  .msg.error { color: var(--danger); font-size: 14px; text-align: center; }
-  .msg.system { color: var(--muted); font-size: 13px; text-align: center; }
-  .typing { color: var(--muted); font-size: 14px; padding: 4px 2px; }
-  .usage { color: var(--muted); font-size: 12px; margin-top: -8px; padding: 0 4px; opacity: .8; }
-  .empty { margin: auto; text-align: center; color: var(--muted); line-height: 1.9; max-width: 320px; }
+  /* 閱讀區 */
+  #chat { flex: 1; overflow-y: auto; padding: 24px 18px 32px; display: flex; flex-direction: column; gap: 22px; }
+  #chat > * { width: 100%; max-width: 36em; margin-left: auto; margin-right: auto; }
 
-  footer { background: var(--panel); border-top: 1px solid var(--line); padding: 10px 12px;
+  .page { font-family: "Noto Serif TC", "Songti TC", serif; font-size: 17px; line-height: 2.05;
+    letter-spacing: .03em; color: var(--text); word-break: break-word; }
+  .page p { margin: 0 0 1.15em; }
+  .page p:last-child { margin-bottom: 0; }
+  .page strong { font-weight: 600; }
+
+  /* 5.1 頁首 */
+  .page .head { font-family: "Noto Sans TC", sans-serif; font-size: 12.5px; line-height: 1.9; letter-spacing: .04em;
+    color: var(--muted); text-align: center; padding: 0 0 16px; margin: 0 0 22px; border-bottom: 1px solid var(--line); }
+
+  /* 玩家輸入：靠右的旁註 */
+  .aside { align-self: flex-end; width: auto !important; max-width: min(85%, 30em) !important; margin-right: 0 !important;
+    background: var(--accent-soft); border-radius: 14px 14px 4px 14px; padding: 10px 14px;
+    font-size: 15px; line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
+
+  /* 5.3 通訊：嵌在書頁裡的手機畫面 */
+  .im { font-family: "Noto Sans TC", sans-serif; letter-spacing: 0; line-height: 1.6;
+    max-width: 22.5em; margin: 8px auto 26px; background: var(--phone); border: 1px solid var(--line);
+    border-radius: 26px; padding: 10px 10px 14px; box-shadow: var(--shadow); }
+  .im-top { text-align: center; padding: 6px 8px 10px; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
+  .im-top .who { font-size: 15px; font-weight: 700; color: var(--text); }
+  .im-top .meta { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .im-msgs { display: flex; flex-direction: column; gap: 8px; padding: 0 2px; }
+  .im-row { display: flex; flex-direction: column; align-items: flex-start; max-width: 82%; }
+  .im-row.me { align-self: flex-end; align-items: flex-end; }
+  .im-row .name { font-size: 11px; color: var(--muted); margin: 0 6px 2px; }
+  .im-row .bub { background: var(--bubble-them); border: 1px solid var(--line); border-radius: 16px 16px 16px 5px;
+    padding: 8px 12px; font-size: 14.5px; white-space: pre-wrap; word-break: break-word; }
+  .im-row.me .bub { background: var(--bubble-me); color: var(--bubble-me-ink); border-color: transparent;
+    border-radius: 16px 16px 5px 16px; }
+  .im-row .time { font-size: 10.5px; color: var(--muted); margin: 2px 6px 0; }
+
+  /* 5.4 音樂卡 */
+  .song { font-family: "Noto Sans TC", sans-serif; font-size: 14px; line-height: 1.8; letter-spacing: 0;
+    margin: 6px 0 24px; padding: 14px 16px 14px 18px; background: var(--panel); border-radius: 14px;
+    border-left: 3px solid var(--accent); }
+  .song a { font-weight: 700; text-decoration: none; }
+
+  /* 5.2 狀態欄 */
+  .tracker { font-family: "Noto Sans TC", sans-serif; font-size: 13.5px; line-height: 1.85; letter-spacing: 0;
+    margin-top: 22px; border-top: 1px dashed var(--line); padding-top: 10px; color: var(--muted); }
+  .tracker summary { cursor: pointer; list-style: none; font-size: 12.5px; color: var(--muted); user-select: none; }
+  .tracker summary::-webkit-details-marker { display: none; }
+  .tracker summary::before { content: "▸ "; }
+  .tracker[open] summary::before { content: "▾ "; }
+  .tracker .lines { margin-top: 8px; color: var(--text); opacity: .88; white-space: pre-wrap; word-break: break-word; }
+
+  .notice { font-size: 13.5px; text-align: center; color: var(--danger); }
+  .marker { font-size: 12.5px; text-align: center; color: var(--muted); letter-spacing: .1em; }
+  .typing { font-size: 13.5px; color: var(--muted); font-style: italic; }
+  .usage { font-size: 11.5px; color: var(--muted); text-align: right; margin-top: -14px !important; opacity: .8; }
+  .empty { margin: auto !important; text-align: center; color: var(--muted); line-height: 2; max-width: 20em !important;
+    font-family: "Noto Serif TC", serif; }
+
+  footer { background: var(--bg); border-top: 1px solid var(--line); padding: 10px 14px;
     padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+  footer > * { max-width: 40em; margin-left: auto; margin-right: auto; }
   .tools { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
-  .tools button { font-size: 13px; padding: 6px 10px; }
+  .tools button { font-size: 12.5px; padding: 5px 10px; background: transparent; color: var(--muted); }
   .composer { display: flex; gap: 8px; align-items: flex-end; }
-  textarea { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line);
-    border-radius: 12px; padding: 10px 12px; width: 100%; resize: none; }
-  #input { min-height: 44px; max-height: 40vh; }
+  textarea { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; padding: 10px 14px; width: 100%; resize: none; line-height: 1.7; }
+  #input { min-height: 46px; max-height: 40vh; }
+  #send { padding: 11px 18px; border-radius: 14px; white-space: nowrap; flex-shrink: 0; }
 
-  /* 設定面板 */
-  .overlay { position: fixed; inset: 0; background: rgba(10, 8, 14, .7); display: none;
+  /* 面板 */
+  .overlay { position: fixed; inset: 0; background: rgba(12, 8, 16, .55); display: none;
     align-items: flex-end; justify-content: center; z-index: 10; }
   .overlay.open { display: flex; }
-  .charlist { display: flex; flex-direction: column; gap: 8px; }
-  .charlist button { text-align: left; padding: 14px 16px; font-size: 16px; }
-  .charlist button.current { border-color: var(--accent); }
-  .charlist button small { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
-  header .ghost { padding: 8px 10px; white-space: nowrap; }
-  .sheet { background: var(--panel); width: 100%; max-width: 560px; max-height: 92dvh; overflow-y: auto;
-    border-radius: 18px 18px 0 0; padding: 20px 16px; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
-  .sheet h2 { margin: 0 0 4px; font-size: 18px; }
+  .sheet { background: var(--page); width: 100%; max-width: 560px; max-height: 92dvh; overflow-y: auto;
+    border-radius: 22px 22px 0 0; padding: 22px 18px; padding-bottom: max(22px, env(safe-area-inset-bottom)); box-shadow: var(--shadow); }
+  .sheet h2 { margin: 0 0 4px; font-family: "Noto Serif TC", serif; font-size: 20px; font-weight: 600; letter-spacing: .04em; }
   .sheet p.note { color: var(--muted); font-size: 13px; margin: 0 0 16px; line-height: 1.7; }
   label { display: block; font-size: 13px; color: var(--muted); margin: 14px 0 6px; }
-  input, select { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+  input, select { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line);
     border-radius: 10px; padding: 10px 12px; width: 100%; }
   .row { display: flex; gap: 8px; }
   .row > *:first-child { flex: 1; }
   #card { min-height: 120px; }
-  .sheet .actions { display: flex; gap: 8px; margin-top: 20px; }
+  .sheet .actions { display: flex; gap: 8px; margin-top: 22px; }
   .sheet .actions button { flex: 1; padding: 12px; }
   .status { font-size: 13px; color: var(--muted); margin-top: 6px; min-height: 1em; }
   .status.err { color: var(--danger); }
+  .charlist { display: flex; flex-direction: column; gap: 8px; }
+  .charlist button { text-align: left; padding: 14px 16px; font-family: "Noto Serif TC", serif; font-size: 17px;
+    background: var(--panel); }
+  .charlist button.current { border-color: var(--accent); }
+  .charlist button small { display: block; font-family: "Noto Sans TC", sans-serif; color: var(--muted); font-size: 12px; margin-top: 4px; }
 
   @media (min-width: 720px) {
-    #chat { padding: 24px max(24px, calc((100vw - 760px) / 2)); }
-    footer { padding-left: max(12px, calc((100vw - 760px) / 2)); padding-right: max(12px, calc((100vw - 760px) / 2)); }
+    #chat { padding: 40px 24px 48px; }
+    .page { font-size: 17.5px; }
     .overlay { align-items: center; }
-    .sheet { border-radius: 18px; }
+    .sheet { border-radius: 22px; }
   }
 </style>
 </head>
@@ -126,6 +200,13 @@
   <div class="sheet">
     <h2>遊玩設定</h2>
     <p class="note">API key 只存在這支手機的瀏覽器裡，每次對話經轉送後即丟棄，作者端不會留存。</p>
+
+    <label for="theme">外觀</label>
+    <select id="theme">
+      <option value="auto">跟隨手機設定</option>
+      <option value="dark">深色・夜讀</option>
+      <option value="light">淺色・霧紫信紙</option>
+    </select>
 
     <label for="invite">邀請碼</label>
     <input id="invite" autocomplete="off">
@@ -225,18 +306,35 @@ function render() {
       : "先到右上角「設定」填好邀請碼、API key，載入模型與角色。";
     chatEl.append(d);
   }
-  for (const m of history) addBubble(m.role, m.text, false, m.usage);
+  history.forEach((m, i) => addBubble(m.role, m.text, false, m.usage, i === history.length - 1));
   $("pasteCard").hidden = !currentCard();
   scrollDown();
 }
 
-function addBubble(role, text, scroll = true, usage = null) {
-  const d = document.createElement("div");
-  d.className = `msg ${role}`;
-  d.textContent = text;
+function addBubble(role, text, scroll = true, usage = null, latest = true) {
   const empty = chatEl.querySelector(".empty");
   if (empty) empty.remove();
+
+  let d;
+  if (role === "model") {
+    // 舊的狀態欄收起來，只展開最新一頁
+    if (latest) chatEl.querySelectorAll(".tracker[open]").forEach((t) => t.removeAttribute("open"));
+    d = renderPage(text, latest);
+  } else if (role === "user" && text === NEW_GAME) {
+    d = document.createElement("div");
+    d.className = "marker";
+    d.textContent = "新的故事";
+  } else if (role === "user") {
+    d = document.createElement("div");
+    d.className = "aside";
+    d.textContent = text;
+  } else {
+    d = document.createElement("div");
+    d.className = "notice";
+    d.textContent = text;
+  }
   chatEl.append(d);
+
   const u = usageText(usage);
   if (u) {
     const s = document.createElement("div");
@@ -245,6 +343,167 @@ function addBubble(role, text, scroll = true, usage = null) {
     chatEl.append(s);
   }
   if (scroll) scrollDown();
+  return d;
+}
+
+// ---------- 把角色回覆排成小說頁 ----------
+function esc(s) {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+// 只處理粗體與連結，其餘一律當純文字
+function inline(s) {
+  return esc(s)
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+}
+
+function playerName() {
+  const card = currentCard();
+  const i = card.indexOf(CARD_MARK);
+  if (i < 0) return "";
+  const rest = card.slice(i + CARD_MARK.length).replace(/^\s*名字[：:｜]?\s*/, "");
+  return rest.split(/[｜|\n]/)[0].replace(/（.*?）|\(.*?\)/g, "").trim();
+}
+
+function isTrackerLine(l) {
+  return /｜/.test(l) || /^\s*(·|⊱|✦|🧨|㊙️)/.test(l) || /行動建議/.test(l);
+}
+
+function renderPage(text, latest) {
+  const page = document.createElement("article");
+  page.className = "page";
+  const lines = text.replace(/\r/g, "").split("\n");
+
+  let start = 0;
+  while (start < lines.length && !lines[start].trim()) start++;
+
+  // 5.1 頁首：開頭連續幾行帶「｜」、且其中一行有 page
+  let headEnd = start;
+  while (headEnd < lines.length && headEnd - start < 3 && lines[headEnd].includes("｜")) headEnd++;
+  const headLines = lines.slice(start, headEnd);
+  if (headLines.length >= 2 && headLines.some((l) => /page/i.test(l))) {
+    const h = document.createElement("div");
+    h.className = "head";
+    h.innerHTML = headLines.map((l) => inline(l.trim())).join("<br>");
+    page.append(h);
+    start = headEnd;
+  }
+
+  // 5.2 狀態欄：結尾連續的追蹤行
+  let end = lines.length;
+  let j = lines.length - 1;
+  while (j >= start && (!lines[j].trim() || isTrackerLine(lines[j]))) j--;
+  const tail = lines.slice(j + 1);
+  if (tail.some((l) => l.includes("｜"))) end = j + 1;
+
+  // 中間：小說段落、5.3 通訊、5.4 音樂卡
+  let para = [];
+  const flush = () => {
+    if (!para.length) return;
+    const p = document.createElement("p");
+    p.innerHTML = para.map((l) => inline(l.trim())).join("<br>");
+    page.append(p);
+    para = [];
+  };
+
+  for (let i = start; i < end; i++) {
+    const l = lines[i];
+    const t = l.trim();
+    if (t.startsWith("✧✦")) {
+      flush();
+      const block = [];
+      i++;
+      while (i < end && !lines[i].trim().startsWith("✧✦")) block.push(lines[i++]);
+      page.append(renderIM(block));
+    } else if (t.startsWith("╭")) {
+      flush();
+      const block = [];
+      i++;
+      while (i < end && !lines[i].trim().startsWith("╰")) block.push(lines[i++]);
+      page.append(renderSong(block));
+    } else if (!t) {
+      flush();
+    } else {
+      para.push(l);
+    }
+  }
+  flush();
+
+  if (end < lines.length) {
+    const det = document.createElement("details");
+    det.className = "tracker";
+    if (latest) det.open = true;
+    const sum = document.createElement("summary");
+    sum.textContent = "狀態";
+    const box = document.createElement("div");
+    box.className = "lines";
+    box.innerHTML = lines.slice(end).join("\n").trim().split("\n").map(inline).join("\n");
+    det.append(sum, box);
+    page.append(det);
+  }
+  return page;
+}
+
+function renderIM(block) {
+  const wrap = document.createElement("div");
+  wrap.className = "im";
+  let sep = block.findIndex((l) => /^\s*✧\s*─/.test(l));
+  if (sep < 0) sep = Math.min(2, block.length);
+  const meta = block.slice(0, sep).map((l) => l.trim()).filter(Boolean);
+  const msgs = block.slice(sep + (block[sep] && /✧/.test(block[sep]) ? 1 : 0)).filter((l) => l.trim());
+
+  const top = document.createElement("div");
+  top.className = "im-top";
+  const who = meta.find((l) => l.startsWith("👤"));
+  const info = meta.filter((l) => l !== who);
+  top.innerHTML =
+    `<div class="who">${inline((who || "訊息").replace(/^👤\s*/, ""))}</div>` +
+    (info.length ? `<div class="meta">${info.map(inline).join("<br>")}</div>` : "");
+  wrap.append(top);
+
+  const list = document.createElement("div");
+  list.className = "im-msgs";
+  const me = playerName();
+  for (const raw of msgs) {
+    const m = raw.trim().match(/^([^:：]{1,24})[:：]\s*(.*)$/);
+    let speaker = m ? m[1].trim() : "";
+    let body = m ? m[2] : raw.trim();
+    let time = "";
+    const tm = body.match(/^(.*?)[\s　]+(\d{1,2}:\d{2})\s*$/);
+    if (tm) { body = tm[1]; time = tm[2]; }
+
+    const row = document.createElement("div");
+    row.className = "im-row" + (me && speaker && (speaker.includes(me) || me.includes(speaker)) ? " me" : "");
+    if (speaker) {
+      const n = document.createElement("div");
+      n.className = "name";
+      n.textContent = speaker;
+      row.append(n);
+    }
+    const b = document.createElement("div");
+    b.className = "bub";
+    b.innerHTML = inline(body);
+    row.append(b);
+    if (time) {
+      const t = document.createElement("div");
+      t.className = "time";
+      t.textContent = time;
+      row.append(t);
+    }
+    list.append(row);
+  }
+  wrap.append(list);
+  return wrap;
+}
+
+function renderSong(block) {
+  const d = document.createElement("div");
+  d.className = "song";
+  d.innerHTML = block
+    .map((l) => l.trim())
+    .filter((l) => l && !/^├/.test(l))
+    .map(inline)
+    .join("<br>");
   return d;
 }
 
@@ -520,6 +779,23 @@ $("saveSettings").onclick = () => {
   $("settings").classList.remove("open");
   render();
 };
+
+// ---------- 外觀 ----------
+function applyTheme(t) {
+  if (t === "dark" || t === "light") document.documentElement.dataset.theme = t;
+  else delete document.documentElement.dataset.theme;
+  const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+  document.querySelector('meta[name="theme-color"]').setAttribute("content", bg || "#17131d");
+}
+$("theme").value = store.get("rp_theme", "auto");
+$("theme").addEventListener("change", () => {
+  store.set("rp_theme", $("theme").value);
+  applyTheme($("theme").value);
+});
+applyTheme($("theme").value);
+if (window.matchMedia) {
+  window.matchMedia("(prefers-color-scheme: light)").addEventListener?.("change", () => applyTheme(store.get("rp_theme", "auto")));
+}
 
 // ---------- 啟動 ----------
 loadHistory();
