@@ -225,6 +225,22 @@
   .save-mark.fail { color: var(--danger); background: transparent; border: 1px dashed var(--danger); cursor: pointer; }
   @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 
+  /* 📖 記憶面板 */
+  .mem-block { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; margin-top: 10px; }
+  .mem-block.main { border: 1.5px dashed var(--accent-line); }
+  .mem-block summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;
+    padding: 12px 14px; font-size: 14.5px; font-weight: 600; user-select: none; }
+  .mem-block summary::-webkit-details-marker { display: none; }
+  .mem-block summary::before { content: "▸"; color: var(--muted); font-weight: 400; }
+  .mem-block[open] summary::before { content: "▾"; }
+  .mem-block summary .sub { font-size: 12px; font-weight: 400; color: var(--muted); }
+  .mem-block summary .copy { margin-left: auto; font-size: 12.5px; font-weight: 400; padding: 4px 12px;
+    border-radius: 999px; background: var(--accent-soft); border-color: var(--accent-line); }
+  .mem-text { margin: 0 14px 14px; padding-top: 10px; border-top: 1px dotted var(--accent-line); font-size: 13.5px;
+    line-height: 1.85; white-space: pre-wrap; word-break: break-word; }
+  .mem-head { font-size: 13px; color: var(--muted); margin: 18px 2px 0; }
+  .mem-empty { text-align: center; color: var(--muted); font-size: 14px; line-height: 2; padding: 22px 8px; }
+
   .toast { position: fixed; left: 50%; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 120px); z-index: 30;
     transform: translate(-50%, 10px); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
     background: var(--page); color: var(--text); border: 1px solid var(--accent-line); border-radius: 999px;
@@ -259,6 +275,7 @@
     <a id="linkWorlds" target="_blank" rel="noopener"><span class="ico">💜</span>開放世界（多人）<span class="ext">↗</span></a>
     <a id="linkGuide" target="_blank" rel="noopener"><span class="ico">❔</span>使用說明<span class="ext">↗</span></a>
     <hr>
+    <button type="button" id="openMemory"><span class="ico">📖</span>記憶</button>
     <button type="button" id="saveNow"><span class="ico">💾</span>立即存檔</button>
     <button type="button" id="openSettings"><span class="ico">⚙︎</span>設定</button>
   </nav>
@@ -293,6 +310,17 @@
     <div class="actions">
       <button id="backChars" type="button" hidden>← 角色列表</button>
       <button id="closeChars" type="button">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div id="memoryPanel" class="overlay">
+  <div class="sheet">
+    <h2 id="memTitle">記憶</h2>
+    <p class="note" id="memNote"></p>
+    <div id="memBody"></div>
+    <div class="actions">
+      <button id="closeMemory" type="button">關閉</button>
     </div>
   </div>
 </div>
@@ -1230,6 +1258,82 @@ function status(msg, err = false) {
 
 $("openSettings").onclick = () => openSettings();
 $("saveNow").onclick = () => { if (ready()) runSave(true); };
+
+// ---------- 📖 記憶面板（只能看、不能改）----------
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const t = document.createElement("textarea");
+    t.value = text;
+    t.style.position = "fixed";
+    t.style.opacity = "0";
+    document.body.append(t);
+    t.select();
+    try { document.execCommand("copy"); } catch {}
+    t.remove();
+  }
+  toast("已複製 ✧");
+}
+
+function memBlock(title, sub, text, { open = false, main = false } = {}) {
+  const det = document.createElement("details");
+  det.className = "mem-block" + (main ? " main" : "");
+  det.open = open;
+  const sum = document.createElement("summary");
+  const t = document.createElement("span");
+  t.textContent = title;
+  sum.append(t);
+  if (sub) {
+    const s = document.createElement("span");
+    s.className = "sub";
+    s.textContent = sub;
+    sum.append(s);
+  }
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "copy";
+  btn.textContent = "複製";
+  btn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); copyText(text); };
+  sum.append(btn);
+  const body = document.createElement("div");
+  body.className = "mem-text";
+  body.textContent = text;
+  det.append(sum, body);
+  return det;
+}
+
+function openMemory() {
+  const s = curSlot();
+  if (!s) { openSettings("請先完成設定"); return; }
+  const mem = loadMem();
+  $("memTitle").textContent = `${s.name}的記憶`;
+  const parts = [`已存到 page.${mem.saved}`, `共 ${mem.frags.length} 份片段`];
+  if (sameSlot(saving)) parts.push(`正在存檔 Page.${saving.from}-${saving.to}`);
+  $("memNote").textContent = parts.join("・");
+
+  const body = $("memBody");
+  body.innerHTML = "";
+  if (!mem.frags.length) {
+    const d = document.createElement("div");
+    d.className = "mem-empty";
+    d.textContent = `還沒有記憶。\n滿 ${SAVE_EVERY} 頁會自動存檔，也可以從 ☰ 按「💾 立即存檔」。`;
+    d.style.whiteSpace = "pre-line";
+    body.append(d);
+  } else {
+    body.append(memBlock("常駐記憶檔", "每輪帶給角色", buildMemory(mem, s.name), { open: true, main: true }));
+    const h = document.createElement("div");
+    h.className = "mem-head";
+    h.textContent = "記憶片段";
+    body.append(h);
+    for (const f of mem.frags.slice().reverse()) {
+      body.append(memBlock(`Page.${f.from}-${f.to}`, f.date || "", f.text));
+    }
+  }
+  $("memoryPanel").classList.add("open");
+}
+$("openMemory").onclick = openMemory;
+$("closeMemory").onclick = () => $("memoryPanel").classList.remove("open");
 
 // ---------- 切換角色 → 選存檔 ----------
 let pickChars = [];
