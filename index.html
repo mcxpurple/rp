@@ -225,6 +225,18 @@
   .save-mark.fail { color: var(--danger); background: transparent; border: 1px dashed var(--danger); cursor: pointer; }
   @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 
+  /* 📦 匯出／匯入 */
+  .io-list { display: flex; flex-direction: column; gap: 10px; }
+  .io-list button { display: flex; align-items: center; gap: 14px; text-align: left; padding: 14px 16px;
+    background: var(--panel); border-radius: 16px; transition: transform .15s ease; }
+  .io-list button:active { transform: scale(.98); }
+  .io-list .ico { font-size: 22px; width: 1.4em; text-align: center; flex-shrink: 0; }
+  .io-list b { display: block; font-weight: 600; font-size: 15.5px; }
+  .io-list small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; line-height: 1.6; }
+  #ioCard { min-height: 96px; }
+  #ioMem { min-height: 150px; }
+  #ioForm[hidden], #ioMain[hidden] { display: none; }
+
   /* 📖 記憶面板 */
   .mem-block { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; margin-top: 10px; }
   .mem-block.main { border: 1.5px dashed var(--accent-line); }
@@ -277,6 +289,7 @@
     <hr>
     <button type="button" id="openMemory"><span class="ico">📖</span>記憶</button>
     <button type="button" id="saveNow"><span class="ico">💾</span>立即存檔</button>
+    <button type="button" id="openIO"><span class="ico">📦</span>匯出／匯入</button>
     <button type="button" id="openSettings"><span class="ico">⚙︎</span>設定</button>
   </nav>
 </div>
@@ -310,6 +323,39 @@
     <div class="actions">
       <button id="backChars" type="button" hidden>← 角色列表</button>
       <button id="closeChars" type="button">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div id="ioPanel" class="overlay">
+  <div class="sheet">
+    <h2 id="ioTitle">匯出／匯入</h2>
+    <p class="note" id="ioNote">存檔只存在這支手機的瀏覽器裡。換手機、換瀏覽器或清除資料前，先匯出備份。</p>
+
+    <div id="ioMain" class="io-list">
+      <button type="button" id="ioExport"><span class="ico">⬇️</span><span><b>匯出目前存檔</b><small id="ioExportSub">下載成一個檔案，可以備份或搬到其他裝置</small></span></button>
+      <button type="button" id="ioImport"><span class="ico">⬆️</span><span><b>匯入存檔檔案</b><small>會新增成一個存檔，不會覆蓋現有的故事</small></span></button>
+      <button type="button" id="ioContinue"><span class="ico">🔁</span><span><b>從其他平台接續</b><small>帶著 Gemini／ChatGPT 的記憶，在這裡接著玩</small></span></button>
+      <input type="file" id="ioFile" accept=".json,application/json" hidden>
+    </div>
+
+    <div id="ioForm" hidden>
+      <label for="ioChar">角色</label>
+      <select id="ioChar"><option value="">載入中…</option></select>
+      <label for="ioName">新存檔名稱</label>
+      <input id="ioName" autocomplete="off" maxlength="30" placeholder="例如：主線（從 Gemini 搬來）">
+      <label for="ioCard">玩家角色卡</label>
+      <textarea id="ioCard" placeholder="貼上妳在原平台用的玩家角色卡"></textarea>
+      <label for="ioMem">常駐記憶檔或最近一份記憶片段</label>
+      <textarea id="ioMem" placeholder="貼上原平台存下的記憶。有 Page.53-76 這類頁碼的話，會從下一頁接著算"></textarea>
+      <div class="status" id="ioHint"></div>
+    </div>
+
+    <div class="status" id="ioStatus"></div>
+    <div class="actions">
+      <button id="ioBack" type="button" hidden>← 返回</button>
+      <button id="closeIO" type="button">關閉</button>
+      <button class="primary" id="ioStart" type="button" hidden>開始接續</button>
     </div>
   </div>
 </div>
@@ -390,7 +436,7 @@ const store = {
     try { const v = localStorage.getItem(k); return v === null ? fallback : JSON.parse(v); }
     catch { return fallback; }
   },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
   remove(k) { try { localStorage.removeItem(k); } catch {} },
 };
 
@@ -404,6 +450,10 @@ let history = [];
 let busy = false;
 
 const NEW_GAME = "/新玩家";
+// 從其他平台接續：第一句送 /舊玩家，附一行說明（畫面上不顯示）
+const OLD_GAME = "/舊玩家";
+const OLD_NOTE = "（角色卡與過往記憶已提供，請直接依記憶接續）";
+const isOldGame = (t) => typeof t === "string" && t.startsWith(OLD_GAME);
 const CARD_MARK = "【玩家角色卡】";
 
 // 翻看指令清單（名稱、圖示、指令），由 Worker 的 /characters 提供，條目內容留在 Worker
@@ -500,14 +550,14 @@ function loadHistory() {
   history = s ? store.get(historyKey(), []) : [];
   if (!s) return;
   // 舊存檔沒有頁碼：依角色回覆順序補上，並校正頁首（不更動最後遊玩時間）
-  const r = numberPages(history);
+  const r = numberPages(history, s.base || 0);
   if (r.changed) store.set(historyKey(), history);
   if (s.pages !== r.pages) { s.pages = r.pages; saveSlots(); }
 }
 function saveHistory() {
   const s = curSlot();
   if (!s) return;
-  s.pages = numberPages(history).pages;
+  s.pages = numberPages(history, s.base || 0).pages;
   store.set(historyKey(), history);
   s.updated = Date.now();
   s.count = history.length;
@@ -517,8 +567,9 @@ function saveHistory() {
 // ---------- 頁數 ----------
 // 一則角色回覆＝一頁；/新玩家 之後的第一則（登場）就是 page.1
 // 重來最後一則：舊回覆移除後新回覆補回同一個位置，頁碼自然沿用
-function numberPages(list) {
-  let n = 0, changed = false;
+// base：從其他平台接續時的起始頁（例如舊平台存到 Page.76，這裡就是 76）
+function numberPages(list, base = 0) {
+  let n = base, changed = false;
   for (const m of list) {
     if (m.role === "user" && m.text === NEW_GAME) n = 0;
     if (m.role !== "model") continue;
@@ -548,7 +599,7 @@ function fixHeadPage(text, n) {
 
 function slotPages(cid, s) {
   if (typeof s.pages === "number") return s.pages;
-  return numberPages(store.get(historyKey(cid, s.id), [])).pages;
+  return numberPages(store.get(historyKey(cid, s.id), []), s.base || 0).pages;
 }
 
 // ---------- 記憶：每個存檔各自保存記憶片段 ----------
@@ -570,6 +621,10 @@ function fragEvts(text) {
   }
   return [...seen.entries()].sort((a, b) => a[0] - b[0]);
 }
+function fragLabel(f) {
+  if (f.imported) return f.to ? `Page.1-${f.to}（其他平台匯入）` : "其他平台匯入";
+  return `Page.${f.from}-${f.to}`;
+}
 function nextEvt(mem) {
   let max = 0;
   for (const f of mem.frags) for (const [n] of fragEvts(f.text)) max = Math.max(max, n);
@@ -587,7 +642,7 @@ function buildMemory(mem, slotName = (curSlot() || {}).name || "") {
     "━ 事件總目錄 ━ # 權重：S=核心劇情 / A=重要事件 / B=一般過渡 / C=瑣碎細節",
   ];
   for (const f of mem.frags) {
-    out.push(`Page.${f.from}-${f.to}｜${f.date || ""}`);
+    out.push(fragLabel(f) + `｜${f.date || ""}`);
     for (const [, t] of fragEvts(f.text)) out.push(t);
   }
   const last = mem.frags[mem.frags.length - 1].text;
@@ -662,6 +717,10 @@ function addBubble(role, text, scroll = true, usage = null, latest = true, page 
     d = document.createElement("div");
     d.className = "marker";
     d.textContent = "新的故事";
+  } else if (role === "user" && isOldGame(text)) {
+    d = document.createElement("div");
+    d.className = "marker";
+    d.textContent = `接續的故事・從 page.${((curSlot() || {}).base || 0) + 1} 開始`;
   } else if (lore) {
     // 翻看指令顯示成小標記
     d = document.createElement("div");
@@ -939,7 +998,7 @@ function showSaveMark(to, state, text) {
 
 function renderSaveMarks() {
   if (!curSlot()) return;
-  for (const f of loadMem().frags) showSaveMark(f.to, "done", `Page.${f.from}-${f.to}`);
+  for (const f of loadMem().frags) if (!f.imported) showSaveMark(f.to, "done", `Page.${f.from}-${f.to}`);
   if (sameSlot(saving)) showSaveMark(saving.to, "saving", `Page.${saving.from}-${saving.to}`);
   if (sameSlot(saveFail)) showSaveMark(saveFail.to, "fail", `Page.${saveFail.from}-${saveFail.to}`);
 }
@@ -1201,6 +1260,8 @@ $("newGame").onclick = () => {
   if (s) {
     const old = loadMem();
     saveMem(settings.character, s.id, { saved: 0, epoch: (old.epoch || 0) + 1, frags: [] });
+    s.base = 0;
+    saveHistory();
     if (sameSlot(saveFail)) saveFail = null;
   }
   render();
@@ -1345,13 +1406,170 @@ function openMemory() {
     h.textContent = "記憶片段";
     body.append(h);
     for (const f of mem.frags.slice().reverse()) {
-      body.append(memBlock(`Page.${f.from}-${f.to}`, f.date || "", f.text));
+      body.append(memBlock(fragLabel(f), f.date || "", f.text));
     }
   }
   $("memoryPanel").classList.add("open");
 }
 $("openMemory").onclick = openMemory;
 $("closeMemory").onclick = () => $("memoryPanel").classList.remove("open");
+
+// ---------- 📦 匯出／匯入 ----------
+const SAVE_FORMAT = "mcx-rp-save";
+let ioChars = [];
+
+function ioStatus(msg, err = false) {
+  $("ioStatus").textContent = msg;
+  $("ioStatus").className = "status" + (err ? " err" : "");
+}
+function ioShow(form) {
+  $("ioMain").hidden = form;
+  $("ioForm").hidden = !form;
+  $("ioBack").hidden = !form;
+  $("ioStart").hidden = !form;
+  $("ioNote").hidden = form;
+  $("ioTitle").textContent = form ? "從其他平台接續" : "匯出／匯入";
+  ioStatus("");
+}
+function openIO() {
+  ioShow(false);
+  const s = curSlot();
+  $("ioExportSub").textContent = s
+    ? `${settings.characterName}・${s.name}・page.${s.pages || 0}`
+    : "下載成一個檔案，可以備份或搬到其他裝置";
+  $("ioPanel").classList.add("open");
+}
+$("openIO").onclick = openIO;
+$("closeIO").onclick = () => $("ioPanel").classList.remove("open");
+$("ioBack").onclick = () => ioShow(false);
+
+function safeName(x) { return String(x || "").replace(/[\\/:*?"<>|\s]+/g, "_").slice(0, 30); }
+
+// 匯出：以存檔為單位，不含 API key 與邀請碼
+$("ioExport").onclick = () => {
+  const s = curSlot();
+  if (!s || !history.length) { ioStatus("目前的存檔還沒有內容可以匯出", true); return; }
+  const data = {
+    format: SAVE_FORMAT,
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    character: { id: settings.character, name: settings.characterName },
+    slot: { name: s.name, card: s.card || "", base: s.base || 0, pages: s.pages || 0 },
+    history,
+    memory: loadMem(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 1)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${safeName(settings.characterName)}_${safeName(s.name)}_page${s.pages || 0}_${today()}.json`;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  ioStatus("已匯出 ✧ 檔案在手機的「下載」資料夾");
+};
+
+// 建好新存檔後寫入；空間不夠就整個退回，不留半套資料
+function writeNewSlot(cid, s, hist, mem) {
+  const ok = store.set(historyKey(cid, s.id), hist) && store.set(memKey(cid, s.id), mem);
+  if (ok) return true;
+  store.remove(historyKey(cid, s.id));
+  store.remove(memKey(cid, s.id));
+  const cs = charSlots(cid);
+  cs.list = cs.list.filter((x) => x.id !== s.id);
+  cs.current = cs.list.length ? cs.list[0].id : "";
+  saveSlots();
+  return false;
+}
+
+// 匯入：一律新增成一個新存檔
+$("ioImport").onclick = () => { $("ioFile").value = ""; $("ioFile").click(); };
+$("ioFile").onchange = async () => {
+  const f = $("ioFile").files[0];
+  if (!f) return;
+  ioStatus("讀取中…");
+  let data;
+  try { data = JSON.parse(await f.text()); } catch { data = null; }
+  if (!data || data.format !== SAVE_FORMAT || !Array.isArray(data.history) || !data.character || !data.slot) {
+    ioStatus("這不是網頁版的存檔檔案", true);
+    return;
+  }
+  let chars;
+  try { chars = (await callWorker("/characters", {})).characters || []; } catch (e) { ioStatus(e.message, true); return; }
+  const c = chars.find((x) => x.id === data.character.id);
+  if (!c) { ioStatus(`「${data.character.name || data.character.id}」目前沒有開放，無法匯入`, true); return; }
+
+  const hist = data.history
+    .filter((m) => m && typeof m.text === "string" && (m.role === "user" || m.role === "model"))
+    .map(({ role, text, usage, page }) => ({ role, text, usage, page }));
+  const m = data.memory && Array.isArray(data.memory.frags) ? data.memory : { saved: 0, frags: [] };
+  const mem = { saved: Math.max(0, parseInt(m.saved, 10) || 0), epoch: 0, frags: m.frags.filter((x) => x && typeof x.text === "string") };
+
+  const s = newSlot(c.id, `${String(data.slot.name || "存檔").slice(0, 24)}（匯入）`);
+  s.card = String(data.slot.card || "");
+  s.base = Math.max(0, parseInt(data.slot.base, 10) || 0);
+  if (!writeNewSlot(c.id, s, hist, mem)) { ioStatus("手機瀏覽器的空間不夠，匯入失敗。可以先刪掉不玩的存檔再試", true); return; }
+  s.count = hist.length;
+  s.updated = Date.now();
+  saveSlots();
+  enterSlot(c, s.id);
+  $("ioPanel").classList.remove("open");
+  toast(`已匯入「${s.name}」✧`);
+};
+
+// 從其他平台接續
+function lastPageOf(text) {
+  let max = 0;
+  for (const m of text.matchAll(/Page\.?\s*(\d+)\s*[-–~～]\s*(\d+)/gi)) max = Math.max(max, +m[2]);
+  if (!max) for (const m of text.matchAll(/Page\.\s*(\d+)/gi)) max = Math.max(max, +m[1]);
+  return max;
+}
+function ioHint() {
+  const t = $("ioMem").value.trim();
+  const n = lastPageOf(t);
+  $("ioHint").textContent = t ? (n ? `找到 Page.${n}，會從 page.${n + 1} 接著算` : "沒有找到頁碼，會從 page.1 開始") : "";
+}
+$("ioMem").addEventListener("input", ioHint);
+
+$("ioContinue").onclick = async () => {
+  ioShow(true);
+  $("ioName").value = "";
+  $("ioCard").value = "";
+  $("ioMem").value = "";
+  ioHint();
+  fillSelect($("ioChar"), [], "", "載入中…");
+  try {
+    const data = await callWorker("/characters", {});
+    ioChars = data.characters || [];
+    setLore(data.lorebook);
+    fillSelect($("ioChar"), ioChars, settings.character, "目前沒有角色");
+  } catch (e) {
+    ioStatus(e.message, true);
+  }
+};
+
+$("ioStart").onclick = () => {
+  const cid = $("ioChar").value;
+  const name = $("ioName").value.trim();
+  const card = $("ioCard").value.trim();
+  const memText = $("ioMem").value.trim();
+  if (!settings.invite || !settings.key || !settings.model) { ioStatus("請先到設定填好邀請碼、API key 與模型", true); return; }
+  if (!cid) { ioStatus("請先選擇角色", true); return; }
+  if (!name) { ioStatus("請為新存檔取名", true); $("ioName").focus(); return; }
+  if (!memText) { ioStatus("請貼上原平台的記憶", true); $("ioMem").focus(); return; }
+  const c = ioChars.find((x) => x.id === cid) || { id: cid, name: cid };
+
+  const base = lastPageOf(memText);
+  const s = newSlot(cid, name);
+  s.card = card;
+  s.base = base;
+  const mem = { saved: base, epoch: 0, frags: [{ from: 1, to: base, date: today(), text: memText, at: Date.now(), imported: true }] };
+  if (!writeNewSlot(cid, s, [], mem)) { ioStatus("手機瀏覽器的空間不夠。可以先刪掉不玩的存檔再試", true); return; }
+  saveSlots();
+  enterSlot(c, s.id);
+  $("ioPanel").classList.remove("open");
+  send(`${OLD_GAME}\n${OLD_NOTE}`);
+};
 
 // ---------- 切換角色 → 選存檔 ----------
 let pickChars = [];
