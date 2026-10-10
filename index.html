@@ -74,6 +74,28 @@
   .page p:last-child { margin-bottom: 0; }
   .page strong { font-weight: 600; }
 
+  /* Markdown：標題、分隔線、清單、引用、表格、程式碼框 */
+  .page h1, .page h2, .page h3, .page h4, .page h5, .page h6 { font-family: "Noto Sans TC", sans-serif; color: var(--accent);
+    font-weight: 700; line-height: 1.6; letter-spacing: .04em; margin: 1.5em 0 .45em; }
+  .page h1 { font-size: 1.3em; } .page h2 { font-size: 1.16em; } .page h3 { font-size: 1.04em; }
+  .page h4, .page h5, .page h6 { font-size: .95em; }
+  .page > :first-child { margin-top: 0; }
+  .page hr { border: 0; border-top: 1px solid var(--line); width: 40%; margin: 1.7em auto; }
+  .page em { font-style: normal; color: color-mix(in srgb, var(--text) 55%, var(--muted)); }
+  .page ul, .page ol { margin: 0 0 1.15em; padding-left: 1.5em; }
+  .page blockquote { margin: 0 0 1.15em; padding: 2px 0 2px 14px; border-left: 3px solid var(--accent-line); color: var(--muted); }
+  .page .tbl { overflow-x: auto; margin: 0 0 1.15em; }
+  .page table { border-collapse: collapse; font-family: "Noto Sans TC", sans-serif; font-size: 14px; line-height: 1.7; letter-spacing: 0; }
+  .page th, .page td { border: 1px solid var(--line); padding: 5px 10px; text-align: left; vertical-align: top; }
+  .page th { background: var(--panel-2); }
+  .page code { font-family: inherit; background: var(--panel-2); border-radius: 5px; padding: 1px 5px; font-size: .9em; }
+  .codecard { margin: 6px 0 1.4em; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .codecard pre { margin: 0; padding: 14px 16px 6px; font-family: "Noto Sans TC", sans-serif; font-size: 14px; line-height: 1.9;
+    letter-spacing: .02em; white-space: pre-wrap; word-break: break-word; }
+  .codecard pre code { background: none; padding: 0; font-size: inherit; }
+  .codecard .bar { display: flex; justify-content: flex-end; gap: 6px; padding: 6px 10px 10px; }
+  .codecard .bar button { font-family: "Noto Sans TC", sans-serif; font-size: 12.5px; padding: 4px 12px; border-radius: 999px; }
+
   /* 5.1 頁首 */
   .page .head { font-family: "Noto Sans TC", sans-serif; font-size: 12.5px; line-height: 1.9; letter-spacing: .04em;
     color: var(--muted); text-align: center; padding: 0 0 16px; margin: 0 0 22px; border-bottom: 1px solid var(--line); }
@@ -420,6 +442,7 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script>
 // ============================================================
 // 設定：把這裡換成妳的 Worker 網址
@@ -915,6 +938,72 @@ function inline(s) {
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 }
 
+// Markdown：正文交給 marked（cdnjs）；回覆夾帶的 HTML 一律當文字顯示，連結只放行 http(s)，圖片只顯示說明文字
+// marked 沒載入時退回 inline() 的簡易版
+const md = window.marked && window.marked.Marked ? new window.marked.Marked({ gfm: true, breaks: true }) : null;
+if (md) {
+  md.use({
+    renderer: {
+      html(h) { return esc(typeof h === "string" ? h : (h && h.text) || ""); },
+      link(href, title, text) {
+        return /^https?:\/\//i.test(href || "") ? `<a href="${esc(href)}" target="_blank" rel="noopener">${text}</a>` : text;
+      },
+      image(href, title, text) { return esc(text || ""); },
+    },
+  });
+}
+
+function renderMarkdown(text, page) {
+  if (!text.trim()) return;
+  if (!md) {
+    text.split(/\n\s*\n/).forEach((chunk) => {
+      if (!chunk.trim()) return;
+      const p = document.createElement("p");
+      p.innerHTML = chunk.split("\n").map((l) => inline(l.trim())).join("<br>");
+      page.append(p);
+    });
+    return;
+  }
+  const box = document.createElement("div");
+  box.innerHTML = md.parse(text);
+  // 表格可左右捲動
+  box.querySelectorAll("table").forEach((t) => {
+    const w = document.createElement("div");
+    w.className = "tbl";
+    t.replaceWith(w);
+    w.append(t);
+  });
+  // 程式碼框（例如 ```text 包住的角色卡）：加「填入」「複製」
+  box.querySelectorAll("pre").forEach((pre) => {
+    const code = pre.textContent.replace(/\n$/, "");
+    const card = document.createElement("div");
+    card.className = "codecard";
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    const fill = document.createElement("button");
+    fill.type = "button";
+    fill.textContent = "填入";
+    fill.onclick = () => {
+      const inp = $("input");
+      inp.value = code;
+      autoGrow();
+      inp.focus();
+    };
+    const copy = document.createElement("button");
+    copy.type = "button";
+    copy.textContent = "複製";
+    copy.onclick = async () => {
+      await copyText(code);
+      copy.textContent = "已複製";
+      setTimeout(() => (copy.textContent = "複製"), 1500);
+    };
+    bar.append(fill, copy);
+    pre.replaceWith(card);
+    card.append(pre, bar);
+  });
+  page.append(...box.childNodes);
+}
+
 // 從玩家角色卡讀出名字，不限寫法：
 //   標籤（名字／姓名／名稱／Name）→ 自我介紹句（我叫／我是／叫我）→ 第一段第一格 → 記憶片段裡的「玩家名稱」
 function playerName(card = currentCard()) {
@@ -1042,19 +1131,20 @@ function renderPage(text, latest) {
     }
   }
 
-  // 中間：小說段落、5.3 通訊、5.4 音樂卡
-  let para = [];
+  // 中間：小說正文（Markdown）、5.3 通訊、5.4 音樂卡、翻看卡
+  let buf = [];
+  let fence = false;
   const flush = () => {
-    if (!para.length) return;
-    const p = document.createElement("p");
-    p.innerHTML = para.map((l) => inline(l.trim())).join("<br>");
-    page.append(p);
-    para = [];
+    renderMarkdown(buf.join("\n"), page);
+    buf = [];
   };
 
   for (let i = start; i < end; i++) {
     const l = lines[i];
     const t = l.trim();
+    // 程式碼框裡的內容原樣保留，不判斷其他格式
+    if (/^(```|~~~)/.test(t)) { fence = !fence; buf.push(t); continue; }
+    if (fence) { buf.push(l); continue; }
     if (t.startsWith("✧✦")) {
       flush();
       const block = [];
@@ -1075,12 +1165,15 @@ function renderPage(text, latest) {
       const stop = loreCommentsEnd(lines, last + 1, end);
       page.append(renderLoreCard(lines.slice(i, stop)));
       i = stop - 1;
-    } else if (!t) {
-      flush();
+    } else if (isRuleLine(t)) {
+      // 分隔線前面補空行，避免上一行被當成標題
+      buf.push("", "---", "");
     } else {
-      para.push(l);
+      // 去掉行首空白：避免縮排被當成程式碼框
+      buf.push(t);
     }
   }
+  if (fence) buf.push("```");
   flush();
 
   if (end < lines.length) {
