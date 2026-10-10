@@ -707,12 +707,30 @@ function inline(s) {
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 }
 
-function playerName() {
-  const card = currentCard();
-  const i = card.indexOf(CARD_MARK);
-  if (i < 0) return "";
-  const rest = card.slice(i + CARD_MARK.length).replace(/^\s*名字[：:｜]?\s*/, "");
-  return rest.split(/[｜|\n]/)[0].replace(/（.*?）|\(.*?\)/g, "").trim();
+// 從玩家角色卡讀出名字，接受多種寫法：
+//   【玩家角色卡】名字｜沐梓璃｜…　／　玩家角色卡：\n沐梓璃｜女｜…　／　姓名：沐梓璃
+function playerName(card = currentCard()) {
+  if (!card) return "";
+  const SEP = /[｜|│┃丨／\/,，、;；\n]/;
+  const clean = (s) => s.replace(/（.*?）|\(.*?\)/g, "").replace(/^[\s\-•*・◦]+/, "").trim();
+  const ok = (s) => (s && s.length <= 20 ? s : "");
+
+  // 1. 有「名字／姓名」標籤
+  const m = card.match(/(?:名字|姓名|名稱)\s*[：:｜|]\s*([^\n]+)/);
+  if (m) {
+    const v = clean(m[1].split(SEP)[0]);
+    if (v && !/^(性別|年齡|生日)$/.test(v)) return ok(v);
+  }
+  // 2. 「玩家角色卡」標題之後第一段的第一格；沒有標題就從頭開始
+  const h = card.match(/【?玩家角色卡】?\s*[：:]?/);
+  const rest = h ? card.slice(h.index + h[0].length) : card;
+  const first = rest.split("\n").map((l) => l.trim()).find(Boolean) || "";
+  return ok(clean(first.split(SEP)[0]));
+}
+
+// 玩家在聊天中送出的是不是角色卡：開頭是「玩家角色卡」，而且後面有分隔或換行
+function isCardMessage(msg) {
+  return /^\s*【?玩家角色卡】?\s*[：:]?[\s\S]*[｜|\n]/.test(msg) && /^\s*【?玩家角色卡/.test(msg);
 }
 
 function isTrackerLine(l) {
@@ -1112,7 +1130,7 @@ async function send(text, { addUser = true } = {}) {
   }
 
   // 玩家在聊天中送出角色卡 → 自動存成這個存檔的卡
-  if (message.includes(CARD_MARK)) {
+  if (message.includes(CARD_MARK) || isCardMessage(message)) {
     setCard(message);
     $("pasteCard").hidden = false;
   }
