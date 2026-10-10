@@ -16,6 +16,7 @@
     --bg: #17131d; --page: #1e1925; --panel: #221c2a; --panel-2: #2c2436; --line: #3a3046;
     --text: #e7e0ee; --muted: #9d92ab; --accent: #c3a3e6; --accent-ink: #1b1424;
     --accent-soft: rgba(195, 163, 230, .13); --danger: #e8909f;
+    --accent-line: rgba(195, 163, 230, .42);
     --phone: #141018; --bubble-them: #2c2436; --bubble-me: #5b4378; --bubble-me-ink: #f4ecfb;
     --shadow: 0 10px 30px rgba(0, 0, 0, .35);
     color-scheme: dark;
@@ -25,6 +26,7 @@
     --bg: #eeebf2; --page: #f9f7fb; --panel: #ffffff; --panel-2: #ebe5f1; --line: #ddd5e6;
     --text: #2e2638; --muted: #7d7189; --accent: #7a4e92; --accent-ink: #ffffff;
     --accent-soft: rgba(122, 78, 146, .10); --danger: #b04a5c;
+    --accent-line: rgba(122, 78, 146, .32);
     --phone: #f1edf6; --bubble-them: #ffffff; --bubble-me: #7a4e92; --bubble-me-ink: #ffffff;
     --shadow: 0 10px 28px rgba(60, 40, 80, .12);
     color-scheme: light;
@@ -34,6 +36,7 @@
       --bg: #eeebf2; --page: #f9f7fb; --panel: #ffffff; --panel-2: #ebe5f1; --line: #ddd5e6;
       --text: #2e2638; --muted: #7d7189; --accent: #7a4e92; --accent-ink: #ffffff;
       --accent-soft: rgba(122, 78, 146, .10); --danger: #b04a5c;
+    --accent-line: rgba(122, 78, 146, .32);
       --phone: #f1edf6; --bubble-them: #ffffff; --bubble-me: #7a4e92; --bubble-me-ink: #ffffff;
       --shadow: 0 10px 28px rgba(60, 40, 80, .12);
       color-scheme: light;
@@ -175,6 +178,64 @@
   .menu .ext { margin-left: auto; color: var(--muted); font-size: 12px; }
   .menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 8px; }
 
+  /* 翻看列：最新一頁狀態欄下方 */
+  .peek { font-family: "Noto Sans TC", sans-serif; letter-spacing: 0; margin-top: 12px; }
+  .peek summary { cursor: pointer; list-style: none; font-size: 12.5px; color: var(--muted); user-select: none; }
+  .peek summary::-webkit-details-marker { display: none; }
+  .peek summary::before { content: "▸ "; }
+  .peek[open] summary::before { content: "▾ "; }
+  .peek summary .spark { color: var(--accent); margin-left: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chip { font: inherit; font-size: 13.5px; line-height: 1.4; color: var(--text); background: var(--accent-soft);
+    border: 1px solid var(--accent-line); border-radius: 999px; padding: 7px 14px 7px 11px;
+    display: inline-flex; align-items: center; gap: 6px; transition: transform .15s ease, background .15s ease; }
+  .chip:hover { background: var(--panel-2); }
+  .chip:active { transform: scale(.93); }
+
+  /* 翻看卡：✦ 區塊 */
+  .lore-card { position: relative; font-family: "Noto Sans TC", sans-serif; font-size: 14.5px; line-height: 1.85;
+    letter-spacing: 0; margin: 18px 0 28px; padding: 18px 18px 16px; background: var(--panel);
+    border: 1.5px dashed var(--accent-line); border-radius: 20px; box-shadow: var(--shadow); }
+  .lore-card::before, .lore-card::after { position: absolute; color: var(--accent); background: var(--bg);
+    padding: 0 6px; font-size: 13px; line-height: 1; }
+  .lore-card::before { content: "✦"; top: -8px; left: 18px; }
+  .lore-card::after { content: "✧ ✦"; bottom: -7px; right: 18px; letter-spacing: 2px; }
+  .lore-sec + .lore-sec { border-top: 1px dotted var(--accent-line); margin-top: 12px; padding-top: 12px; }
+  .lore-sec.title { text-align: center; }
+  .lore-sec.title .lore-line:first-child { font-size: 16px; font-weight: 700; color: var(--text); }
+  .lore-sec.title .lore-line + .lore-line { font-size: 12.5px; color: var(--muted); }
+  .lore-line { white-space: pre-wrap; word-break: break-word; }
+  .lore-line.lab { font-weight: 700; color: var(--accent); margin-top: 6px; }
+  .lore-line.lab:first-child { margin-top: 0; }
+  .lore-line.note { margin-top: 6px; }
+  .lore-line.sub { padding-left: 1.1em; color: var(--text); opacity: .92; }
+  .lore-line.sub::before { content: "◦ "; color: var(--accent); }
+  .lore-line.floor { margin-top: 8px; font-weight: 600; }
+  .lore-line.reply { padding-left: 1.1em; font-size: 13.5px; color: var(--muted); }
+  .lore-line.gap { height: .6em; }
+  .lore-card del { opacity: .55; text-decoration-color: var(--danger); }
+
+  /* 翻看指令的標記、存檔標記 */
+  .pill { align-self: center; width: fit-content !important; max-width: 92% !important; font-family: "Noto Sans TC", sans-serif;
+    font-size: 12.5px; line-height: 1.6; color: var(--muted); text-align: center; border-radius: 999px; padding: 4px 14px; }
+  .lore-mark { color: var(--accent); border: 1px dashed var(--accent-line); background: var(--accent-soft); }
+  .lore-mark .extra { color: var(--muted); }
+  .save-mark { margin-top: -8px !important; background: var(--accent-soft); }
+  .save-mark.saving .dot { display: inline-block; animation: bob 1s ease-in-out infinite; }
+  .save-mark.fail { color: var(--danger); background: transparent; border: 1px dashed var(--danger); cursor: pointer; }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+  .toast { position: fixed; left: 50%; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 120px); z-index: 30;
+    transform: translate(-50%, 10px); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+    background: var(--page); color: var(--text); border: 1px solid var(--accent-line); border-radius: 999px;
+    padding: 9px 18px; font-size: 13.5px; box-shadow: var(--shadow); width: max-content; max-width: calc(100vw - 32px); text-align: center; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chip, .toast { transition: none; }
+    .save-mark.saving .dot { animation: none; }
+  }
+
   @media (min-width: 720px) {
     #chat { padding: 40px 24px 48px; }
     .page { font-size: 17.5px; }
@@ -198,9 +259,12 @@
     <a id="linkWorlds" target="_blank" rel="noopener"><span class="ico">💜</span>開放世界（多人）<span class="ext">↗</span></a>
     <a id="linkGuide" target="_blank" rel="noopener"><span class="ico">❔</span>使用說明<span class="ext">↗</span></a>
     <hr>
+    <button type="button" id="saveNow"><span class="ico">💾</span>立即存檔</button>
     <button type="button" id="openSettings"><span class="ico">⚙︎</span>設定</button>
   </nav>
 </div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <main id="chat"></main>
 
@@ -289,6 +353,9 @@ const CHARS_URL = "https://obvious-tenor-7aa.notion.site/210f4e50bb4b80008d28edd
 const WORLDS_URL = "https://obvious-tenor-7aa.notion.site/2d1f4e50bb4b802d9c80e60a76446428"; // 開放世界（多人）
 const GUIDE_URL = "https://obvious-tenor-7aa.notion.site/3f5f4e50bb4b81e184d4eed446634734";  // 使用說明
 
+// 每幾頁自動存檔一次（實測時可暫時改小，例如 2）
+const SAVE_EVERY = 20;
+
 // ---------- 儲存（包 try/catch，私密瀏覽等情況下不會壞掉）----------
 const store = {
   get(k, fallback) {
@@ -310,6 +377,27 @@ let busy = false;
 
 const NEW_GAME = "/新玩家";
 const CARD_MARK = "【玩家角色卡】";
+
+// 翻看指令清單（名稱、圖示、指令），由 Worker 的 /characters 提供，條目內容留在 Worker
+let lorebook = store.get("rp_lore", []);
+function setLore(list) {
+  lorebook = Array.isArray(list) ? list : [];
+  store.set("rp_lore", lorebook);
+}
+// 玩家輸入以指令開頭（後面接空白、換行或結尾）才算翻看
+function loreOf(text) {
+  const msg = String(text || "").trim();
+  const low = msg.toLowerCase();
+  for (const e of lorebook) {
+    for (const k of e.keys || []) {
+      const kl = k.toLowerCase();
+      if (low === kl || (low.startsWith(kl) && /\s/.test(low.charAt(kl.length)))) {
+        return { entry: e, rest: msg.slice(k.length).trim() };
+      }
+    }
+  }
+  return null;
+}
 
 // 舊版「一個角色一張卡、一段對話」→ 轉成各角色的「存檔 1」
 function migrateOldData() {
@@ -435,6 +523,69 @@ function slotPages(cid, s) {
   return numberPages(store.get(historyKey(cid, s.id), [])).pages;
 }
 
+// ---------- 記憶：每個存檔各自保存記憶片段 ----------
+// rp_memory_{角色id}__{存檔id} = { saved: 已存到第幾頁, epoch: 開新遊戲就 +1, frags: [{ from, to, date, text, at }] }
+function memKey(cid, sid) { return `rp_memory_${cid}__${sid}`; }
+function loadMem(cid = settings.character, sid = (curSlot() || {}).id) {
+  const m = store.get(memKey(cid, sid), null);
+  return m && Array.isArray(m.frags) ? m : { saved: 0, epoch: 0, frags: [] };
+}
+function saveMem(cid, sid, m) { store.set(memKey(cid, sid), m); }
+
+const EVT_RE = /^\s*\[EVT\.(\d+)\s*[｜|]\s*([SABC])\s*\]\s*(.+?)\s*$/;
+// 從記憶片段擷取 [EVT.xx｜權重] 事件標題（同一編號只取一次）
+function fragEvts(text) {
+  const seen = new Map();
+  for (const l of String(text).split("\n")) {
+    const m = l.match(EVT_RE);
+    if (m && !seen.has(+m[1])) seen.set(+m[1], `[EVT.${m[1]}｜${m[2]}] ${m[3]}`);
+  }
+  return [...seen.entries()].sort((a, b) => a[0] - b[0]);
+}
+function nextEvt(mem) {
+  let max = 0;
+  for (const f of mem.frags) for (const [n] of fragEvts(f.text)) max = Math.max(max, n);
+  return max + 1;
+}
+
+// 常駐記憶檔由程式組裝：事件總目錄逐份累加＋最新片段的「當前狀態總結」到結尾
+function buildMemory(mem, slotName = (curSlot() || {}).name || "") {
+  if (!mem.frags.length) return "";
+  const char = settings.characterName || "角色";
+  const user = playerName() || "玩家";
+  const out = [
+    `【${char}×${user}｜${slotName}｜常駐記憶檔】`,
+    `玩家名稱｜${user}｜記錄角色｜${char}`,
+    "━ 事件總目錄 ━ # 權重：S=核心劇情 / A=重要事件 / B=一般過渡 / C=瑣碎細節",
+  ];
+  for (const f of mem.frags) {
+    out.push(`Page.${f.from}-${f.to}｜${f.date || ""}`);
+    for (const [, t] of fragEvts(f.text)) out.push(t);
+  }
+  const last = mem.frags[mem.frags.length - 1].text;
+  const i = last.indexOf("當前狀態總結");
+  out.push(i >= 0 ? last.slice(i).trim() : last.trim());
+  return out.join("\n");
+}
+
+// 取出 Page.from-to 的對話原文（含引出第一頁的那句玩家訊息）
+function sliceTranscript(list, from, to) {
+  const idx = [];
+  list.forEach((m, i) => { if (m.role === "model" && m.page >= from && m.page <= to) idx.push(i); });
+  if (!idx.length) return [];
+  let a = idx[0];
+  if (a > 0 && list[a - 1].role === "user") a--;
+  return list
+    .slice(a, idx[idx.length - 1] + 1)
+    .filter((m) => !(m.role === "user" && m.text === NEW_GAME))
+    .map(({ role, text, page }) => ({ role, text, page }));
+}
+
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+}
+
 // ---------- 畫面 ----------
 // 標題小字：存檔名・page.X・模型
 function renderTitle() {
@@ -459,24 +610,41 @@ function render() {
       : "先到右上角 ☰ →「設定」填好邀請碼、API key，載入模型與角色。";
     chatEl.append(d);
   }
-  history.forEach((m, i) => addBubble(m.role, m.text, false, m.usage, i === history.length - 1));
+  history.forEach((m, i) => addBubble(m.role, m.text, false, m.usage, i === history.length - 1, m.page));
+  renderSaveMarks();
   $("pasteCard").hidden = !currentCard();
   scrollDown();
 }
 
-function addBubble(role, text, scroll = true, usage = null, latest = true) {
+function addBubble(role, text, scroll = true, usage = null, latest = true, page = 0) {
   const empty = chatEl.querySelector(".empty");
   if (empty) empty.remove();
 
   let d;
+  const lore = role === "user" ? loreOf(text) : null;
   if (role === "model") {
-    // 舊的狀態欄收起來，只展開最新一頁
-    if (latest) chatEl.querySelectorAll(".tracker[open]").forEach((t) => t.removeAttribute("open"));
+    // 舊的狀態欄收起來、舊的翻看列拿掉，只留在最新一頁
+    if (latest) {
+      chatEl.querySelectorAll(".tracker[open]").forEach((t) => t.removeAttribute("open"));
+      chatEl.querySelectorAll(".peek").forEach((p) => p.remove());
+    }
     d = renderPage(text, latest);
+    if (page) d.dataset.page = page;
   } else if (role === "user" && text === NEW_GAME) {
     d = document.createElement("div");
     d.className = "marker";
     d.textContent = "新的故事";
+  } else if (lore) {
+    // 翻看指令顯示成小標記
+    d = document.createElement("div");
+    d.className = "pill lore-mark";
+    d.textContent = `${lore.entry.icon || "📂"} 翻看・${lore.entry.name}`;
+    if (lore.rest) {
+      const x = document.createElement("span");
+      x.className = "extra";
+      x.textContent = `｜${lore.rest}`;
+      d.append(x);
+    }
   } else if (role === "user") {
     d = document.createElement("div");
     d.className = "aside";
@@ -503,10 +671,11 @@ function addBubble(role, text, scroll = true, usage = null, latest = true) {
 function esc(s) {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
-// 只處理粗體與連結，其餘一律當純文字
+// 只處理粗體、刪除線與連結，其餘一律當純文字
 function inline(s) {
   return esc(s)
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/~~(.+?)~~/g, "<del>$1</del>")
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 }
 
@@ -574,6 +743,14 @@ function renderPage(text, latest) {
       i++;
       while (i < end && !lines[i].trim().startsWith("╰")) block.push(lines[i++]);
       page.append(renderSong(block));
+    } else if (isLoreSep(t)) {
+      // 翻看卡：第一條到最後一條「✦ ─」分隔線之間
+      flush();
+      let last = i;
+      for (let k = i + 1; k < end; k++) if (isLoreSep(lines[k].trim())) last = k;
+      const stop = loreCommentsEnd(lines, last + 1, end);
+      page.append(renderLoreCard(lines.slice(i, stop)));
+      i = stop - 1;
     } else if (!t) {
       flush();
     } else {
@@ -594,7 +771,188 @@ function renderPage(text, latest) {
     det.append(sum, box);
     page.append(det);
   }
+
+  // 翻看列：只放在最新一頁
+  if (latest && lorebook.length) page.append(renderPeek());
   return page;
+}
+
+// ---------- 翻看 ----------
+function isLoreSep(t) { return /^✦\s*─/.test(t); }
+
+// 論壇留言（💬 之後的 ▸ 樓層與 ▾ 樓主回覆）接在最後一條分隔線後面，一起收進卡片
+function loreCommentsEnd(lines, start, end) {
+  let k = start;
+  while (k < end && !lines[k].trim()) k++;
+  if (k >= end || !/^💬/.test(lines[k].trim())) return start;
+  let stop = k;
+  while (stop < end) {
+    const raw = lines[stop];
+    const t = raw.trim();
+    if (!t) {
+      let n = stop + 1;
+      while (n < end && !lines[n].trim()) n++;
+      if (n < end && /^[▸▾]/.test(lines[n].trim())) { stop = n; continue; }
+      break;
+    }
+    if (/^[▸▾💬]/.test(t) || /^[\s　]/.test(raw)) { stop++; continue; }
+    break;
+  }
+  return stop;
+}
+
+function renderLoreCard(block) {
+  const card = document.createElement("div");
+  card.className = "lore-card";
+  const secs = [[]];
+  for (const l of block) {
+    if (isLoreSep(l.trim())) { if (secs[secs.length - 1].length) secs.push([]); }
+    else secs[secs.length - 1].push(l);
+  }
+  secs.filter((s) => s.some((l) => l.trim())).forEach((sec, n) => {
+    const box = document.createElement("div");
+    box.className = "lore-sec" + (n === 0 ? " title" : "");
+    // 去掉區段頭尾空行
+    while (sec.length && !sec[0].trim()) sec.shift();
+    while (sec.length && !sec[sec.length - 1].trim()) sec.pop();
+    sec.forEach((raw, idx) => {
+      const t = raw.trim();
+      const next = (sec.slice(idx + 1).find((l) => l.trim()) || "").trim();
+      const line = document.createElement("div");
+      let cls = "lore-line";
+      let body = t;
+      // 「🗑️｜文字」→ 圖示＋文字；短的視為小標題（已刪除、待辦…），長的是內容（日記的 🩹、🔒）
+      const em = t.match(/^([^\s｜]{1,3})｜\s*(.*)$/);
+      if (!t) cls += " gap";
+      else if (/^└/.test(t)) { cls += " sub"; body = t.replace(/^└\s*/, ""); }
+      else if (/^▸/.test(t)) cls += " floor";
+      else if (/^▾/.test(t) || (/^[\s　]{2,}/.test(raw) && n > 0)) cls += " reply";
+      else if (em) {
+        body = `${em[1]} ${em[2]}`;
+        if (n > 0 && em[2].replace(/\s/g, "").length <= 10 && /^└/.test(next)) cls += " lab";
+        else if (n > 0) cls += " note";
+      }
+      line.className = cls;
+      line.innerHTML = inline(body);
+      box.append(line);
+    });
+    card.append(box);
+  });
+  return card;
+}
+
+function renderPeek() {
+  const det = document.createElement("details");
+  det.className = "peek";
+  const sum = document.createElement("summary");
+  sum.innerHTML = '翻看<span class="spark">✧</span>';
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  for (const e of lorebook) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.textContent = `${e.icon || "📂"} ${e.name}`;
+    b.onclick = () => {
+      const cmd = (e.keys || [])[0] || "";
+      $("input").value = cmd + " ";
+      autoGrow();
+      $("input").focus();
+      det.open = false;
+    };
+    chips.append(b);
+  }
+  det.append(sum, chips);
+  // 展開時捲到看得見按鈕
+  det.addEventListener("toggle", () => { if (det.open) chips.scrollIntoView({ block: "nearest", behavior: "smooth" }); });
+  return det;
+}
+
+// ---------- 存檔標記 ----------
+let saving = null;   // 進行中的存檔 { cid, sid, from, to }
+let saveFail = null; // 最近一次失敗 { cid, sid, to, msg }
+
+function sameSlot(job) {
+  const s = curSlot();
+  return job && s && job.cid === settings.character && job.sid === s.id;
+}
+
+function showSaveMark(to, state, text) {
+  chatEl.querySelectorAll(`.save-mark[data-to="${to}"]`).forEach((x) => x.remove());
+  const pageEl = chatEl.querySelector(`.page[data-page="${to}"]`);
+  if (!pageEl) return;
+  const anchor = pageEl.nextElementSibling && pageEl.nextElementSibling.classList.contains("usage") ? pageEl.nextElementSibling : pageEl;
+  const m = document.createElement("div");
+  m.className = `pill save-mark ${state}`;
+  m.dataset.to = to;
+  if (state === "saving") m.innerHTML = `<span class="dot">📝</span> 正在存檔 ${esc(text)}…`;
+  else if (state === "fail") { m.textContent = `⚠︎ ${text} 存檔失敗・點這裡重試`; m.onclick = () => runSave(true); m.setAttribute("role", "button"); }
+  else m.textContent = `📝 已存檔 ${text} ✧`;
+  anchor.after(m);
+}
+
+function renderSaveMarks() {
+  if (!curSlot()) return;
+  for (const f of loadMem().frags) showSaveMark(f.to, "done", `Page.${f.from}-${f.to}`);
+  if (sameSlot(saving)) showSaveMark(saving.to, "saving", `Page.${saving.from}-${saving.to}`);
+  if (sameSlot(saveFail)) showSaveMark(saveFail.to, "fail", `Page.${saveFail.from}-${saveFail.to}`);
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+// 把目前存檔尚未存的頁數整理成一份記憶片段
+async function runSave(manual = false) {
+  const s = curSlot();
+  if (!s) return;
+  if (saving) { if (manual) toast("正在存檔中，請稍等一下"); return; }
+  const cid = settings.character;
+  const sid = s.id;
+  const mem = loadMem(cid, sid);
+  const from = mem.saved + 1;
+  const to = s.pages || 0;
+  if (to < from) { if (manual) toast("目前沒有新的頁面需要存檔"); return; }
+  const transcript = sliceTranscript(history, from, to);
+  if (!transcript.length) return;
+
+  const job = { cid, sid, from, to, epoch: mem.epoch || 0 };
+  saving = job;
+  if (sameSlot(saveFail) && saveFail.to <= to) saveFail = null;
+  showSaveMark(to, "saving", `Page.${from}-${to}`);
+  try {
+    const data = await callWorker("/save", {
+      key: settings.key,
+      model: settings.model,
+      character: cid,
+      from,
+      to,
+      evtStart: nextEvt(mem),
+      playerName: playerName(),
+      characterName: settings.characterName,
+      slotName: s.name,
+      date: today(),
+      transcript,
+      memory: buildMemory(mem, s.name),
+    });
+    // 存檔期間若開了新遊戲或回捲，這份結果就作廢
+    const now = loadMem(cid, sid);
+    if ((now.epoch || 0) !== job.epoch || now.saved !== from - 1) return;
+    now.frags.push({ from, to, date: today(), text: data.text, at: Date.now() });
+    now.saved = to;
+    saveMem(cid, sid, now);
+    if (sameSlot(job)) { showSaveMark(to, "done", `Page.${from}-${to}`); if (manual) toast(`已存檔 Page.${from}-${to} ✧`); }
+  } catch (e) {
+    saveFail = { cid, sid, from, to, msg: e.message };
+    if (sameSlot(job)) { showSaveMark(to, "fail", `Page.${from}-${to}`); toast(`存檔失敗：${e.message}`); }
+  } finally {
+    saving = null;
+  }
 }
 
 function renderIM(block) {
@@ -734,6 +1092,14 @@ async function send(text, { addUser = true } = {}) {
   // 開始新遊戲那一輪不帶角色卡，讓 6.1 開場完整跑完
   const playerCard = message === NEW_GAME ? "" : currentCard();
 
+  // 常駐記憶檔：每輪帶給角色
+  const mem = loadMem();
+  const memory = message === NEW_GAME ? "" : buildMemory(mem);
+
+  // 自動存檔：玩家送出下一句時，前面的頁數已經確定，滿 SAVE_EVERY 頁就在背景存檔
+  const s = curSlot();
+  if (message !== NEW_GAME && s && (s.pages || 0) - mem.saved >= SAVE_EVERY) runSave();
+
   setBusy(true);
   try {
     const data = await callWorker("/chat", {
@@ -741,6 +1107,8 @@ async function send(text, { addUser = true } = {}) {
       model: settings.model,
       character: settings.character,
       playerCard,
+      playerName: playerName(),
+      memory,
       history: prior,
       message,
     });
@@ -748,7 +1116,8 @@ async function send(text, { addUser = true } = {}) {
     saveHistory(); // 這一步會把頁首 page.X 校正成程式計數
     setBusy(false);
     renderTitle();
-    addBubble("model", history[history.length - 1].text, true, data.usage);
+    const last = history[history.length - 1];
+    addBubble("model", last.text, true, data.usage, true, last.page);
   } catch (e) {
     setBusy(false);
     addBubble("error", e.message);
@@ -778,9 +1147,16 @@ $("input").addEventListener("input", autoGrow);
 $("newGame").onclick = () => {
   if (!ready()) return;
   const name = (curSlot() || {}).name || "這個存檔";
-  if (history.length && !confirm(`開始新遊戲會清除「${name}」目前的對話（角色卡保留），確定嗎？\n\n想保留這段故事，可以到「切換角色」另開新存檔。`)) return;
+  if (history.length && !confirm(`開始新遊戲會清除「${name}」目前的對話與記憶（角色卡保留），確定嗎？\n\n想保留這段故事，可以到「切換角色」另開新存檔。`)) return;
   history = [];
   saveHistory();
+  // 記憶一起清空；epoch +1 讓進行中的存檔結果作廢
+  const s = curSlot();
+  if (s) {
+    const old = loadMem();
+    saveMem(settings.character, s.id, { saved: 0, epoch: (old.epoch || 0) + 1, frags: [] });
+    if (sameSlot(saveFail)) saveFail = null;
+  }
   render();
   send(NEW_GAME);
 };
@@ -796,11 +1172,23 @@ $("pasteCard").onclick = () => {
 $("retry").onclick = () => {
   if (busy || !history.length) return;
   // 移除最後一則角色回覆，用最後一則玩家訊息重新送出
-  if (history[history.length - 1].role === "model") history.pop();
+  let dropped = 0;
+  if (history[history.length - 1].role === "model") dropped = history.pop().page || 0;
   const lastUser = history[history.length - 1];
   if (!lastUser || lastUser.role !== "user") return;
   history.pop();
   saveHistory();
+  // 重來的那頁如果已經存進記憶，含這頁的記憶片段作廢，之後重新存
+  const s = curSlot();
+  if (s && dropped) {
+    const mem = loadMem();
+    if (dropped <= mem.saved) {
+      mem.frags = mem.frags.filter((f) => f.to < dropped);
+      mem.saved = mem.frags.length ? mem.frags[mem.frags.length - 1].to : 0;
+      mem.epoch = (mem.epoch || 0) + 1;
+      saveMem(settings.character, s.id, mem);
+    }
+  }
   render();
   history.push(lastUser);
   saveHistory();
@@ -841,6 +1229,7 @@ function status(msg, err = false) {
 }
 
 $("openSettings").onclick = () => openSettings();
+$("saveNow").onclick = () => { if (ready()) runSave(true); };
 
 // ---------- 切換角色 → 選存檔 ----------
 let pickChars = [];
@@ -864,6 +1253,7 @@ async function openChars() {
   try {
     const data = await callWorker("/characters", {});
     pickChars = data.characters || [];
+    setLore(data.lorebook);
     pickStatus(pickChars.length ? "" : "目前沒有角色");
     showCharStep();
   } catch (e) {
@@ -950,6 +1340,7 @@ function showSlotStep(c) {
     del.onclick = () => {
       if (!confirm(`刪除「${s.name}」？這個存檔的對話與角色卡都會清除，無法復原。`)) return;
       store.remove(historyKey(c.id, s.id));
+      store.remove(memKey(c.id, s.id));
       cs.list = cs.list.filter((x) => x.id !== s.id);
       if (cs.current === s.id) cs.current = cs.list.length ? cs.list[0].id : "";
       saveSlots();
@@ -1004,6 +1395,7 @@ $("loadChars").onclick = async () => {
   try {
     const data = await callWorker("/characters", {});
     fillSelect($("character"), data.characters, settings.character, "目前沒有角色");
+    setLore(data.lorebook);
     $("card").value = (slotOf($("character").value) || {}).card || "";
     status(data.characters.length ? "角色已載入" : "目前沒有角色", !data.characters.length);
   } catch (e) { status(e.message, true); }
@@ -1070,6 +1462,17 @@ if (settings.character) ensureSlot(settings.character);
 loadHistory();
 render();
 if (!settings.key || !settings.invite) openSettings();
+
+// 背景更新翻看清單（作者新增或修改條目時，玩家不用重新設定）
+if (settings.invite) {
+  callWorker("/characters", {})
+    .then((d) => {
+      const before = JSON.stringify(lorebook);
+      setLore(d.lorebook);
+      if (JSON.stringify(lorebook) !== before && !busy) render();
+    })
+    .catch(() => {});
+}
 
 // 要求瀏覽器盡量不要自動清除這個網站的資料
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
