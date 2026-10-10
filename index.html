@@ -153,6 +153,12 @@
     background: var(--panel); }
   .charlist button.current { border-color: var(--accent); }
   .charlist button small { display: block; font-family: "Noto Sans TC", sans-serif; color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .slot { display: flex; gap: 6px; align-items: stretch; }
+  .slot > button:first-child { flex: 1; min-width: 0; }
+  .slot .mini { font-family: "Noto Sans TC", sans-serif; font-size: 12.5px; padding: 0 12px; background: transparent; color: var(--muted); }
+  .slot .mini.del { color: var(--danger); }
+  #slotNew { margin-top: 14px; }
+  #slotNew[hidden] { display: none; }
 
   @media (min-width: 720px) {
     #chat { padding: 40px 24px 48px; }
@@ -186,11 +192,16 @@
 
 <div id="charPicker" class="overlay">
   <div class="sheet">
-    <h2>切換角色</h2>
-    <p class="note">每個角色的對話與角色卡分開保存，切回來可以接著聊。</p>
+    <h2 id="pickTitle">切換角色</h2>
+    <p class="note" id="pickNote">每個角色可以開多個存檔，每個存檔有自己的玩家角色卡與對話。</p>
     <div id="charList" class="charlist"></div>
+    <div id="slotNew" class="row" hidden>
+      <input id="slotName" autocomplete="off" maxlength="30" placeholder="為新存檔取名">
+      <button class="primary" id="addSlot" type="button">＋ 新增</button>
+    </div>
     <div class="status" id="charStatus"></div>
     <div class="actions">
+      <button id="backChars" type="button" hidden>← 角色列表</button>
       <button id="closeChars" type="button">關閉</button>
     </div>
   </div>
@@ -229,7 +240,7 @@
       <button id="loadChars" type="button">載入</button>
     </div>
 
-    <label for="card">這個角色的玩家角色卡</label>
+    <label for="card">目前存檔的玩家角色卡</label>
     <textarea id="card" placeholder="開始新遊戲後，角色會給你這部作品的角色卡範本；在聊天中填好送出，會自動存在這裡。"></textarea>
 
     <div class="status" id="status"></div>
@@ -258,14 +269,10 @@ const store = {
 };
 
 let settings = store.get("rp_settings", { invite: "", key: "", model: "", character: "", characterName: "" });
-// 玩家角色卡跟著角色存：{ 角色id: 角色卡內容 }
-let cards = store.get("rp_cards", {});
-// 舊版只有一張共用卡，搬進目前角色
-if (settings.card && settings.character && !cards[settings.character]) {
-  cards[settings.character] = settings.card;
-  store.set("rp_cards", cards);
-}
-delete settings.card;
+// 存檔欄位：{ 角色id: { current: 存檔id, list: [{ id, name, card, updated, count }] } }
+// 每個存檔的對話存在 rp_history_{角色id}__{存檔id}
+let slots = store.get("rp_slots", {});
+migrateOldData();
 
 let history = [];
 let busy = false;
@@ -273,19 +280,83 @@ let busy = false;
 const NEW_GAME = "/新玩家";
 const CARD_MARK = "【玩家角色卡】";
 
-function currentCard() { return (settings.character && cards[settings.character]) || ""; }
-function setCard(charId, text) {
-  if (!charId) return;
-  if (text) cards[charId] = text; else delete cards[charId];
-  store.set("rp_cards", cards);
+// 舊版「一個角色一張卡、一段對話」→ 轉成各角色的「存檔 1」
+function migrateOldData() {
+  if (store.get("rp_slots_v", 0) >= 1) return;
+  const oldCards = store.get("rp_cards", {});
+  if (settings.card && settings.character && !oldCards[settings.character]) oldCards[settings.character] = settings.card;
+  const ids = new Set(Object.keys(oldCards));
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const m = localStorage.key(i).match(/^rp_history_(.+)$/);
+      if (m && !m[1].includes("__") && m[1] !== "none") ids.add(m[1]);
+    }
+  } catch {}
+  for (const cid of ids) {
+    if (slots[cid]) continue;
+    const h = store.get(`rp_history_${cid}`, []);
+    slots[cid] = { current: "s1", list: [{ id: "s1", name: "存檔 1", card: oldCards[cid] || "", updated: Date.now(), count: h.length }] };
+    store.set(`rp_history_${cid}__s1`, h);
+    store.remove(`rp_history_${cid}`);
+  }
+  store.set("rp_slots", slots);
+  store.remove("rp_cards");
+  store.remove("rp_history_none");
+  delete settings.card;
+  store.set("rp_settings", settings);
+  store.set("rp_slots_v", 1);
+}
+
+function saveSlots() { store.set("rp_slots", slots); }
+function charSlots(cid) { return slots[cid] || (slots[cid] = { current: "", list: [] }); }
+function slotOf(cid) {
+  const cs = slots[cid];
+  return (cs && cs.list.find((s) => s.id === cs.current)) || null;
+}
+function curSlot() { return settings.character ? slotOf(settings.character) : null; }
+function newSlot(cid, name) {
+  const cs = charSlots(cid);
+  const s = { id: Date.now().toString(36), name: name || `存檔 ${cs.list.length + 1}`, card: "", updated: Date.now(), count: 0 };
+  cs.list.push(s);
+  cs.current = s.id;
+  saveSlots();
+  return s;
+}
+// 角色沒有存檔時自動補一個，確保永遠有地方存
+function ensureSlot(cid) {
+  if (!cid) return null;
+  const cs = charSlots(cid);
+  if (!cs.list.some((s) => s.id === cs.current)) {
+    if (cs.list.length) { cs.current = cs.list[0].id; saveSlots(); }
+    else newSlot(cid);
+  }
+  return slotOf(cid);
+}
+
+function currentCard() { const s = curSlot(); return (s && s.card) || ""; }
+function setCard(text) {
+  const s = curSlot();
+  if (!s) return;
+  s.card = text || "";
+  saveSlots();
 }
 
 const $ = (id) => document.getElementById(id);
 const chatEl = $("chat");
 
-function historyKey() { return `rp_history_${settings.character || "none"}`; }
-function loadHistory() { history = store.get(historyKey(), []); }
-function saveHistory() { store.set(historyKey(), history); }
+function historyKey(cid = settings.character, sid) {
+  if (sid === undefined) { const s = slotOf(cid); sid = s ? s.id : ""; }
+  return `rp_history_${cid}__${sid}`;
+}
+function loadHistory() { history = curSlot() ? store.get(historyKey(), []) : []; }
+function saveHistory() {
+  const s = curSlot();
+  if (!s) return;
+  store.set(historyKey(), history);
+  s.updated = Date.now();
+  s.count = history.length;
+  saveSlots();
+}
 
 // ---------- 畫面 ----------
 function render() {
@@ -293,7 +364,8 @@ function render() {
   $("title").append(document.createTextNode(settings.characterName || "mcx_purple"));
   if (settings.characterName) {
     const s = document.createElement("small");
-    s.textContent = settings.model || "";
+    const slot = curSlot();
+    s.textContent = [slot && slot.name, settings.model].filter(Boolean).join("・");
     $("title").append(s);
   }
 
@@ -302,7 +374,7 @@ function render() {
     const d = document.createElement("div");
     d.className = "empty";
     d.textContent = settings.character
-      ? "按「開始新遊戲」，角色會先登場，接著請你填寫玩家角色卡。"
+      ? `「${(curSlot() || {}).name || "存檔"}」還沒開始。按「開始新遊戲」，角色會先登場，接著請你填寫玩家角色卡。`
       : "先到右上角「設定」填好邀請碼、API key，載入模型與角色。";
     chatEl.append(d);
   }
@@ -556,6 +628,7 @@ function ready() {
     openSettings("請先完成設定");
     return false;
   }
+  if (!curSlot()) { ensureSlot(settings.character); loadHistory(); render(); }
   return true;
 }
 
@@ -571,9 +644,9 @@ async function send(text, { addUser = true } = {}) {
     addBubble("user", message);
   }
 
-  // 玩家在聊天中送出角色卡 → 自動存成這個角色的卡
+  // 玩家在聊天中送出角色卡 → 自動存成這個存檔的卡
   if (message.includes(CARD_MARK)) {
-    setCard(settings.character, message);
+    setCard(message);
     $("pasteCard").hidden = false;
   }
 
@@ -622,7 +695,8 @@ $("input").addEventListener("input", autoGrow);
 
 $("newGame").onclick = () => {
   if (!ready()) return;
-  if (history.length && !confirm("開始新遊戲會清除這個角色目前的對話，確定嗎？")) return;
+  const name = (curSlot() || {}).name || "這個存檔";
+  if (history.length && !confirm(`開始新遊戲會清除「${name}」目前的對話（角色卡保留），確定嗎？\n\n想保留這段故事，可以到「切換角色」另開新存檔。`)) return;
   history = [];
   saveHistory();
   render();
@@ -686,44 +760,139 @@ function status(msg, err = false) {
 
 $("openSettings").onclick = () => openSettings();
 
-// ---------- 切換角色 ----------
+// ---------- 切換角色 → 選存檔 ----------
+let pickChars = [];
+
+function pickStatus(msg, err = false) {
+  $("charStatus").textContent = msg;
+  $("charStatus").className = "status" + (err ? " err" : "");
+}
+
+function fmtTime(t) {
+  if (!t) return "";
+  return new Date(t).toLocaleString("zh-TW", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
 async function openChars() {
   if (busy) return;
   if (!settings.invite) { openSettings("請先填寫邀請碼"); return; }
-  const list = $("charList");
-  list.innerHTML = "";
-  $("charStatus").textContent = "載入角色中…";
-  $("charStatus").className = "status";
   $("charPicker").classList.add("open");
+  showCharStep();
+  pickStatus("載入角色中…");
   try {
     const data = await callWorker("/characters", {});
-    $("charStatus").textContent = data.characters.length ? "" : "目前沒有角色";
-    for (const c of data.characters) {
-      const b = document.createElement("button");
-      b.type = "button";
-      if (c.id === settings.character) b.className = "current";
-      b.textContent = c.name || c.id;
-      const hasChat = store.get(`rp_history_${c.id}`, []).length > 0;
-      const note = document.createElement("small");
-      note.textContent = c.id === settings.character ? "目前角色" : hasChat ? "有進行中的對話" : "尚未開始";
-      b.append(note);
-      b.onclick = () => switchChar(c);
-      list.append(b);
-    }
+    pickChars = data.characters || [];
+    pickStatus(pickChars.length ? "" : "目前沒有角色");
+    showCharStep();
   } catch (e) {
-    $("charStatus").textContent = e.message;
-    $("charStatus").className = "status err";
+    pickStatus(e.message, true);
   }
 }
 
-function switchChar(c) {
+function showCharStep() {
+  $("pickTitle").textContent = "切換角色";
+  $("pickNote").textContent = "每個角色可以開多個存檔，每個存檔有自己的玩家角色卡與對話。";
+  $("slotNew").hidden = true;
+  $("backChars").hidden = true;
+  const list = $("charList");
+  list.innerHTML = "";
+  for (const c of pickChars) {
+    const b = document.createElement("button");
+    b.type = "button";
+    if (c.id === settings.character) b.className = "current";
+    b.textContent = c.name || c.id;
+    const n = (slots[c.id] && slots[c.id].list.length) || 0;
+    const note = document.createElement("small");
+    note.textContent = (c.id === settings.character ? "目前角色・" : "") + (n ? `${n} 個存檔` : "尚未開始");
+    b.append(note);
+    b.onclick = () => showSlotStep(c);
+    list.append(b);
+  }
+}
+
+function showSlotStep(c) {
+  const cname = c.name || c.id;
+  $("pickTitle").textContent = cname;
+  $("pickNote").textContent = "選一個存檔繼續，或新增一個存檔，用另一張玩家角色卡開始新的故事線。";
+  $("slotNew").hidden = false;
+  $("backChars").hidden = false;
+  $("slotName").value = "";
+  pickStatus("");
+  $("addSlot").onclick = () => {
+    const name = $("slotName").value.trim();
+    if (!name) { pickStatus("請先為新存檔取名", true); $("slotName").focus(); return; }
+    const s = newSlot(c.id, name);
+    enterSlot(c, s.id);
+  };
+
+  const cs = charSlots(c.id);
+  const list = $("charList");
+  list.innerHTML = "";
+  if (!cs.list.length) pickStatus("這個角色還沒有存檔，先在下方取名新增一個。");
+  const active = c.id === settings.character ? cs.current : "";
+  for (const s of cs.list) {
+    const row = document.createElement("div");
+    row.className = "slot";
+
+    const b = document.createElement("button");
+    b.type = "button";
+    if (s.id === active) b.className = "current";
+    b.textContent = s.name;
+    const note = document.createElement("small");
+    const info = [];
+    if (s.id === active) info.push("目前存檔");
+    info.push(s.count ? `${s.count} 則` : "尚未開始");
+    if (s.count && s.updated) info.push(`最後遊玩 ${fmtTime(s.updated)}`);
+    if (!s.card) info.push("未填角色卡");
+    note.textContent = info.join("・");
+    b.append(note);
+    b.onclick = () => enterSlot(c, s.id);
+
+    const ren = document.createElement("button");
+    ren.type = "button";
+    ren.className = "mini";
+    ren.textContent = "改名";
+    ren.onclick = () => {
+      const v = prompt("新的存檔名稱", s.name);
+      if (v === null || !v.trim()) return;
+      s.name = v.trim().slice(0, 30);
+      saveSlots();
+      showSlotStep(c);
+      render();
+    };
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "mini del";
+    del.textContent = "刪除";
+    del.onclick = () => {
+      if (!confirm(`刪除「${s.name}」？這個存檔的對話與角色卡都會清除，無法復原。`)) return;
+      store.remove(historyKey(c.id, s.id));
+      cs.list = cs.list.filter((x) => x.id !== s.id);
+      if (cs.current === s.id) cs.current = cs.list.length ? cs.list[0].id : "";
+      saveSlots();
+      if (c.id === settings.character) { loadHistory(); render(); }
+      showSlotStep(c);
+    };
+
+    row.append(b, ren, del);
+    list.append(row);
+  }
+}
+
+function enterSlot(c, sid) {
   settings.character = c.id;
   settings.characterName = c.name || c.id;
   store.set("rp_settings", settings);
+  charSlots(c.id).current = sid;
+  saveSlots();
   loadHistory();
   render();
   $("charPicker").classList.remove("open");
 }
+
+$("backChars").onclick = showCharStep;
+$("slotName").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); $("addSlot").click(); } });
 
 $("openChars").onclick = openChars;
 $("title").onclick = openChars;
@@ -753,14 +922,14 @@ $("loadChars").onclick = async () => {
   try {
     const data = await callWorker("/characters", {});
     fillSelect($("character"), data.characters, settings.character, "目前沒有角色");
-    $("card").value = cards[$("character").value] || "";
+    $("card").value = (slotOf($("character").value) || {}).card || "";
     status(data.characters.length ? "角色已載入" : "目前沒有角色", !data.characters.length);
   } catch (e) { status(e.message, true); }
 };
 
-// 在設定裡切換角色時，角色卡欄位跟著換成那個角色的卡
+// 在設定裡切換角色時，角色卡欄位換成那個角色目前存檔的卡
 $("character").addEventListener("change", () => {
-  $("card").value = cards[$("character").value] || "";
+  $("card").value = (slotOf($("character").value) || {}).card || "";
 });
 
 $("saveSettings").onclick = () => {
@@ -774,7 +943,8 @@ $("saveSettings").onclick = () => {
     characterName: charSel.value ? charSel.options[charSel.selectedIndex].textContent : "",
   };
   store.set("rp_settings", settings);
-  setCard(settings.character, $("card").value.trim());
+  ensureSlot(settings.character);
+  setCard($("card").value.trim());
   if (settings.character !== prevChar) loadHistory();
   $("settings").classList.remove("open");
   render();
@@ -798,6 +968,7 @@ if (window.matchMedia) {
 }
 
 // ---------- 啟動 ----------
+if (settings.character) ensureSlot(settings.character);
 loadHistory();
 render();
 if (!settings.key || !settings.invite) openSettings();
