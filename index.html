@@ -977,6 +977,12 @@ function isCardMessage(msg) {
 function isFrameLine(l) { return /^\s*[◆◇]/.test(l) || isRuleLine(l); }
 function isRuleLine(l) { return /^\s*(\*{3,}|-{3,}|＊{3,})\s*$/.test(l); }
 
+// 結尾記號比對：去掉空白與變體符號後取開頭（與 Worker 的 tailKey 相同規則）
+function tailKey(line) {
+  return String(line).split("{")[0].replace(/[\s\uFE0F]/g, "");
+}
+const tailMarks = store.get("rp_tail", {});
+
 function isTrackerLine(l) {
   return /｜/.test(l) || /^\s*(·|⊱|✦|🧨|㊙️)/.test(l) || /行動建議/.test(l);
 }
@@ -1001,23 +1007,37 @@ function renderPage(text, latest) {
     start = headEnd;
   }
 
-  // 5.2 狀態欄：結尾連續的追蹤行
+  // 5.2 狀態欄：先用後台的結尾記號（Worker 從最後一個「格式如下」算出來）
+  // 從上往下找第一個同樣開頭、而且從那行到結尾都沒有長段落（不含「｜」超過 60 字＝正文）的行，從那行收起
   let end = lines.length;
-  let j = lines.length - 1;
-  while (j >= start && (!lines[j].trim() || isTrackerLine(lines[j]))) j--;
-  const tail = lines.slice(j + 1);
-  if (tail.some((l) => l.includes("｜"))) end = j + 1;
+  const mark = tailMarks[settings.character] || "";
+  const isProse = (l) => !l.includes("｜") && [...l.trim()].length > 60;
+  let m = -1;
+  if (mark) {
+    for (let i = start; i < lines.length; i++) {
+      if (tailKey(lines[i]).startsWith(mark) && !lines.slice(i).some(isProse)) { m = i; break; }
+    }
+  }
+  if (m >= 0) {
+    // 整頁都是結算格式（例如深夜存檔頁）→ 不收合，整頁照常顯示
+    if (lines.slice(start, m).some((l) => l.trim())) end = m;
+  } else {
+    let j = lines.length - 1;
+    while (j >= start && (!lines[j].trim() || isTrackerLine(lines[j]))) j--;
+    const tail = lines.slice(j + 1);
+    if (tail.some((l) => l.includes("｜"))) end = j + 1;
 
-  // 5.2 的小幫手區塊（◆ 框線包起來，或 *** 分隔線之後）緊接在狀態行前面時，一起收進狀態
-  if (end < lines.length) {
-    let k = end - 1;
-    while (k >= start && !lines[k].trim()) k--;
-    if (k >= start && isFrameLine(lines[k])) {
-      if (isRuleLine(lines[k])) end = k;
-      else {
-        let o = k - 1;
-        while (o >= start && !isFrameLine(lines[o])) o--;
-        end = o >= start && !isRuleLine(lines[o]) ? o : k;
+    // 5.2 的小幫手區塊（◆ 框線包起來，或 *** 分隔線之後）緊接在狀態行前面時，一起收進狀態
+    if (end < lines.length) {
+      let k = end - 1;
+      while (k >= start && !lines[k].trim()) k--;
+      if (k >= start && isFrameLine(lines[k])) {
+        if (isRuleLine(lines[k])) end = k;
+        else {
+          let o = k - 1;
+          while (o >= start && !isFrameLine(lines[o])) o--;
+          end = o >= start && !isRuleLine(lines[o]) ? o : k;
+        }
       }
     }
   }
@@ -1433,6 +1453,10 @@ async function send(text, { addUser = true } = {}) {
       history: prior,
       message,
     });
+    if (typeof data.tail === "string" && tailMarks[settings.character] !== data.tail) {
+      tailMarks[settings.character] = data.tail;
+      store.set("rp_tail", tailMarks);
+    }
     history.push({ role: "model", text: data.text, usage: data.usage });
     saveHistory(); // 這一步會把頁首 page.X 校正成程式計數
     setBusy(false);
