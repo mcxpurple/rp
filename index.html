@@ -44,6 +44,7 @@
   .msg.error { color: var(--danger); font-size: 14px; text-align: center; }
   .msg.system { color: var(--muted); font-size: 13px; text-align: center; }
   .typing { color: var(--muted); font-size: 14px; padding: 4px 2px; }
+  .usage { color: var(--muted); font-size: 12px; margin-top: -8px; padding: 0 4px; opacity: .8; }
   .empty { margin: auto; text-align: center; color: var(--muted); line-height: 1.9; max-width: 320px; }
 
   footer { background: var(--panel); border-top: 1px solid var(--line); padding: 10px 12px;
@@ -95,6 +96,7 @@
   <div class="tools">
     <button id="newGame">開始新遊戲</button>
     <button id="retry">重來最後一則</button>
+    <button id="pasteCard" hidden>貼上我的角色卡</button>
   </div>
   <div class="composer">
     <textarea id="input" rows="1" placeholder="輸入你的行動或對話…"></textarea>
@@ -128,8 +130,8 @@
       <button id="loadChars" type="button">載入</button>
     </div>
 
-    <label for="card">玩家角色卡</label>
-    <textarea id="card" placeholder="【玩家角色卡】名字｜性別｜年齡｜生日｜身高｜外貌｜職業｜喜歡/討厭的事物"></textarea>
+    <label for="card">這個角色的玩家角色卡</label>
+    <textarea id="card" placeholder="開始新遊戲後，角色會給你這部作品的角色卡範本；在聊天中填好送出，會自動存在這裡。"></textarea>
 
     <div class="status" id="status"></div>
 
@@ -156,9 +158,28 @@ const store = {
   remove(k) { try { localStorage.removeItem(k); } catch {} },
 };
 
-let settings = store.get("rp_settings", { invite: "", key: "", model: "", character: "", characterName: "", card: "" });
+let settings = store.get("rp_settings", { invite: "", key: "", model: "", character: "", characterName: "" });
+// 玩家角色卡跟著角色存：{ 角色id: 角色卡內容 }
+let cards = store.get("rp_cards", {});
+// 舊版只有一張共用卡，搬進目前角色
+if (settings.card && settings.character && !cards[settings.character]) {
+  cards[settings.character] = settings.card;
+  store.set("rp_cards", cards);
+}
+delete settings.card;
+
 let history = [];
 let busy = false;
+
+const NEW_GAME = "/新玩家";
+const CARD_MARK = "【玩家角色卡】";
+
+function currentCard() { return (settings.character && cards[settings.character]) || ""; }
+function setCard(charId, text) {
+  if (!charId) return;
+  if (text) cards[charId] = text; else delete cards[charId];
+  store.set("rp_cards", cards);
+}
 
 const $ = (id) => document.getElementById(id);
 const chatEl = $("chat");
@@ -186,19 +207,43 @@ function render() {
       : "先到右上角「設定」填好邀請碼、API key，載入模型與角色。";
     chatEl.append(d);
   }
-  for (const m of history) addBubble(m.role, m.text, false);
+  for (const m of history) addBubble(m.role, m.text, false, m.usage);
+  $("pasteCard").hidden = !currentCard();
   scrollDown();
 }
 
-function addBubble(role, text, scroll = true) {
+function addBubble(role, text, scroll = true, usage = null) {
   const d = document.createElement("div");
   d.className = `msg ${role}`;
   d.textContent = text;
   const empty = chatEl.querySelector(".empty");
   if (empty) empty.remove();
   chatEl.append(d);
+  const u = usageText(usage);
+  if (u) {
+    const s = document.createElement("div");
+    s.className = "usage";
+    s.textContent = u;
+    chatEl.append(s);
+  }
   if (scroll) scrollDown();
   return d;
+}
+
+// 每則回覆下方顯示這一輪的 token 用量
+function fmt(n) {
+  if (!n) return "0";
+  if (n >= 10000) return (n / 10000).toFixed(1) + " 萬";
+  if (n >= 1000) return (n / 1000).toFixed(1) + " 千";
+  return String(n);
+}
+function usageText(u) {
+  if (!u) return "";
+  const parts = [`輸入 ${fmt(u.promptTokenCount)}`];
+  if (u.cachedContentTokenCount) parts.push(`其中快取 ${fmt(u.cachedContentTokenCount)}`);
+  parts.push(`輸出 ${fmt(u.candidatesTokenCount)}`);
+  if (u.thoughtsTokenCount) parts.push(`思考 ${fmt(u.thoughtsTokenCount)}`);
+  return parts.join("・") + " token";
 }
 
 function scrollDown() { chatEl.scrollTop = chatEl.scrollHeight; }
@@ -249,20 +294,29 @@ async function send(text, { addUser = true } = {}) {
     addBubble("user", message);
   }
 
+  // 玩家在聊天中送出角色卡 → 自動存成這個角色的卡
+  if (message.includes(CARD_MARK)) {
+    setCard(settings.character, message);
+    $("pasteCard").hidden = false;
+  }
+
+  // 開始新遊戲那一輪不帶角色卡，讓 6.1 開場完整跑完
+  const playerCard = message === NEW_GAME ? "" : currentCard();
+
   setBusy(true);
   try {
     const data = await callWorker("/chat", {
       key: settings.key,
       model: settings.model,
       character: settings.character,
-      playerCard: settings.card,
+      playerCard,
       history: prior,
       message,
     });
-    history.push({ role: "model", text: data.text });
+    history.push({ role: "model", text: data.text, usage: data.usage });
     saveHistory();
     setBusy(false);
-    addBubble("model", data.text);
+    addBubble("model", data.text, true, data.usage);
   } catch (e) {
     setBusy(false);
     addBubble("error", e.message);
@@ -295,7 +349,15 @@ $("newGame").onclick = () => {
   history = [];
   saveHistory();
   render();
-  send("/新玩家");
+  send(NEW_GAME);
+};
+
+$("pasteCard").onclick = () => {
+  const card = currentCard();
+  if (!card) return;
+  $("input").value = card;
+  autoGrow();
+  $("input").focus();
 };
 
 $("retry").onclick = () => {
@@ -317,7 +379,7 @@ $("retry").onclick = () => {
 function openSettings(msg = "") {
   $("invite").value = settings.invite;
   $("apikey").value = settings.key;
-  $("card").value = settings.card;
+  $("card").value = currentCard();
   fillSelect($("model"), settings.model ? [{ id: settings.model, name: settings.model }] : [], settings.model, "先按「載入」");
   fillSelect($("character"), settings.character ? [{ id: settings.character, name: settings.characterName }] : [], settings.character, "先按「載入」");
   status(msg);
@@ -371,9 +433,15 @@ $("loadChars").onclick = async () => {
   try {
     const data = await callWorker("/characters", {});
     fillSelect($("character"), data.characters, settings.character, "目前沒有角色");
+    $("card").value = cards[$("character").value] || "";
     status(data.characters.length ? "角色已載入" : "目前沒有角色", !data.characters.length);
   } catch (e) { status(e.message, true); }
 };
+
+// 在設定裡切換角色時，角色卡欄位跟著換成那個角色的卡
+$("character").addEventListener("change", () => {
+  $("card").value = cards[$("character").value] || "";
+});
 
 $("saveSettings").onclick = () => {
   const charSel = $("character");
@@ -384,9 +452,9 @@ $("saveSettings").onclick = () => {
     model: $("model").value,
     character: charSel.value,
     characterName: charSel.value ? charSel.options[charSel.selectedIndex].textContent : "",
-    card: $("card").value.trim(),
   };
   store.set("rp_settings", settings);
+  setCard(settings.character, $("card").value.trim());
   if (settings.character !== prevChar) loadHistory();
   $("settings").classList.remove("open");
   render();
