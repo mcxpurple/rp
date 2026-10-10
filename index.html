@@ -155,6 +155,7 @@
   .charlist button { text-align: left; padding: 14px 16px; font-family: "Noto Serif TC", serif; font-size: 17px;
     background: var(--panel); }
   .charlist button.current { border-color: var(--accent); }
+  .charlist button small.intro { color: var(--text); opacity: .82; font-size: 13px; line-height: 1.6; margin-top: 6px; }
   .charlist button small { display: block; font-family: "Noto Sans TC", sans-serif; color: var(--muted); font-size: 12px; margin-top: 4px; }
   .slot { display: flex; gap: 6px; align-items: stretch; }
   .slot > button:first-child { flex: 1; min-width: 0; }
@@ -288,6 +289,7 @@
     <a id="linkGuide" target="_blank" rel="noopener"><span class="ico">❔</span>使用說明<span class="ext">↗</span></a>
     <hr>
     <button type="button" id="openMemory"><span class="ico">📖</span>記憶</button>
+    <button type="button" id="newWindow"><span class="ico">🪟</span>換窗接續</button>
     <button type="button" id="saveNow"><span class="ico">💾</span>立即存檔</button>
     <button type="button" id="openIO"><span class="ico">📦</span>匯出／匯入</button>
     <button type="button" id="openSettings"><span class="ico">⚙︎</span>設定</button>
@@ -334,6 +336,7 @@
 
     <div id="ioMain" class="io-list">
       <button type="button" id="ioExport"><span class="ico">⬇️</span><span><b>匯出目前存檔</b><small id="ioExportSub">下載成一個檔案，可以備份或搬到其他裝置</small></span></button>
+      <button type="button" id="ioExportMem"><span class="ico">📜</span><span><b>匯出記憶（txt）</b><small>常駐記憶檔＋全部記憶片段，不含對話，可拿去其他平台接續</small></span></button>
       <button type="button" id="ioImport"><span class="ico">⬆️</span><span><b>匯入存檔檔案</b><small>會新增成一個存檔，不會覆蓋現有的故事</small></span></button>
       <button type="button" id="ioContinue"><span class="ico">🔁</span><span><b>從其他平台接續</b><small>帶著 Gemini／ChatGPT 的記憶，在這裡接著玩</small></span></button>
       <input type="file" id="ioFile" accept=".json,application/json" hidden>
@@ -367,6 +370,7 @@
     <div id="memBody"></div>
     <div class="actions">
       <button id="closeMemory" type="button">關閉</button>
+      <button class="primary" id="memWindow" type="button">🪟 換窗接續</button>
     </div>
   </div>
 </div>
@@ -429,6 +433,8 @@ const GUIDE_URL = "https://obvious-tenor-7aa.notion.site/3f5f4e50bb4b81e184d4eed
 
 // 每幾頁自動存檔一次（實測時可暫時改小，例如 2）
 const SAVE_EVERY = 20;
+// 每輪送出的最近對話則數，需與 Worker 的 HISTORY_LIMIT 相同（玩家＋角色各算一則，40 則約 20 頁）
+const HISTORY_LIMIT = 40;
 
 // ---------- 儲存（包 try/catch，私密瀏覽等情況下不會壞掉）----------
 const store = {
@@ -646,9 +652,84 @@ function buildMemory(mem, slotName = (curSlot() || {}).name || "") {
     for (const [, t] of fragEvts(f.text)) out.push(t);
   }
   const last = mem.frags[mem.frags.length - 1].text;
+  // 最新一份片段的情感記憶層（A-2 多角色時含每位角色的情感層），避免感情斷層
+  const emo = emotionLayer(last);
+  if (emo) out.push(emo);
   const i = last.indexOf("當前狀態總結");
   out.push(i >= 0 ? last.slice(i).trim() : last.trim());
   return out.join("\n");
+}
+
+// 情感層：從第一個「━…情感…━」標題，到「世界狀態層」標題之前
+function emotionLayer(text) {
+  const lines = String(text).replace(/\r/g, "").split("\n");
+  const a = lines.findIndex((l) => /^\s*━.*情感/.test(l));
+  if (a < 0) return "";
+  let b = lines.findIndex((l, k) => k > a && /世界狀態層/.test(l));
+  if (b < 0) b = lines.findIndex((l, k) => k > a && /當前狀態總結/.test(l));
+  return lines.slice(a, b < 0 ? lines.length : b).join("\n").trim();
+}
+
+// ---------- EVT 回查 ----------
+// 把全部記憶片段的事件逐筆建索引：編號、權重、標題、完整內容、關鍵詞、相關事件、頁數
+function evtIndex(mem) {
+  const map = new Map();
+  for (const f of mem.frags) {
+    const lines = String(f.text).replace(/\r/g, "").split("\n");
+    let cur = null;
+    const close = () => {
+      if (!cur) return;
+      const body = cur.lines.join("\n").replace(/\s+$/, "");
+      const kw = (body.match(/關鍵詞[:：]\s*(.+)/) || [])[1] || "";
+      const rel = (body.match(/相關事件[:：]\s*(.*)/) || [])[1] || "";
+      const pg = body.match(/\(P\.?\s*(\d+)(?:\s*[-–~～]\s*P?\.?\s*(\d+))?\)/);
+      const evt = {
+        num: cur.num,
+        head: cur.head,
+        body,
+        keys: kw.split(/[,，、;；]/).map((s) => s.trim()).filter((s) => s.length >= 2),
+        related: [...rel.matchAll(/EVT\.?\s*(\d+)/gi)].map((m) => +m[1]),
+        pageTo: pg ? +(pg[2] || pg[1]) : f.to || 0,
+      };
+      const old = map.get(evt.num);
+      if (!old || evt.body.length > old.body.length) map.set(evt.num, evt);
+      cur = null;
+    };
+    for (const l of lines) {
+      const m = l.match(EVT_RE);
+      if (m) { close(); cur = { num: +m[1], head: `[EVT.${m[1]}｜${m[2]}] ${m[3]}`, lines: [l.trim()] }; continue; }
+      if (cur && (/^\s*(當前狀態總結|━)/.test(l) || /^\s*\(事件多時/.test(l))) { close(); continue; }
+      if (cur) cur.lines.push(l);
+    }
+    close();
+  }
+  return map;
+}
+
+// 比對玩家這一句＋角色上一則，命中關鍵詞或直接寫 EVT 編號；再順著「相關事件」一路帶出去
+// 還在這次送出的對話紀錄裡的事件不重複附（但仍會順著它的相關事件往前找）
+function recallText(mem, message, lastReply, windowStart) {
+  const idx = evtIndex(mem);
+  if (!idx.size) return "";
+  const src = `${message}\n${lastReply}`.toLowerCase();
+  const hit = new Set();
+  for (const e of idx.values()) {
+    if (e.keys.some((k) => src.includes(k.toLowerCase()))) hit.add(e.num);
+  }
+  for (const m of src.matchAll(/evt\.?\s*(\d+)/g)) if (idx.has(+m[1])) hit.add(+m[1]);
+  const all = new Set();
+  const walk = (n) => {
+    if (all.has(n) || !idx.has(n)) return;
+    all.add(n);
+    for (const r of idx.get(n).related) walk(r);
+  };
+  hit.forEach(walk);
+  const picked = [...all]
+    .sort((a, b) => a - b)
+    .map((n) => idx.get(n))
+    .filter((e) => !(windowStart && e.pageTo >= windowStart));
+  if (!picked.length) return "";
+  return "以下為本輪提及之過往事件與其相關事件，供承接因果與原話；現況以常駐記憶檔為準。\n\n" + picked.map((e) => e.body).join("\n\n");
 }
 
 // 取出 Page.from-to 的對話原文（含引出第一頁的那句玩家訊息）
@@ -1012,19 +1093,19 @@ function toast(msg) {
   toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
 }
 
-// 把目前存檔尚未存的頁數整理成一份記憶片段
+// 把目前存檔尚未存的頁數整理成一份記憶片段；回傳 true＝已存好或沒有要存的
 async function runSave(manual = false) {
   const s = curSlot();
-  if (!s) return;
-  if (saving) { if (manual) toast("正在存檔中，請稍等一下"); return; }
+  if (!s) return false;
+  if (saving) { if (manual) toast("正在存檔中，請稍等一下"); return false; }
   const cid = settings.character;
   const sid = s.id;
   const mem = loadMem(cid, sid);
   const from = mem.saved + 1;
   const to = s.pages || 0;
-  if (to < from) { if (manual) toast("目前沒有新的頁面需要存檔"); return; }
+  if (to < from) { if (manual) toast("目前沒有新的頁面需要存檔"); return true; }
   const transcript = sliceTranscript(history, from, to);
-  if (!transcript.length) return;
+  if (!transcript.length) return true;
 
   const job = { cid, sid, from, to, epoch: mem.epoch || 0 };
   saving = job;
@@ -1047,14 +1128,16 @@ async function runSave(manual = false) {
     });
     // 存檔期間若開了新遊戲或回捲，這份結果就作廢
     const now = loadMem(cid, sid);
-    if ((now.epoch || 0) !== job.epoch || now.saved !== from - 1) return;
+    if ((now.epoch || 0) !== job.epoch || now.saved !== from - 1) return false;
     now.frags.push({ from, to, date: today(), text: data.text, at: Date.now() });
     now.saved = to;
     saveMem(cid, sid, now);
     if (sameSlot(job)) { showSaveMark(to, "done", `Page.${from}-${to}`); if (manual) toast(`已存檔 Page.${from}-${to} ✧`); }
+    return true;
   } catch (e) {
     saveFail = { cid, sid, from, to, msg: e.message };
     if (sameSlot(job)) { showSaveMark(to, "fail", `Page.${from}-${to}`); toast(`存檔失敗：${e.message}`); }
+    return false;
   } finally {
     saving = null;
   }
@@ -1201,6 +1284,12 @@ async function send(text, { addUser = true } = {}) {
   const mem = loadMem();
   const memory = message === NEW_GAME ? "" : buildMemory(mem);
 
+  // EVT 回查：這次送出的對話紀錄（最近 40 則）以外的舊事件，提到才附上
+  const windowMsgs = prior.slice(-HISTORY_LIMIT);
+  const windowStart = Math.min(...windowMsgs.filter((m) => m.role === "model" && m.page).map((m) => m.page), Infinity);
+  const lastModel = [...windowMsgs].reverse().find((m) => m.role === "model");
+  const recall = message === NEW_GAME ? "" : recallText(mem, message, lastModel ? lastModel.text : "", windowStart === Infinity ? 0 : windowStart);
+
   // 自動存檔：玩家送出下一句時，前面的頁數已經確定，滿 SAVE_EVERY 頁就在背景存檔
   const s = curSlot();
   if (message !== NEW_GAME && s && (s.pages || 0) - mem.saved >= SAVE_EVERY) runSave();
@@ -1214,6 +1303,7 @@ async function send(text, { addUser = true } = {}) {
       playerCard,
       playerName: playerName(),
       memory,
+      recall,
       history: prior,
       message,
     });
@@ -1517,6 +1607,63 @@ $("ioFile").onchange = async () => {
   toast(`已匯入「${s.name}」✧`);
 };
 
+// 匯出記憶 txt：常駐記憶檔＋全部記憶片段，不含對話
+$("ioExportMem").onclick = () => {
+  const s = curSlot();
+  const mem = loadMem();
+  if (!s || !mem.frags.length) { ioStatus("這個存檔還沒有記憶可以匯出", true); return; }
+  const text = [
+    buildMemory(mem, s.name),
+    ...mem.frags.map((f) => `\n━━━━━━━━━━━━━━━━\n${f.text.trim()}`),
+  ].join("\n");
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${safeName(settings.characterName)}_${safeName(s.name)}_記憶_page${mem.saved}_${today()}.txt`;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  ioStatus("已匯出記憶 ✧");
+};
+
+// ---------- 🪟 換窗接續 ----------
+// 先把沒存的頁數存起來 → 另開新存檔（同角色卡、同記憶、頁碼接續、對話清空）→ 送 /舊玩家 接回劇情；舊窗完整保留
+async function newWindow() {
+  if (busy) { toast("角色正在回應，稍等一下再換窗"); return; }
+  if (!ready()) return;
+  const s = curSlot();
+  if (!s || !history.length) { toast("這個存檔還沒有內容，不需要換窗"); return; }
+  if (saving) { toast("正在存檔中，存完再換窗"); return; }
+
+  const n = (s.win || 1) + 1;
+  const baseName = s.name.replace(/・第\s*\d+\s*窗$/, "");
+  const name = prompt("新窗的名稱", `${baseName}・第 ${n} 窗`);
+  if (name === null) return;
+
+  if ((s.pages || 0) > loadMem().saved) {
+    toast("先把這一窗存檔…");
+    const ok = await runSave(false);
+    if (!ok || (s.pages || 0) > loadMem().saved) { toast("存檔沒有成功，這次先不換窗"); return; }
+  }
+
+  const cid = settings.character;
+  const mem = loadMem();
+  const ns = newSlot(cid, (name.trim() || `${baseName}・第 ${n} 窗`).slice(0, 30));
+  ns.card = s.card || "";
+  ns.base = s.pages || 0;
+  ns.win = n;
+  const copy = { saved: ns.base, epoch: 0, frags: JSON.parse(JSON.stringify(mem.frags)) };
+  if (!writeNewSlot(cid, ns, [], copy)) { toast("手機瀏覽器的空間不夠，可以先匯出備份再刪掉不玩的存檔"); return; }
+  saveSlots();
+  $("memoryPanel").classList.remove("open");
+  enterSlot({ id: cid, name: settings.characterName }, ns.id);
+  toast(`已換到「${ns.name}」，從 page.${ns.base + 1} 接續 ✧`);
+  send(`${OLD_GAME}\n${OLD_NOTE}`);
+}
+$("newWindow").onclick = newWindow;
+$("memWindow").onclick = newWindow;
+
 // 從其他平台接續
 function lastPageOf(text) {
   let max = 0;
@@ -1613,6 +1760,12 @@ function showCharStep() {
     b.type = "button";
     if (c.id === settings.character) b.className = "current";
     b.textContent = c.name || c.id;
+    if (c.intro) {
+      const intro = document.createElement("small");
+      intro.className = "intro";
+      intro.textContent = c.intro;
+      b.append(intro);
+    }
     const n = (slots[c.id] && slots[c.id].list.length) || 0;
     const note = document.createElement("small");
     note.textContent = (c.id === settings.character ? "目前角色・" : "") + (n ? `${n} 個存檔` : "尚未開始");
