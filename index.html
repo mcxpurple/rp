@@ -28,7 +28,7 @@
   header { display: flex; align-items: center; gap: 8px; padding: 10px 16px;
     padding-top: max(10px, env(safe-area-inset-top)); background: var(--panel); border-bottom: 1px solid var(--line); }
   header h1 { font-size: 16px; margin: 0; flex: 1; font-weight: 600; letter-spacing: .02em;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
   header small { color: var(--muted); font-weight: 400; margin-left: 6px; }
 
   button { font: inherit; color: var(--text); background: var(--panel-2); border: 1px solid var(--line);
@@ -57,9 +57,14 @@
   #input { min-height: 44px; max-height: 40vh; }
 
   /* 設定面板 */
-  #settings { position: fixed; inset: 0; background: rgba(10, 8, 14, .7); display: none;
+  .overlay { position: fixed; inset: 0; background: rgba(10, 8, 14, .7); display: none;
     align-items: flex-end; justify-content: center; z-index: 10; }
-  #settings.open { display: flex; }
+  .overlay.open { display: flex; }
+  .charlist { display: flex; flex-direction: column; gap: 8px; }
+  .charlist button { text-align: left; padding: 14px 16px; font-size: 16px; }
+  .charlist button.current { border-color: var(--accent); }
+  .charlist button small { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+  header .ghost { padding: 8px 10px; white-space: nowrap; }
   .sheet { background: var(--panel); width: 100%; max-width: 560px; max-height: 92dvh; overflow-y: auto;
     border-radius: 18px 18px 0 0; padding: 20px 16px; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
   .sheet h2 { margin: 0 0 4px; font-size: 18px; }
@@ -78,7 +83,7 @@
   @media (min-width: 720px) {
     #chat { padding: 24px max(24px, calc((100vw - 760px) / 2)); }
     footer { padding-left: max(12px, calc((100vw - 760px) / 2)); padding-right: max(12px, calc((100vw - 760px) / 2)); }
-    #settings { align-items: center; }
+    .overlay { align-items: center; }
     .sheet { border-radius: 18px; }
   }
 </style>
@@ -87,6 +92,7 @@
 
 <header>
   <h1 id="title">mcx_purple</h1>
+  <button class="ghost" id="openChars" aria-label="切換角色">👤 切換角色</button>
   <button class="ghost" id="openSettings" aria-label="設定">⚙︎ 設定</button>
 </header>
 
@@ -104,7 +110,19 @@
   </div>
 </footer>
 
-<div id="settings">
+<div id="charPicker" class="overlay">
+  <div class="sheet">
+    <h2>切換角色</h2>
+    <p class="note">每個角色的對話與角色卡分開保存，切回來可以接著聊。</p>
+    <div id="charList" class="charlist"></div>
+    <div class="status" id="charStatus"></div>
+    <div class="actions">
+      <button id="closeChars" type="button">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div id="settings" class="overlay">
   <div class="sheet">
     <h2>遊玩設定</h2>
     <p class="note">API key 只存在這支手機的瀏覽器裡，每次對話經轉送後即丟棄，作者端不會留存。</p>
@@ -408,6 +426,49 @@ function status(msg, err = false) {
 }
 
 $("openSettings").onclick = () => openSettings();
+
+// ---------- 切換角色 ----------
+async function openChars() {
+  if (busy) return;
+  if (!settings.invite) { openSettings("請先填寫邀請碼"); return; }
+  const list = $("charList");
+  list.innerHTML = "";
+  $("charStatus").textContent = "載入角色中…";
+  $("charStatus").className = "status";
+  $("charPicker").classList.add("open");
+  try {
+    const data = await callWorker("/characters", {});
+    $("charStatus").textContent = data.characters.length ? "" : "目前沒有角色";
+    for (const c of data.characters) {
+      const b = document.createElement("button");
+      b.type = "button";
+      if (c.id === settings.character) b.className = "current";
+      b.textContent = c.name || c.id;
+      const hasChat = store.get(`rp_history_${c.id}`, []).length > 0;
+      const note = document.createElement("small");
+      note.textContent = c.id === settings.character ? "目前角色" : hasChat ? "有進行中的對話" : "尚未開始";
+      b.append(note);
+      b.onclick = () => switchChar(c);
+      list.append(b);
+    }
+  } catch (e) {
+    $("charStatus").textContent = e.message;
+    $("charStatus").className = "status err";
+  }
+}
+
+function switchChar(c) {
+  settings.character = c.id;
+  settings.characterName = c.name || c.id;
+  store.set("rp_settings", settings);
+  loadHistory();
+  render();
+  $("charPicker").classList.remove("open");
+}
+
+$("openChars").onclick = openChars;
+$("title").onclick = openChars;
+$("closeChars").onclick = () => $("charPicker").classList.remove("open");
 $("closeSettings").onclick = () => $("settings").classList.remove("open");
 
 $("toggleKey").onclick = () => {
