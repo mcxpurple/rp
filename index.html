@@ -105,22 +105,82 @@
     background: var(--accent-soft); border-radius: 14px 14px 4px 14px; padding: 10px 14px;
     font-size: 15px; line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
 
-  /* 5.3 通訊：嵌在書頁裡的手機畫面 */
-  .im { font-family: "Noto Sans TC", sans-serif; letter-spacing: 0; line-height: 1.6;
-    max-width: 22.5em; margin: 8px auto 26px; background: var(--phone); border: 1px solid var(--line);
-    border-radius: 26px; padding: 10px 10px 14px; box-shadow: var(--shadow); }
-  .im-top { text-align: center; padding: 6px 8px 10px; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
-  .im-top .who { font-size: 15px; font-weight: 700; color: var(--text); }
-  .im-top .meta { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
-  .im-msgs { display: flex; flex-direction: column; gap: 8px; padding: 0 2px; }
-  .im-row { display: flex; flex-direction: column; align-items: flex-start; max-width: 82%; }
-  .im-row.me { align-self: flex-end; align-items: flex-end; }
-  .im-row .name { font-size: 11px; color: var(--muted); margin: 0 6px 2px; }
-  .im-row .bub { background: var(--bubble-them); border: 1px solid var(--line); border-radius: 16px 16px 16px 5px;
-    padding: 8px 12px; font-size: 14.5px; white-space: pre-wrap; word-break: break-word; }
-  .im-row.me .bub { background: var(--bubble-me); color: var(--bubble-me-ink); border-color: transparent;
-    border-radius: 16px 16px 5px 16px; }
-  .im-row .time { font-size: 10.5px; color: var(--muted); margin: 2px 6px 0; }
+  /* 5.3 通訊：嵌在書頁裡的手機畫面（瀏海與 Home 條保留紫梓的 ✧✦ 符號） */
+  .im { --app: var(--accent); font-family: "Noto Sans TC", sans-serif; letter-spacing: 0; line-height: 1.55;
+    max-width: 22.5em; margin: 10px auto 28px; background: var(--phone); border: 1px solid var(--line);
+    border-radius: 30px; padding: 0 0 8px; box-shadow: var(--shadow); overflow: hidden; }
+  .im-notch { text-align: center; font-size: 11px; color: var(--accent); letter-spacing: 1px; padding: 9px 0 2px; opacity: .85; white-space: nowrap; overflow: hidden; }
+  .im-bar { display: flex; align-items: center; gap: 8px; padding: 6px 14px 9px; border-bottom: 1px solid var(--line); }
+  .im-bar .back { font-size: 22px; line-height: 1; color: var(--app); width: 14px; flex-shrink: 0; }
+  .im-bar .ttl { flex: 1; min-width: 0; text-align: center; }
+  .im-bar .who { font-size: 14.5px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .im-bar .sub { font-size: 11px; color: var(--muted); margin-top: 1px; display: flex; justify-content: center; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .im-bar .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--app); display: inline-block; }
+  .im-bar .more { color: var(--muted); font-size: 16px; width: 14px; flex-shrink: 0; text-align: right; }
+  .im-day { align-self: center; font-size: 11px; color: var(--muted); background: var(--panel-2); border-radius: 999px; padding: 2px 10px; margin: 2px 0 4px; }
+  .im-msgs { display: flex; flex-direction: column; gap: 3px; padding: 10px 10px 6px; }
+  .im-row { display: grid; grid-template-columns: 30px auto; column-gap: 7px; align-self: flex-start; max-width: 86%; margin-top: 7px; }
+  .im-row.cont { margin-top: 0; }
+  .im-row .ava { grid-row: 1 / span 2; width: 30px; height: 30px; border-radius: 50%; background: var(--panel-2); color: var(--accent);
+    font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); }
+  .im-row.cont .ava { visibility: hidden; height: 0; }
+  .im-row .name { font-size: 11px; color: var(--muted); margin: 0 4px 2px; }
+  .im-row.cont .name { display: none; }
+  .im-row .line { display: flex; align-items: flex-end; gap: 5px; }
+  .im-row .bub { background: var(--bubble-them); border: 1px solid var(--line); border-radius: 4px 17px 17px 17px;
+    padding: 7px 12px; font-size: 14.5px; white-space: pre-wrap; word-break: break-word; min-width: 0; }
+  .im-row.cont .bub { border-radius: 17px; }
+  .im-row .stamp { font-size: 10px; color: var(--muted); line-height: 1.3; white-space: nowrap; flex-shrink: 0; }
+  .im-row.me { grid-template-columns: auto; align-self: flex-end; }
+  .im-row.me .ava, .im-row.me .name { display: none; }
+  .im-row.me .line { flex-direction: row-reverse; }
+  .im-row.me .stamp { text-align: right; }
+  .im-row.me .bub { background: var(--bubble-me); color: var(--bubble-me-ink); border-color: transparent; border-radius: 17px 4px 17px 17px; }
+  .im-row.me.cont .bub { border-radius: 17px; }
+  .im-row.sys { display: block; align-self: center; max-width: 92%; text-align: center; font-size: 11.5px; color: var(--muted); margin: 6px 0; }
+  /* 媒體：照片、貼圖、語音、影片 */
+  .im-row .bub.media { padding: 0; background: none; border: 0; }
+  .im-media { display: flex; align-items: center; gap: 8px; border-radius: 14px; font-size: 13px; }
+  .im-media.photo { width: 150px; height: 112px; justify-content: center; flex-direction: column; gap: 4px; color: var(--muted);
+    background: linear-gradient(135deg, var(--panel-2), var(--accent-soft)); border: 1px solid var(--line); }
+  .im-media.photo .ic { font-size: 26px; }
+  .im-media.photo .cap { font-size: 11.5px; padding: 0 8px; text-align: center; }
+  .im-media.sticker { font-size: 46px; line-height: 1; padding: 2px 4px; }
+  .im-media.stk-card { flex-direction: column; align-items: flex-start; gap: 2px; max-width: 170px; padding: 9px 12px;
+    border: 1.5px dashed var(--accent-line); background: var(--accent-soft); border-radius: 18px; }
+  .im-media.stk-card .lab { font-size: 10.5px; color: var(--accent); letter-spacing: .05em; }
+  .im-media.stk-card .txt { font-size: 14px; font-weight: 600; line-height: 1.45; }
+  .im-media.voice { padding: 8px 12px; background: var(--bubble-them); border: 1px solid var(--line); border-radius: 17px; }
+  .im-row.me .im-media.voice { background: var(--bubble-me); color: var(--bubble-me-ink); border-color: transparent; }
+  .im-media.voice .wave { letter-spacing: 1px; opacity: .8; }
+  .im-chip { display: inline-block; font-size: 12px; padding: 0 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+  .im-row.me .im-chip { background: rgba(255,255,255,.18); color: inherit; }
+  /* 底部裝飾輸入列與 Home 條 */
+  .im-input { display: flex; align-items: center; gap: 8px; margin: 4px 10px 0; padding: 6px 6px 6px 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+  .im-input .box { flex: 1; background: var(--panel-2); border-radius: 999px; padding: 5px 12px; font-size: 12.5px; }
+  .im-input .send { width: 28px; height: 28px; border-radius: 50%; background: var(--app); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .im-home { text-align: center; font-size: 11px; color: var(--muted); letter-spacing: 1px; padding-top: 6px; opacity: .7; }
+
+  /* 5.3 公開場合：直播、舞台、錄影、廣播 → 彈幕留言串 */
+  .im.live .im-bar .live { font-size: 10.5px; font-weight: 700; color: #fff; background: #e5484d; border-radius: 4px; padding: 0 6px; }
+  .im.live .im-bar .view { font-size: 11px; color: var(--muted); }
+  .live-stage { margin: 10px 12px 4px; height: 70px; border-radius: 14px; background: linear-gradient(135deg, var(--accent-soft), var(--panel-2));
+    display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12.5px; border: 1px solid var(--line); }
+  .live-list { display: flex; flex-direction: column; gap: 5px; padding: 8px 14px 6px; font-size: 13.5px; }
+  .live-list .c { line-height: 1.5; word-break: break-word; }
+  .live-list .c b { font-weight: 700; margin-right: 6px; }
+  .live-list .c.host { background: var(--accent-soft); border-radius: 10px; padding: 4px 8px; margin: 0 -8px; }
+  .live-list .c.host .tag { font-size: 10px; color: #fff; background: var(--accent); border-radius: 4px; padding: 0 5px; margin-right: 5px; }
+  .live-list { --live-l: 64%; --gift: #e0ad4a; }
+  :root[data-theme="light"] .live-list { --live-l: 38%; --gift: #9a6a12; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .live-list { --live-l: 38%; --gift: #9a6a12; } }
+  .live-list .c.gift { color: var(--gift); }
+  .live-list .c .t { font-size: 10px; color: var(--muted); margin-left: 6px; }
+
+  /* 5.3 官方公告 → 公告卡 */
+  .im.im-notice .notice-body { padding: 12px 16px 6px; font-size: 14px; line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
+  .im.im-notice .notice-body .from { margin-top: 10px; text-align: right; font-size: 12px; color: var(--muted); }
+  .im.im-notice .im-bar .badge { font-size: 10.5px; color: var(--app); border: 1px solid var(--app); border-radius: 4px; padding: 0 5px; }
 
   /* 5.4 音樂卡 */
   .song { font-family: "Noto Sans TC", sans-serif; font-size: 14px; line-height: 1.8; letter-spacing: 0;
@@ -1409,55 +1469,222 @@ async function runSave(manual = false) {
   }
 }
 
-function renderIM(block) {
-  const wrap = document.createElement("div");
-  wrap.className = "im";
+// ---------- 5.3 通訊：依 UI 類型畫成手機聊天、直播彈幕或公告卡 ----------
+// 平台小色點（認不出的平台用主題色）
+const APP_COLORS = [
+  [/line/i, "#06C755"], [/instagram|\big\b|限動/i, "#E1306C"], [/discord/i, "#5865F2"], [/threads/i, "#8a8a8a"],
+  [/twitter|^x$|\bx\b/i, "#1D9BF0"], [/kakao/i, "#F7C600"], [/messenger|facebook|臉書/i, "#0084FF"], [/whatsapp/i, "#25D366"],
+  [/telegram/i, "#2AABEE"], [/wechat|微信/i, "#07C160"], [/youtube/i, "#FF0033"], [/twitch/i, "#9146FF"],
+  [/weverse/i, "#00C3C3"], [/bubble/i, "#FF6FA3"], [/slack/i, "#611F69"], [/tiktok|抖音/i, "#FE2C55"],
+];
+// [貼圖]、[貼圖：翻白眼的貓]、（傳了一張照片：…）、【語音 0:12】等寫法都認
+const IM_MEDIA = /^[\[（(【](?:傳送了?|傳了|發了|分享了?)?(?:一張|一則|一段|一個)?(照片|圖片|相片|貼圖|語音|影片|限動截圖|截圖|檔案|位置|通話|未接來電)(?:[:：\s]\s*([^\]）)】]*))?[\]）)】]$/;
+
+function imParse(block) {
   let sep = block.findIndex((l) => /^\s*✧\s*─/.test(l));
   if (sep < 0) sep = Math.min(2, block.length);
   const meta = block.slice(0, sep).map((l) => l.trim()).filter(Boolean);
-  const msgs = block.slice(sep + (block[sep] && /✧/.test(block[sep]) ? 1 : 0)).filter((l) => l.trim());
-
-  const top = document.createElement("div");
-  top.className = "im-top";
-  const who = meta.find((l) => l.startsWith("👤"));
-  const info = meta.filter((l) => l !== who);
-  top.innerHTML =
-    `<div class="who">${inline((who || "訊息").replace(/^👤\s*/, ""))}</div>` +
-    (info.length ? `<div class="meta">${info.map(inline).join("<br>")}</div>` : "");
-  wrap.append(top);
-
-  const list = document.createElement("div");
-  list.className = "im-msgs";
-  const me = playerName();
-  for (const raw of msgs) {
-    const m = raw.trim().match(/^([^:：]{1,24})[:：]\s*(.*)$/);
+  const lines = block.slice(sep + (block[sep] && /✧/.test(block[sep]) ? 1 : 0)).filter((l) => l.trim());
+  const whoLine = meta.find((l) => l.startsWith("👤")) || "";
+  const typeLine = meta.find((l) => l !== whoLine) || "";
+  const parts = typeLine.split("｜").map((x) => x.trim()).filter(Boolean);
+  const date = (parts.find((x) => x.startsWith("🗓")) || "").replace(/^🗓\s*/, "");
+  const time = (parts.find((x) => x.startsWith("🕒")) || "").replace(/^🕒\s*/, "");
+  const rest = parts.filter((x) => !x.startsWith("🗓") && !x.startsWith("🕒"));
+  const type = rest[0] || "";
+  const platform = rest.slice(1).join("｜");
+  const msgs = lines.map((raw) => {
+    const m = raw.trim().match(/^([^:：「」]{1,24})[:：]\s*(.*)$/);
     let speaker = m ? m[1].trim() : "";
     let body = m ? m[2] : raw.trim();
-    let time = "";
+    let t = "";
     const tm = body.match(/^(.*?)[\s　]+(\d{1,2}:\d{2})\s*$/);
-    if (tm) { body = tm[1]; time = tm[2]; }
+    if (tm) { body = tm[1]; t = tm[2]; }
+    return { speaker, body: body.trim(), time: t };
+  });
+  return { who: whoLine.replace(/^👤\s*/, ""), type, platform, date, time, msgs };
+}
 
+function imColor(platform) {
+  for (const [re, c] of APP_COLORS) if (re.test(platform)) return c;
+  return "";
+}
+
+// 「2026.10.11」→「10/11（日）」，認不出就原樣
+function imDay(date) {
+  const d = String(date).match(/(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})/);
+  if (!d) return date;
+  const w = "日一二三四五六"[new Date(+d[1], +d[2] - 1, +d[3]).getDay()];
+  return `${+d[2]}/${+d[3]}（${w}）`;
+}
+
+function imFrame(p, kind) {
+  const wrap = document.createElement("div");
+  wrap.className = "im" + (kind ? " " + kind : "");
+  const c = imColor(p.platform);
+  if (c) wrap.style.setProperty("--app", c);
+  const notch = document.createElement("div");
+  notch.className = "im-notch";
+  notch.textContent = "✧✦ ───── ✦✧";
+  wrap.append(notch);
+  return wrap;
+}
+
+function imBar(p, extra = "") {
+  const bar = document.createElement("div");
+  bar.className = "im-bar";
+  const sub = [p.type, p.platform].filter(Boolean).map(inline).join("・");
+  bar.innerHTML =
+    `<span class="back">‹</span>` +
+    `<div class="ttl"><div class="who">${inline(p.who || p.platform || "訊息")}</div>` +
+    `<div class="sub">${p.platform ? '<span class="dot"></span>' : ""}${sub}${extra}</div></div>` +
+    `<span class="more">⋯</span>`;
+  return bar;
+}
+
+function imHome(wrap) {
+  const h = document.createElement("div");
+  h.className = "im-home";
+  h.textContent = "✧ ── ✦";
+  wrap.append(h);
+}
+
+function renderIM(block) {
+  const p = imParse(block);
+  if (/公告/.test(p.type)) return renderNotice(p);
+  if (/直播|舞台|演唱|錄影|廣播|電台|配音|彈幕/.test(p.type)) return renderLive(p);
+
+  const wrap = imFrame(p);
+  wrap.append(imBar(p));
+  const list = document.createElement("div");
+  list.className = "im-msgs";
+  if (p.date) {
+    const day = document.createElement("div");
+    day.className = "im-day";
+    day.textContent = `🗓 ${imDay(p.date)}`;
+    list.append(day);
+  }
+
+  // 手機主人靠右：玩家有在對話裡就是玩家；玩家不在（角色自己的群組）就是角色本人
+  const same = (a, b) => a && b && (a.includes(b) || b.includes(a));
+  const me = playerName();
+  const char = settings.characterName || "";
+  const owner = p.msgs.some((m) => same(m.speaker, me)) ? me : char;
+
+  let prev = "";
+  for (const m of p.msgs) {
     const row = document.createElement("div");
-    row.className = "im-row" + (me && speaker && (speaker.includes(me) || me.includes(speaker)) ? " me" : "");
-    if (speaker) {
-      const n = document.createElement("div");
-      n.className = "name";
-      n.textContent = speaker;
-      row.append(n);
+    if (!m.speaker) {
+      row.className = "im-row sys";
+      row.innerHTML = inline(m.body);
+      list.append(row);
+      prev = "";
+      continue;
     }
-    const b = document.createElement("div");
-    b.className = "bub";
-    b.innerHTML = inline(body);
-    row.append(b);
-    if (time) {
-      const t = document.createElement("div");
-      t.className = "time";
-      t.textContent = time;
-      row.append(t);
+    const mine = same(m.speaker, owner);
+    row.className = "im-row" + (mine ? " me" : "") + (m.speaker === prev ? " cont" : "");
+    prev = m.speaker;
+    const ava = document.createElement("div");
+    ava.className = "ava";
+    ava.textContent = [...m.speaker.replace(/^[^\p{L}\p{N}]+/u, "")][0] || "?";
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = m.speaker;
+    const line = document.createElement("div");
+    line.className = "line";
+    const bub = document.createElement("div");
+    bub.className = "bub";
+    const media = m.body.match(IM_MEDIA);
+    if (media) {
+      bub.classList.add("media");
+      bub.append(imMedia(media[1], media[2] || ""));
+    } else {
+      bub.innerHTML = inline(m.body).replace(/\[([^\]\n]{1,12})\]/g, '<span class="im-chip">$1</span>');
     }
+    line.append(bub);
+    if (m.time || mine) {
+      const st = document.createElement("div");
+      st.className = "stamp";
+      st.innerHTML = [mine ? "已讀" : "", m.time].filter(Boolean).map(esc).join("<br>");
+      line.append(st);
+    }
+    row.append(ava, name, line);
     list.append(row);
   }
   wrap.append(list);
+
+  const input = document.createElement("div");
+  input.className = "im-input";
+  input.innerHTML = '<span>＋</span><span class="box">輸入訊息…</span><span class="send">✦</span>';
+  wrap.append(input);
+  imHome(wrap);
+  return wrap;
+}
+
+function imMedia(kind, cap) {
+  const d = document.createElement("div");
+  if (/照片|圖片|相片|截圖/.test(kind)) {
+    d.className = "im-media photo";
+    d.innerHTML = `<span class="ic">${/限動/.test(kind) ? "🎞️" : "📷"}</span><span class="cap">${esc(cap || kind)}</span>`;
+  } else if (kind === "貼圖") {
+    // 模型多半用文字描述貼圖：純 emoji 就放大顯示，文字描述就畫成貼圖卡
+    const emojiOnly = cap && /^[\p{Extended_Pictographic}\u200d\ufe0f\s]+$/u.test(cap);
+    if (emojiOnly) { d.className = "im-media sticker"; d.textContent = cap.trim(); }
+    else { d.className = "im-media stk-card"; d.innerHTML = cap ? `<span class="lab">✦ 貼圖</span><span class="txt">${esc(cap)}</span>` : `<span class="txt">✦ 貼圖</span>`; }
+  } else if (kind === "語音") {
+    d.className = "im-media voice";
+    d.innerHTML = `<span>▶</span><span class="wave">ılıılıılı</span><span>${esc(cap || "0:08")}</span>`;
+  } else {
+    d.className = "im-media voice";
+    const ic = { 影片: "🎬", 檔案: "📎", 位置: "📍", 通話: "📞", 未接來電: "📵" }[kind] || "✦";
+    d.innerHTML = `<span>${ic}</span><span>${esc(cap ? `${kind}・${cap}` : kind)}</span>`;
+  }
+  return d;
+}
+
+// 直播、舞台、錄影、廣播：彈幕留言串；角色本人的發言標「主播」
+function renderLive(p) {
+  const wrap = imFrame(p, "live");
+  const extra = ` <span class="live">● LIVE</span>${p.time ? ` <span class="view">🕒${esc(p.time)}</span>` : ""}`;
+  wrap.append(imBar(p, extra));
+  const stage = document.createElement("div");
+  stage.className = "live-stage";
+  stage.textContent = `${p.type || "直播"}${p.who ? `・${p.who}` : ""}`;
+  wrap.append(stage);
+  const list = document.createElement("div");
+  list.className = "live-list";
+  const char = settings.characterName || "";
+  const hue = (s) => [...s].reduce((a, ch) => (a * 31 + ch.codePointAt(0)) % 360, 7);
+  for (const m of p.msgs) {
+    const c = document.createElement("div");
+    c.className = "c";
+    const gift = /贈禮|禮物|斗內|抖內|打賞|贊助/.test(m.body);
+    const host = char && m.speaker && (m.speaker.includes(char) || char.includes(m.speaker));
+    if (gift) c.classList.add("gift");
+    if (host) c.classList.add("host");
+    const who = m.speaker
+      ? `${host ? '<span class="tag">主播</span>' : ""}<b style="color:hsl(${hue(m.speaker)} 55% var(--live-l))">${esc(m.speaker)}</b>`
+      : "";
+    c.innerHTML = `${who}${inline(m.body)}${m.time ? `<span class="t">${esc(m.time)}</span>` : ""}`;
+    list.append(c);
+  }
+  wrap.append(list);
+  imHome(wrap);
+  return wrap;
+}
+
+// 官方公告：公告卡
+function renderNotice(p) {
+  const wrap = imFrame(p, "im-notice");
+  wrap.append(imBar(p, ' <span class="badge">官方</span>'));
+  const body = document.createElement("div");
+  body.className = "notice-body";
+  const from = p.msgs.find((m) => m.speaker);
+  body.innerHTML =
+    p.msgs.map((m) => inline(m.body)).join("\n") +
+    `<div class="from">${esc([from && from.speaker, p.date, p.time].filter(Boolean).join("・"))}</div>`;
+  wrap.append(body);
+  imHome(wrap);
   return wrap;
 }
 
