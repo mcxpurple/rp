@@ -246,6 +246,10 @@
   .save-mark { margin-top: -8px !important; background: var(--accent-soft); }
   .save-mark.saving .dot { display: inline-block; animation: bob 1s ease-in-out infinite; }
   .save-mark.fail { color: var(--danger); background: transparent; border: 1px dashed var(--danger); cursor: pointer; }
+  .win-hint { margin-top: -12px !important; color: var(--accent); border: 1px solid var(--accent-line); background: transparent;
+    cursor: pointer; transition: transform .15s ease, background .15s ease; }
+  .win-hint:hover { background: var(--accent-soft); }
+  .win-hint:active { transform: scale(.96); }
   @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 
   /* 📦 匯出／匯入 */
@@ -256,11 +260,13 @@
   .io-list .ico { font-size: 22px; width: 1.4em; text-align: center; flex-shrink: 0; }
   .io-list b { display: block; font-weight: 600; font-size: 15.5px; }
   .io-list small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; line-height: 1.6; }
+  .io-list small.slotinfo { color: var(--accent); }
+  .io-list small.slotinfo:empty { display: none; }
   #ioCard { min-height: 96px; }
   #ioMem { min-height: 150px; }
   #ioForm[hidden], #ioMain[hidden] { display: none; }
 
-  /* 📖 記憶面板 */
+  /* 📖 記憶庫面板 */
   .mem-block { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; margin-top: 10px; }
   .mem-block.main { border: 1.5px dashed var(--accent-line); }
   .mem-block summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;
@@ -283,7 +289,7 @@
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
   @media (prefers-reduced-motion: reduce) {
-    .chip, .toast { transition: none; }
+    .chip, .toast, .win-hint { transition: none; }
     .save-mark.saving .dot { animation: none; }
   }
 
@@ -310,9 +316,9 @@
     <a id="linkWorlds" target="_blank" rel="noopener"><span class="ico">💜</span>開放世界（多人）<span class="ext">↗</span></a>
     <a id="linkGuide" target="_blank" rel="noopener"><span class="ico">❔</span>使用說明<span class="ext">↗</span></a>
     <hr>
-    <button type="button" id="openMemory"><span class="ico">📖</span>記憶</button>
+    <button type="button" id="openMemory"><span class="ico">📖</span>記憶庫</button>
     <button type="button" id="newWindow"><span class="ico">🪟</span>換窗接續</button>
-    <button type="button" id="saveNow"><span class="ico">💾</span>立即存檔</button>
+    <button type="button" id="saveNow"><span class="ico">💾</span>立即寫入記憶庫</button>
     <button type="button" id="openIO"><span class="ico">📦</span>匯出／匯入</button>
     <button type="button" id="openSettings"><span class="ico">⚙︎</span>設定</button>
   </nav>
@@ -354,12 +360,11 @@
 <div id="ioPanel" class="overlay">
   <div class="sheet">
     <h2 id="ioTitle">匯出／匯入</h2>
-    <p class="note" id="ioNote">存檔只存在這支手機的瀏覽器裡。換手機、換瀏覽器或清除資料前，先匯出備份。</p>
+    <p class="note" id="ioNote">存檔只存在這支手機的瀏覽器裡。換手機、換瀏覽器或清除資料前，先匯出記憶庫備份（對話紀錄不會匯出）。</p>
 
     <div id="ioMain" class="io-list">
-      <button type="button" id="ioExport"><span class="ico">⬇️</span><span><b>匯出目前存檔</b><small id="ioExportSub">下載成一個檔案，可以備份或搬到其他裝置</small></span></button>
-      <button type="button" id="ioExportMem"><span class="ico">📜</span><span><b>匯出記憶（txt）</b><small>常駐記憶檔＋全部記憶片段，格式同 Claude Code 版，不含對話</small></span></button>
-      <button type="button" id="ioImport"><span class="ico">⬆️</span><span><b>匯入存檔檔案</b><small>會新增成一個存檔，不會覆蓋現有的故事</small></span></button>
+      <button type="button" id="ioExportMem"><span class="ico">📜</span><span><b>匯出記憶庫</b><small>匯出我們之間發生過的事件與接續指引，不含對話紀錄</small><small class="slotinfo" id="ioExportSub"></small></span></button>
+      <button type="button" id="ioImport"><span class="ico">⬆️</span><span><b>匯入記憶庫</b><small>用匯出的記憶庫檔案開一個新存檔接著玩，不會覆蓋現有的故事</small></span></button>
       <button type="button" id="ioContinue"><span class="ico">🔁</span><span><b>從其他平台接續</b><small>帶著 Gemini／ChatGPT 的記憶，在這裡接著玩</small></span></button>
       <input type="file" id="ioFile" accept=".json,application/json" hidden>
     </div>
@@ -387,7 +392,7 @@
 
 <div id="memoryPanel" class="overlay">
   <div class="sheet">
-    <h2 id="memTitle">記憶</h2>
+    <h2 id="memTitle">記憶庫</h2>
     <p class="note" id="memNote"></p>
     <div id="memBody"></div>
     <div class="actions">
@@ -454,8 +459,10 @@ const CHARS_URL = "https://obvious-tenor-7aa.notion.site/210f4e50bb4b80008d28edd
 const WORLDS_URL = "https://obvious-tenor-7aa.notion.site/2d1f4e50bb4b802d9c80e60a76446428"; // 開放世界（多人）
 const GUIDE_URL = "https://obvious-tenor-7aa.notion.site/3f5f4e50bb4b81e184d4eed446634734";  // 使用說明
 
-// 每幾頁自動存檔一次（實測時可暫時改小，例如 2）
+// 每幾頁自動寫入記憶庫一次（實測時可暫時改小，例如 2）
 const SAVE_EVERY = 20;
+// 這一窗寫入記憶庫滿幾頁後，提示玩家換窗接續
+const WINDOW_EVERY = 40;
 // 每輪送出的最近對話則數，需與 Worker 的 HISTORY_LIMIT 相同（玩家＋角色各算一則，40 則約 20 頁）
 const HISTORY_LIMIT = 40;
 
@@ -479,7 +486,7 @@ let history = [];
 let busy = false;
 
 const NEW_GAME = "/新玩家";
-// 從其他平台接續：第一句送 /舊玩家，附一行說明（畫面上不顯示）
+// 換窗、匯入記憶庫、從其他平台接續：第一句送 /舊玩家，附一行說明（畫面上不顯示）
 const OLD_GAME = "/舊玩家";
 const OLD_NOTE = "（角色卡與過往記憶已提供，請直接依記憶接續）";
 const isOldGame = (t) => typeof t === "string" && t.startsWith(OLD_GAME);
@@ -601,7 +608,7 @@ function saveHistory() {
 // ---------- 頁數 ----------
 // 一則角色回覆＝一頁；/新玩家 之後的第一則（登場）就是 page.1
 // 重來最後一則：舊回覆移除後新回覆補回同一個位置，頁碼自然沿用
-// base：從其他平台接續時的起始頁（例如舊平台存到 Page.76，這裡就是 76）
+// base：換窗、匯入記憶庫或從其他平台接續時的起始頁（例如上一窗存到 Page.76，這裡就是 76）
 function numberPages(list, base = 0) {
   let n = base, changed = false;
   for (const m of list) {
@@ -636,8 +643,8 @@ function slotPages(cid, s) {
   return numberPages(store.get(historyKey(cid, s.id), []), s.base || 0).pages;
 }
 
-// ---------- 記憶：每個存檔各自保存記憶片段 ----------
-// rp_memory_{角色id}__{存檔id} = { saved: 已存到第幾頁, epoch: 開新遊戲就 +1, frags: [{ from, to, date, text, at }] }
+// ---------- 記憶庫：每個存檔各自保存記憶片段 ----------
+// rp_memory_{角色id}__{存檔id} = { saved: 已寫入到第幾頁, epoch: 開新遊戲就 +1, frags: [{ from, to, date, text, at }] }
 function memKey(cid, sid) { return `rp_memory_${cid}__${sid}`; }
 function loadMem(cid = settings.character, sid = (curSlot() || {}).id) {
   const m = store.get(memKey(cid, sid), null);
@@ -698,7 +705,13 @@ function emotionLayer(text) {
   return lines.slice(a, b < 0 ? lines.length : b).join("\n").trim();
 }
 
-// ---------- 記憶匯出（Claude Code 版格式）----------
+// 換窗後第一輪：全部記憶片段依時間先後完整附上（之後改用 EVT 回查翻閱）
+function allFragsText(mem) {
+  if (!mem.frags.length) return "";
+  const body = mem.frags.map((f) => `【${fragLabel(f)}｜記憶片段】\n${String(f.text).trim()}`).join("\n\n━━━━━━━━\n\n");
+  return "以下為全部記憶片段，依時間先後排列；現況以常駐記憶檔為準，記憶片段保存事件細節與原話。\n\n" + body;
+}
+
 // 劇情日期區間：從這幾頁 5.1 頁首抓日期，例：2026.10.04 或 2026.10.04-10.05
 function storyDates(list) {
   const ds = [];
@@ -712,53 +725,6 @@ function storyDates(list) {
   ds.sort();
   const a = ds[0], b = ds[ds.length - 1];
   return a === b ? a : a.slice(0, 4) === b.slice(0, 4) ? `${a}-${b.slice(5)}` : `${a}-${b}`;
-}
-
-// 記錄角色：A-1 取「記錄角色｜」，A-2 取各「━ X情感記憶 ━」
-function recNames(text) {
-  const t = String(text);
-  const multi = [...t.matchAll(/^\s*━\s*(.+?)情感記憶\s*━/gm)].map((m) => m[1].trim()).filter((n) => n && n !== "");
-  if (multi.length) return multi;
-  const one = t.match(/記錄角色｜([^｜\n]+)/);
-  return one ? one[1].split(/[、,，]/).map((x) => x.trim()).filter(Boolean) : [];
-}
-
-function archiveText(mem, slotName) {
-  const user = playerName() || "玩家";
-  const all = [];
-  for (const f of mem.frags) for (const n of recNames(f.text)) if (!all.includes(n)) all.push(n);
-  const names = (all.length ? all : [settings.characterName || "角色"]).join("、");
-  const fragName = (f) => {
-    const n = recNames(f.text);
-    return `【Page.${f.from}-${f.to}｜${(n.length ? n : [settings.characterName || "角色"]).join("、")}遊玩記憶片段】`;
-  };
-  const when = (f) => f.story || storyDates(sliceTranscript(history, f.from, f.to)) || f.date || "";
-
-  const out = [
-    `【${names}×${user}｜${slotName}｜常駐記憶檔】`,
-    `玩家名稱｜${user}｜記錄角色｜${names}`,
-    "━ 事件總目錄 ━ # 權重：S=核心劇情 / A=重要事件 / B=一般過渡 / C=瑣碎細節",
-  ];
-  mem.frags.forEach((f, i) => {
-    if (i) out.push("");
-    out.push(f.imported ? `其他平台匯入｜Page.1-${f.to}｜${when(f)}` : `${fragName(f)}｜Page.${f.from}-${f.to}｜${when(f)}`);
-    for (const [, t] of fragEvts(f.text)) out.push(t);
-  });
-  const last = mem.frags[mem.frags.length - 1].text;
-  const i = last.indexOf("當前狀態總結");
-  out.push("", (i >= 0 ? last.slice(i) : last).trim());
-
-  const frags = mem.frags.map((f) => {
-    if (f.imported) return f.text.trim();
-    const nums = fragEvts(f.text).map(([n]) => n);
-    const evt = nums.length
-      ? `EVT.${String(Math.min(...nums)).padStart(2, "0")}-EVT.${String(Math.max(...nums)).padStart(2, "0")}`
-      : "EVT.—";
-    const n = recNames(f.text);
-    const head = `【Page.${f.from}-${f.to}｜${(n.length ? n : [settings.characterName || "角色"]).join("、")}｜${evt}｜${when(f)}｜歷史封存，現況以常駐記憶檔為準】`;
-    return `${head}\n${f.text.trim()}`;
-  });
-  return [out.join("\n"), ...frags].join("\n\n━━━━━━━━━━━━━━━━\n\n") + "\n";
 }
 
 // ---------- EVT 回查 ----------
@@ -1068,7 +1034,7 @@ function isRuleLine(l) { return /^\s*(\*{3,}|-{3,}|＊{3,})\s*$/.test(l); }
 
 // 結尾記號比對：去掉空白與變體符號後取開頭（與 Worker 的 tailKey 相同規則）
 function tailKey(line) {
-  return String(line).split("{")[0].replace(/[\s\uFE0F]/g, "");
+  return String(line).split("{")[0].replace(/[\s️]/g, "");
 }
 const tailMarks = store.get("rp_tail", {});
 
@@ -1292,8 +1258,8 @@ function renderPeek() {
   return det;
 }
 
-// ---------- 存檔標記 ----------
-let saving = null;   // 進行中的存檔 { cid, sid, from, to }
+// ---------- 記憶庫寫入標記 ----------
+let saving = null;   // 進行中的寫入 { cid, sid, from, to }
 let saveFail = null; // 最近一次失敗 { cid, sid, to, msg }
 
 function sameSlot(job) {
@@ -1309,10 +1275,31 @@ function showSaveMark(to, state, text) {
   const m = document.createElement("div");
   m.className = `pill save-mark ${state}`;
   m.dataset.to = to;
-  if (state === "saving") m.innerHTML = `<span class="dot">📝</span> 正在存檔 ${esc(text)}…`;
-  else if (state === "fail") { m.textContent = `⚠︎ ${text} 存檔失敗・點這裡重試`; m.onclick = () => runSave(true); m.setAttribute("role", "button"); }
-  else m.textContent = `📝 已存檔 ${text} ✧`;
+  if (state === "saving") m.innerHTML = `<span class="dot">📝</span> 正在寫入記憶庫 ${esc(text)}…`;
+  else if (state === "fail") { m.textContent = `⚠︎ ${text} 寫入記憶庫失敗・點這裡重試`; m.onclick = () => runSave(true); m.setAttribute("role", "button"); }
+  else m.textContent = `📝 已寫入記憶庫 ${text} ✧`;
   anchor.after(m);
+}
+
+// 這一窗寫入記憶庫滿 WINDOW_EVERY 頁：在最新的寫入標記下方提示換窗，點了直接換窗
+function windowDue() {
+  const s = curSlot();
+  if (!s) return false;
+  return loadMem().saved - (s.base || 0) >= WINDOW_EVERY;
+}
+function showWindowHint() {
+  chatEl.querySelectorAll(".win-hint").forEach((x) => x.remove());
+  if (!windowDue()) return;
+  const mark = chatEl.querySelector(`.save-mark.done[data-to="${loadMem().saved}"]`);
+  if (!mark) return;
+  const h = document.createElement("div");
+  h.className = "pill win-hint";
+  h.setAttribute("role", "button");
+  h.tabIndex = 0;
+  h.textContent = "🪟 建議換窗接續・點這裡";
+  h.onclick = () => newWindow();
+  h.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); newWindow(); } };
+  mark.after(h);
 }
 
 function renderSaveMarks() {
@@ -1320,6 +1307,7 @@ function renderSaveMarks() {
   for (const f of loadMem().frags) if (!f.imported) showSaveMark(f.to, "done", `Page.${f.from}-${f.to}`);
   if (sameSlot(saving)) showSaveMark(saving.to, "saving", `Page.${saving.from}-${saving.to}`);
   if (sameSlot(saveFail)) showSaveMark(saveFail.to, "fail", `Page.${saveFail.from}-${saveFail.to}`);
+  showWindowHint();
 }
 
 let toastTimer;
@@ -1331,17 +1319,17 @@ function toast(msg) {
   toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
 }
 
-// 把目前存檔尚未存的頁數整理成一份記憶片段；回傳 true＝已存好或沒有要存的
+// 把目前存檔尚未寫入的頁數整理成一份記憶片段；回傳 true＝已寫入或沒有要寫入的
 async function runSave(manual = false) {
   const s = curSlot();
   if (!s) return false;
-  if (saving) { if (manual) toast("正在存檔中，請稍等一下"); return false; }
+  if (saving) { if (manual) toast("記憶庫正在寫入，請稍等一下"); return false; }
   const cid = settings.character;
   const sid = s.id;
   const mem = loadMem(cid, sid);
   const from = mem.saved + 1;
   const to = s.pages || 0;
-  if (to < from) { if (manual) toast("目前沒有新的頁面需要存檔"); return true; }
+  if (to < from) { if (manual) toast("目前沒有新的頁面需要寫入記憶庫"); return true; }
   const transcript = sliceTranscript(history, from, to);
   if (!transcript.length) return true;
 
@@ -1364,17 +1352,22 @@ async function runSave(manual = false) {
       transcript,
       memory: buildMemory(mem, s.name),
     });
-    // 存檔期間若開了新遊戲或回捲，這份結果就作廢
+    // 寫入期間若開了新遊戲或回捲，這份結果就作廢
     const now = loadMem(cid, sid);
     if ((now.epoch || 0) !== job.epoch || now.saved !== from - 1) return false;
     now.frags.push({ from, to, date: today(), story: storyDates(transcript), text: data.text, at: Date.now() });
     now.saved = to;
     saveMem(cid, sid, now);
-    if (sameSlot(job)) { showSaveMark(to, "done", `Page.${from}-${to}`); if (manual) toast(`已存檔 Page.${from}-${to} ✧`); }
+    if (sameSlot(job)) {
+      showSaveMark(to, "done", `Page.${from}-${to}`);
+      showWindowHint();
+      if (windowDue()) toast(`已寫入記憶庫 Page.${from}-${to}・建議換窗接續 🪟`);
+      else if (manual) toast(`已寫入記憶庫 Page.${from}-${to} ✧`);
+    }
     return true;
   } catch (e) {
     saveFail = { cid, sid, from, to, msg: e.message };
-    if (sameSlot(job)) { showSaveMark(to, "fail", `Page.${from}-${to}`); toast(`存檔失敗：${e.message}`); }
+    if (sameSlot(job)) { showSaveMark(to, "fail", `Page.${from}-${to}`); toast(`寫入記憶庫失敗：${e.message}`); }
     return false;
   } finally {
     saving = null;
@@ -1523,13 +1516,17 @@ async function send(text, { addUser = true } = {}) {
   const mem = loadMem();
   const memory = message === NEW_GAME ? "" : buildMemory(mem);
 
+  // 換窗後第一輪（/舊玩家）：全部記憶片段完整附上；之後只在提到時 EVT 回查
   // EVT 回查：這次送出的對話紀錄（最近 40 則）以外的舊事件，提到才附上
   const windowMsgs = prior.slice(-HISTORY_LIMIT);
   const windowStart = Math.min(...windowMsgs.filter((m) => m.role === "model" && m.page).map((m) => m.page), Infinity);
   const lastModel = [...windowMsgs].reverse().find((m) => m.role === "model");
-  const recall = message === NEW_GAME ? "" : recallText(mem, message, lastModel ? lastModel.text : "", windowStart === Infinity ? 0 : windowStart);
+  const recall =
+    message === NEW_GAME ? ""
+    : isOldGame(message) ? allFragsText(mem)
+    : recallText(mem, message, lastModel ? lastModel.text : "", windowStart === Infinity ? 0 : windowStart);
 
-  // 自動存檔：玩家送出下一句時，前面的頁數已經確定，滿 SAVE_EVERY 頁就在背景存檔
+  // 自動寫入記憶庫：玩家送出下一句時，前面的頁數已經確定，滿 SAVE_EVERY 頁就在背景寫入
   const s = curSlot();
   if (message !== NEW_GAME && s && (s.pages || 0) - mem.saved >= SAVE_EVERY) runSave();
 
@@ -1585,10 +1582,10 @@ $("input").addEventListener("input", autoGrow);
 $("newGame").onclick = () => {
   if (!ready()) return;
   const name = (curSlot() || {}).name || "這個存檔";
-  if (history.length && !confirm(`開始新遊戲會清除「${name}」目前的對話與記憶（角色卡保留），確定嗎？\n\n想保留這段故事，可以到「切換角色」另開新存檔。`)) return;
+  if (history.length && !confirm(`開始新遊戲會清除「${name}」目前的對話與記憶庫（角色卡保留），確定嗎？\n\n想保留這段故事，可以到「切換角色」另開新存檔。`)) return;
   history = [];
   saveHistory();
-  // 記憶一起清空；epoch +1 讓進行中的存檔結果作廢
+  // 記憶庫一起清空；epoch +1 讓進行中的寫入結果作廢
   const s = curSlot();
   if (s) {
     const old = loadMem();
@@ -1618,7 +1615,7 @@ $("retry").onclick = () => {
   if (!lastUser || lastUser.role !== "user") return;
   history.pop();
   saveHistory();
-  // 重來的那頁如果已經存進記憶，含這頁的記憶片段作廢，之後重新存
+  // 重來的那頁如果已經寫入記憶庫，含這頁的記憶片段作廢，之後重新寫入
   const s = curSlot();
   if (s && dropped) {
     const mem = loadMem();
@@ -1671,7 +1668,7 @@ function status(msg, err = false) {
 $("openSettings").onclick = () => openSettings();
 $("saveNow").onclick = () => { if (ready()) runSave(true); };
 
-// ---------- 📖 記憶面板（只能看、不能改）----------
+// ---------- 📖 記憶庫面板（只能看、不能改）----------
 async function copyText(text) {
   try {
     await navigator.clipboard.writeText(text);
@@ -1719,9 +1716,9 @@ function openMemory() {
   const s = curSlot();
   if (!s) { openSettings("請先完成設定"); return; }
   const mem = loadMem();
-  $("memTitle").textContent = `${s.name}的記憶`;
-  const parts = [`已存到 page.${mem.saved}`, `共 ${mem.frags.length} 份片段`];
-  if (sameSlot(saving)) parts.push(`正在存檔 Page.${saving.from}-${saving.to}`);
+  $("memTitle").textContent = `${s.name}的記憶庫`;
+  const parts = [`已寫入到 page.${mem.saved}`, `共 ${mem.frags.length} 份片段`];
+  if (sameSlot(saving)) parts.push(`正在寫入 Page.${saving.from}-${saving.to}`);
   $("memNote").textContent = parts.join("・");
 
   const body = $("memBody");
@@ -1729,7 +1726,7 @@ function openMemory() {
   if (!mem.frags.length) {
     const d = document.createElement("div");
     d.className = "mem-empty";
-    d.textContent = `還沒有記憶。\n滿 ${SAVE_EVERY} 頁會自動存檔，也可以從 ☰ 按「💾 立即存檔」。`;
+    d.textContent = `記憶庫還是空的。\n滿 ${SAVE_EVERY} 頁會自動寫入，也可以從 ☰ 按「💾 立即寫入記憶庫」。`;
     d.style.whiteSpace = "pre-line";
     body.append(d);
   } else {
@@ -1748,7 +1745,9 @@ $("openMemory").onclick = openMemory;
 $("closeMemory").onclick = () => $("memoryPanel").classList.remove("open");
 
 // ---------- 📦 匯出／匯入 ----------
-const SAVE_FORMAT = "mcx-rp-save";
+// 記憶庫檔案：只有記憶片段與玩家角色卡，不含對話紀錄、API key、邀請碼
+const MEM_FORMAT = "mcx-rp-memory";
+const OLD_SAVE_FORMAT = "mcx-rp-save";
 let ioChars = [];
 
 function ioStatus(msg, err = false) {
@@ -1764,12 +1763,18 @@ function ioShow(form) {
   $("ioTitle").textContent = form ? "從其他平台接續" : "匯出／匯入";
   ioStatus("");
 }
+function ioSlotInfo() {
+  const s = curSlot();
+  if (!s) return "";
+  const saved = loadMem().saved;
+  const pages = s.pages || 0;
+  let t = `${settings.characterName}・${s.name}・記憶庫已寫入到 page.${saved}`;
+  if (pages > saved) t += `（匯出前會先寫入到 page.${pages}）`;
+  return t;
+}
 function openIO() {
   ioShow(false);
-  const s = curSlot();
-  $("ioExportSub").textContent = s
-    ? `${settings.characterName}・${s.name}・page.${s.pages || 0}`
-    : "下載成一個檔案，可以備份或搬到其他裝置";
+  $("ioExportSub").textContent = ioSlotInfo();
   $("ioPanel").classList.add("open");
 }
 $("openIO").onclick = openIO;
@@ -1778,28 +1783,42 @@ $("ioBack").onclick = () => ioShow(false);
 
 function safeName(x) { return String(x || "").replace(/[\\/:*?"<>|\s]+/g, "_").slice(0, 30); }
 
-// 匯出：以存檔為單位，不含 API key 與邀請碼
-$("ioExport").onclick = () => {
-  const s = curSlot();
-  if (!s || !history.length) { ioStatus("目前的存檔還沒有內容可以匯出", true); return; }
-  const data = {
-    format: SAVE_FORMAT,
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    character: { id: settings.character, name: settings.characterName },
-    slot: { name: s.name, card: s.card || "", base: s.base || 0, pages: s.pages || 0 },
-    history,
-    memory: loadMem(),
-  };
-  const blob = new Blob([JSON.stringify(data, null, 1)], { type: "application/json" });
+function download(name, text, type) {
+  const blob = new Blob([text], { type });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `${safeName(settings.characterName)}_${safeName(s.name)}_page${s.pages || 0}_${today()}.json`;
+  a.download = name;
   document.body.append(a);
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-  ioStatus("已匯出 ✧ 檔案在手機的「下載」資料夾");
+}
+
+// 匯出記憶庫：還有沒寫入的頁數就先寫入，寫入失敗不匯出
+$("ioExportMem").onclick = async () => {
+  const s = curSlot();
+  if (!s) { ioStatus("請先到設定選好角色", true); return; }
+  if (busy) { ioStatus("角色正在回應，稍等一下再匯出", true); return; }
+  if (saving) { ioStatus("記憶庫正在寫入，寫完再匯出", true); return; }
+  if ((s.pages || 0) > loadMem().saved) {
+    if (!ready()) return;
+    ioStatus(`先把 page.${s.pages} 以前寫入記憶庫，請稍等…`);
+    const ok = await runSave(false);
+    if (!ok || (s.pages || 0) > loadMem().saved) { ioStatus("記憶庫沒有寫入成功，這次先不匯出。可以稍後再試", true); return; }
+    $("ioExportSub").textContent = ioSlotInfo();
+  }
+  const mem = loadMem();
+  if (!mem.frags.length) { ioStatus(`記憶庫還是空的，滿 ${SAVE_EVERY} 頁會自動寫入，也可以從 ☰ 按「💾 立即寫入記憶庫」`, true); return; }
+  const data = {
+    format: MEM_FORMAT,
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    character: { id: settings.character, name: settings.characterName },
+    slot: { name: s.name, card: s.card || "", pages: mem.saved },
+    memory: { saved: mem.saved, frags: mem.frags },
+  };
+  download(`${safeName(settings.characterName)}_${safeName(s.name)}_記憶庫_page${mem.saved}_${today()}.json`, JSON.stringify(data, null, 1), "application/json");
+  ioStatus("已匯出記憶庫 ✧ 檔案在手機的「下載」資料夾");
 };
 
 // 建好新存檔後寫入；空間不夠就整個退回，不留半套資料
@@ -1815,67 +1834,58 @@ function writeNewSlot(cid, s, hist, mem) {
   return false;
 }
 
-// 匯入：一律新增成一個新存檔
-$("ioImport").onclick = () => { $("ioFile").value = ""; $("ioFile").click(); };
+// 匯入記憶庫：新增一個存檔，帶著角色卡與記憶庫從下一頁接續（流程同換窗）
+$("ioImport").onclick = () => {
+  if (busy) { ioStatus("角色正在回應，稍等一下再匯入", true); return; }
+  if (!settings.invite || !settings.key || !settings.model) { ioStatus("請先到設定填好邀請碼、API key 與模型", true); return; }
+  $("ioFile").value = "";
+  $("ioFile").click();
+};
 $("ioFile").onchange = async () => {
   const f = $("ioFile").files[0];
   if (!f) return;
   ioStatus("讀取中…");
   let data;
   try { data = JSON.parse(await f.text()); } catch { data = null; }
-  if (!data || data.format !== SAVE_FORMAT || !Array.isArray(data.history) || !data.character || !data.slot) {
-    ioStatus("這不是網頁版的存檔檔案", true);
+  if (data && data.format === OLD_SAVE_FORMAT) {
+    ioStatus("這是舊版的存檔檔案，現在只能匯入記憶庫。請改用「📜 匯出記憶庫」下載的檔案", true);
     return;
   }
+  if (!data || data.format !== MEM_FORMAT || !data.character || !data.memory || !Array.isArray(data.memory.frags)) {
+    ioStatus("這不是記憶庫檔案。請選擇用「📜 匯出記憶庫」下載的 .json 檔", true);
+    return;
+  }
+  const frags = data.memory.frags
+    .filter((x) => x && typeof x.text === "string" && x.text.trim())
+    .map((x) => ({ ...x, from: parseInt(x.from, 10) || 1, to: parseInt(x.to, 10) || 0 }));
+  if (!frags.length) { ioStatus("這個記憶庫是空的，沒有可以接續的內容", true); return; }
+
   let chars;
   try { chars = (await callWorker("/characters", {})).characters || []; } catch (e) { ioStatus(e.message, true); return; }
   const c = chars.find((x) => x.id === data.character.id);
   if (!c) { ioStatus(`「${data.character.name || data.character.id}」目前沒有開放，無法匯入`, true); return; }
 
-  const hist = data.history
-    .filter((m) => m && typeof m.text === "string" && (m.role === "user" || m.role === "model"))
-    .map(({ role, text, usage, page }) => ({ role, text, usage, page }));
-  const m = data.memory && Array.isArray(data.memory.frags) ? data.memory : { saved: 0, frags: [] };
-  const mem = { saved: Math.max(0, parseInt(m.saved, 10) || 0), epoch: 0, frags: m.frags.filter((x) => x && typeof x.text === "string") };
-
-  const s = newSlot(c.id, `${String(data.slot.name || "存檔").slice(0, 24)}（匯入）`);
-  s.card = String(data.slot.card || "");
-  s.base = Math.max(0, parseInt(data.slot.base, 10) || 0);
-  if (!writeNewSlot(c.id, s, hist, mem)) { ioStatus("手機瀏覽器的空間不夠，匯入失敗。可以先刪掉不玩的存檔再試", true); return; }
-  s.count = hist.length;
-  s.updated = Date.now();
+  const base = Math.max(parseInt(data.memory.saved, 10) || 0, ...frags.map((x) => x.to));
+  const slotData = data.slot || {};
+  const s = newSlot(c.id, `${String(slotData.name || "存檔").slice(0, 24)}（接續）`);
+  s.card = String(slotData.card || "");
+  s.base = base;
+  if (!writeNewSlot(c.id, s, [], { saved: base, epoch: 0, frags })) { ioStatus("手機瀏覽器的空間不夠，匯入失敗。可以先刪掉不玩的存檔再試", true); return; }
   saveSlots();
   enterSlot(c, s.id);
   $("ioPanel").classList.remove("open");
-  toast(`已匯入「${s.name}」✧`);
-};
-
-// 匯出記憶 txt
-$("ioExportMem").onclick = () => {
-  const s = curSlot();
-  const mem = loadMem();
-  if (!s || !mem.frags.length) { ioStatus("這個存檔還沒有記憶可以匯出", true); return; }
-  // 與 Claude Code 版相同：常駐記憶檔＋每份記憶片段（加封存檔頭），不含對話
-  const text = archiveText(mem, s.name);
-  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `${safeName(settings.characterName)}_${safeName(s.name)}_記憶_page${mem.saved}_${today()}.txt`;
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-  ioStatus("已匯出記憶 ✧");
+  toast(`已匯入「${s.name}」，從 page.${base + 1} 接續 ✧`);
+  send(`${OLD_GAME}\n${OLD_NOTE}`);
 };
 
 // ---------- 🪟 換窗接續 ----------
-// 先把沒存的頁數存起來 → 另開新存檔（同角色卡、同記憶、頁碼接續、對話清空）→ 送 /舊玩家 接回劇情；舊窗完整保留
+// 先把沒寫入的頁數寫入記憶庫 → 另開新存檔（同角色卡、同記憶庫、頁碼接續、對話清空）→ 送 /舊玩家 接回劇情；舊窗完整保留
 async function newWindow() {
   if (busy) { toast("角色正在回應，稍等一下再換窗"); return; }
   if (!ready()) return;
   const s = curSlot();
   if (!s || !history.length) { toast("這個存檔還沒有內容，不需要換窗"); return; }
-  if (saving) { toast("正在存檔中，存完再換窗"); return; }
+  if (saving) { toast("記憶庫正在寫入，寫完再換窗"); return; }
 
   const n = (s.win || 1) + 1;
   const baseName = s.name.replace(/・第\s*\d+\s*窗$/, "");
@@ -1883,9 +1893,9 @@ async function newWindow() {
   if (name === null) return;
 
   if ((s.pages || 0) > loadMem().saved) {
-    toast("先把這一窗存檔…");
+    toast("先把這一窗寫入記憶庫…");
     const ok = await runSave(false);
-    if (!ok || (s.pages || 0) > loadMem().saved) { toast("存檔沒有成功，這次先不換窗"); return; }
+    if (!ok || (s.pages || 0) > loadMem().saved) { toast("記憶庫沒有寫入成功，這次先不換窗"); return; }
   }
 
   const cid = settings.character;
@@ -1895,7 +1905,7 @@ async function newWindow() {
   ns.base = s.pages || 0;
   ns.win = n;
   const copy = { saved: ns.base, epoch: 0, frags: JSON.parse(JSON.stringify(mem.frags)) };
-  if (!writeNewSlot(cid, ns, [], copy)) { toast("手機瀏覽器的空間不夠，可以先匯出備份再刪掉不玩的存檔"); return; }
+  if (!writeNewSlot(cid, ns, [], copy)) { toast("手機瀏覽器的空間不夠，可以先匯出記憶庫備份，再刪掉不玩的存檔"); return; }
   saveSlots();
   $("memoryPanel").classList.remove("open");
   enterSlot({ id: cid, name: settings.characterName }, ns.id);
@@ -2072,7 +2082,7 @@ function showSlotStep(c) {
     del.className = "mini del";
     del.textContent = "刪除";
     del.onclick = () => {
-      if (!confirm(`刪除「${s.name}」？這個存檔的對話與角色卡都會清除，無法復原。`)) return;
+      if (!confirm(`刪除「${s.name}」？這個存檔的對話、角色卡與記憶庫都會清除，無法復原。`)) return;
       store.remove(historyKey(c.id, s.id));
       store.remove(memKey(c.id, s.id));
       cs.list = cs.list.filter((x) => x.id !== s.id);
