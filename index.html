@@ -405,7 +405,7 @@
 <div id="settings" class="overlay">
   <div class="sheet">
     <h2>遊玩設定</h2>
-    <p class="note">API key 只存在這支手機的瀏覽器裡，每次對話經轉送後即丟棄，作者端不會留存。<br>網頁版沒有放任何越獄內容，對話規範依照你所用平台（Google／Anthropic／OpenAI）的使用政策。</p>
+    <p class="note">API key 只存在這支手機的瀏覽器裡，每次對話經轉送後即丟棄，作者端不會留存。<br>網頁版沒有放任何越獄內容，對話規範依照你所用平台的使用政策。角色以 Gemini 調校，其他平台的演繹效果無法保證。</p>
 
     <label for="theme">外觀</label>
     <select id="theme">
@@ -422,6 +422,8 @@
       <option value="gemini">Gemini（Google）</option>
       <option value="claude">Claude（Anthropic）</option>
       <option value="openai">ChatGPT（OpenAI）</option>
+      <option value="deepseek">DeepSeek</option>
+      <option value="openrouter">OpenRouter</option>
     </select>
 
     <label for="apikey">API key</label>
@@ -429,7 +431,7 @@
       <input id="apikey" type="password" autocomplete="off">
       <button id="toggleKey" type="button">顯示</button>
     </div>
-    <div class="status" id="keyHint">貼上 key 會自動判斷服務商：AIza 開頭＝Gemini、sk-ant- 開頭＝Claude、其他 sk- 開頭＝ChatGPT</div>
+    <div class="status" id="keyHint"></div>
 
     <label for="model">模型</label>
     <div class="row">
@@ -486,18 +488,28 @@ const store = {
 
 let settings = store.get("rp_settings", { invite: "", key: "", model: "", character: "", characterName: "", provider: "" });
 
-// 服務商：依 key 開頭判斷（AIza → Gemini、sk-ant- → Claude、sk- → ChatGPT）
-const PROVIDERS = { gemini: "Gemini", claude: "Claude", openai: "ChatGPT" };
+// 服務商：依 key 開頭判斷（AIza → Gemini、sk-ant- → Claude、sk-or- → OpenRouter）
+// 其他 sk- 開頭 ChatGPT 與 DeepSeek 共用，回傳 "sk"，由玩家自己選
+const PROVIDERS = { gemini: "Gemini", claude: "Claude", openai: "ChatGPT", deepseek: "DeepSeek", openrouter: "OpenRouter" };
+const SK_PROVIDERS = ["openai", "deepseek"];
 function detectProvider(key) {
   const k = String(key || "").trim();
   if (k.startsWith("sk-ant-")) return "claude";
+  if (k.startsWith("sk-or-")) return "openrouter";
   if (k.startsWith("AIza")) return "gemini";
-  if (k.startsWith("sk-")) return "openai";
+  if (k.startsWith("sk-")) return "sk";
   return "";
+}
+// key 與服務商是否相符
+function keyFits(key, provider) {
+  const d = detectProvider(key);
+  if (!d) return true;
+  return d === "sk" ? SK_PROVIDERS.includes(provider) : d === provider;
 }
 // 舊版設定沒有服務商欄位：依 key 補上，判斷不出來就當 Gemini
 if (!PROVIDERS[settings.provider]) {
-  settings.provider = detectProvider(settings.key) || "gemini";
+  const d = detectProvider(settings.key);
+  settings.provider = d === "sk" ? "openai" : d || "gemini";
   store.set("rp_settings", settings);
 }
 // 存檔欄位：{ 角色id: { current: 存檔id, list: [{ id, name, card, updated, count }] } }
@@ -2148,12 +2160,18 @@ $("toggleKey").onclick = () => {
 };
 
 // 服務商與 key 開頭不符時提醒；貼上 key 時自動切換服務商
-const KEY_TIP = "貼上 key 會自動判斷服務商：AIza 開頭＝Gemini、sk-ant- 開頭＝Claude、其他 sk- 開頭＝ChatGPT";
+const KEY_TIP = "貼上 key 會自動判斷服務商：AIza＝Gemini、sk-ant-＝Claude、sk-or-＝OpenRouter；其他 sk- 開頭是 ChatGPT 或 DeepSeek，請自己選";
+function keyMismatch() {
+  const d = detectProvider($("apikey").value);
+  if (keyFits($("apikey").value, $("provider").value)) return "";
+  return d === "sk" ? "這把 key 是 sk- 開頭，服務商請選 ChatGPT 或 DeepSeek" : `這把 key 看起來是 ${PROVIDERS[d]} 的，服務商請選 ${PROVIDERS[d]}`;
+}
 function keyHint() {
   const d = detectProvider($("apikey").value);
-  const p = $("provider").value;
-  const bad = d && d !== p;
-  $("keyHint").textContent = bad ? `這把 key 看起來是 ${PROVIDERS[d]} 的，服務商請選 ${PROVIDERS[d]}` : KEY_TIP;
+  const bad = keyMismatch();
+  let tip = KEY_TIP;
+  if (!bad && d === "sk") tip = `sk- 開頭的 key 可能是 ChatGPT 或 DeepSeek，目前選的是 ${PROVIDERS[$("provider").value]}，不對請改選`;
+  $("keyHint").textContent = bad || tip;
   $("keyHint").className = "status" + (bad ? " err" : "");
 }
 // 換服務商：模型清單不通用，清空等重新載入
@@ -2162,7 +2180,7 @@ function resetModels() {
 }
 $("apikey").addEventListener("input", () => {
   const d = detectProvider($("apikey").value);
-  if (d && d !== $("provider").value) { $("provider").value = d; resetModels(); }
+  if (!keyFits($("apikey").value, $("provider").value)) { $("provider").value = d === "sk" ? "openai" : d; resetModels(); }
   keyHint();
 });
 $("provider").addEventListener("change", () => { resetModels(); keyHint(); });
@@ -2198,8 +2216,8 @@ $("character").addEventListener("change", () => {
 $("saveSettings").onclick = () => {
   const charSel = $("character");
   const prevChar = settings.character;
-  const d = detectProvider($("apikey").value);
-  if (d && d !== $("provider").value) { keyHint(); status(`服務商和 key 不一致，請選 ${PROVIDERS[d]}`, true); return; }
+  const bad = keyMismatch();
+  if (bad) { keyHint(); status(bad, true); return; }
   settings = {
     invite: $("invite").value.trim(),
     key: $("apikey").value.trim(),
