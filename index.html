@@ -405,7 +405,7 @@
 <div id="settings" class="overlay">
   <div class="sheet">
     <h2>遊玩設定</h2>
-    <p class="note">API key 只存在這支手機的瀏覽器裡，每次對話經轉送後即丟棄，作者端不會留存。</p>
+    <p class="note">API key 只存在這支手機的瀏覽器裡，每次對話經轉送後即丟棄，作者端不會留存。<br>網頁版沒有放任何越獄內容，對話規範依照你所用平台（Google／Anthropic／OpenAI）的使用政策。</p>
 
     <label for="theme">外觀</label>
     <select id="theme">
@@ -417,11 +417,19 @@
     <label for="invite">邀請碼</label>
     <input id="invite" autocomplete="off">
 
-    <label for="apikey">Gemini API key</label>
+    <label for="provider">服務商</label>
+    <select id="provider">
+      <option value="gemini">Gemini（Google）</option>
+      <option value="claude">Claude（Anthropic）</option>
+      <option value="openai">ChatGPT（OpenAI）</option>
+    </select>
+
+    <label for="apikey">API key</label>
     <div class="row">
       <input id="apikey" type="password" autocomplete="off">
       <button id="toggleKey" type="button">顯示</button>
     </div>
+    <div class="status" id="keyHint">貼上 key 會自動判斷服務商：AIza 開頭＝Gemini、sk-ant- 開頭＝Claude、其他 sk- 開頭＝ChatGPT</div>
 
     <label for="model">模型</label>
     <div class="row">
@@ -476,7 +484,22 @@ const store = {
   remove(k) { try { localStorage.removeItem(k); } catch {} },
 };
 
-let settings = store.get("rp_settings", { invite: "", key: "", model: "", character: "", characterName: "" });
+let settings = store.get("rp_settings", { invite: "", key: "", model: "", character: "", characterName: "", provider: "" });
+
+// 服務商：依 key 開頭判斷（AIza → Gemini、sk-ant- → Claude、sk- → ChatGPT）
+const PROVIDERS = { gemini: "Gemini", claude: "Claude", openai: "ChatGPT" };
+function detectProvider(key) {
+  const k = String(key || "").trim();
+  if (k.startsWith("sk-ant-")) return "claude";
+  if (k.startsWith("AIza")) return "gemini";
+  if (k.startsWith("sk-")) return "openai";
+  return "";
+}
+// 舊版設定沒有服務商欄位：依 key 補上，判斷不出來就當 Gemini
+if (!PROVIDERS[settings.provider]) {
+  settings.provider = detectProvider(settings.key) || "gemini";
+  store.set("rp_settings", settings);
+}
 // 存檔欄位：{ 角色id: { current: 存檔id, list: [{ id, name, card, updated, count }] } }
 // 每個存檔的對話存在 rp_history_{角色id}__{存檔id}
 let slots = store.get("rp_slots", {});
@@ -1474,7 +1497,7 @@ async function callWorker(path, payload) {
   const res = await fetch(WORKER_URL + path, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ invite: settings.invite, ...payload }),
+    body: JSON.stringify({ invite: settings.invite, provider: settings.provider, ...payload }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || `連線失敗（${res.status}）`);
@@ -1637,6 +1660,8 @@ $("retry").onclick = () => {
 function openSettings(msg = "") {
   $("invite").value = settings.invite;
   $("apikey").value = settings.key;
+  $("provider").value = settings.provider || "gemini";
+  keyHint();
   $("card").value = currentCard();
   fillSelect($("model"), settings.model ? [{ id: settings.model, name: settings.model }] : [], settings.model, "先按「載入」");
   fillSelect($("character"), settings.character ? [{ id: settings.character, name: settings.characterName }] : [], settings.character, "先按「載入」");
@@ -2122,12 +2147,32 @@ $("toggleKey").onclick = () => {
   $("toggleKey").textContent = i.type === "password" ? "顯示" : "隱藏";
 };
 
+// 服務商與 key 開頭不符時提醒；貼上 key 時自動切換服務商
+const KEY_TIP = "貼上 key 會自動判斷服務商：AIza 開頭＝Gemini、sk-ant- 開頭＝Claude、其他 sk- 開頭＝ChatGPT";
+function keyHint() {
+  const d = detectProvider($("apikey").value);
+  const p = $("provider").value;
+  const bad = d && d !== p;
+  $("keyHint").textContent = bad ? `這把 key 看起來是 ${PROVIDERS[d]} 的，服務商請選 ${PROVIDERS[d]}` : KEY_TIP;
+  $("keyHint").className = "status" + (bad ? " err" : "");
+}
+// 換服務商：模型清單不通用，清空等重新載入
+function resetModels() {
+  fillSelect($("model"), [], "", "先按「載入」");
+}
+$("apikey").addEventListener("input", () => {
+  const d = detectProvider($("apikey").value);
+  if (d && d !== $("provider").value) { $("provider").value = d; resetModels(); }
+  keyHint();
+});
+$("provider").addEventListener("change", () => { resetModels(); keyHint(); });
+
 $("loadModels").onclick = async () => {
   settings.invite = $("invite").value.trim();
   const key = $("apikey").value.trim();
   status("載入模型中…");
   try {
-    const data = await callWorker("/models", { key });
+    const data = await callWorker("/models", { key, provider: $("provider").value });
     fillSelect($("model"), data.models, settings.model, "沒有可用的模型");
     status(data.models.length ? `找到 ${data.models.length} 個可用模型` : "這把 key 沒有可用的模型", !data.models.length);
   } catch (e) { status(e.message, true); }
@@ -2153,9 +2198,12 @@ $("character").addEventListener("change", () => {
 $("saveSettings").onclick = () => {
   const charSel = $("character");
   const prevChar = settings.character;
+  const d = detectProvider($("apikey").value);
+  if (d && d !== $("provider").value) { keyHint(); status(`服務商和 key 不一致，請選 ${PROVIDERS[d]}`, true); return; }
   settings = {
     invite: $("invite").value.trim(),
     key: $("apikey").value.trim(),
+    provider: $("provider").value,
     model: $("model").value,
     character: charSel.value,
     characterName: charSel.value ? charSel.options[charSel.selectedIndex].textContent : "",
