@@ -177,6 +177,61 @@
   .live-list .c.gift { color: var(--gift); }
   .live-list .c .t { font-size: 10px; color: var(--muted); margin-left: 6px; }
 
+
+  /* 5.3 社群貼文 */
+  .post-head { display: grid; grid-template-columns: 36px 1fr auto; gap: 9px; align-items: center; padding: 8px 14px 10px; border-bottom: 1px solid var(--line); }
+  .post-head .ava { width: 36px; height: 36px; border-radius: 50%; background: var(--panel-2); color: var(--accent); font-weight: 700;
+    display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); }
+  .post-head .name { font-weight: 700; font-size: 14.5px; }
+  .post-head .sub { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .post-head .dot, .call-top .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--app); display: inline-block; }
+  .post-head .tags { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
+  .post-tag { font-size: 11px; font-weight: 700; color: #e5484d; background: rgba(229, 72, 77, .14); border-radius: 999px; padding: 1px 9px; white-space: nowrap; }
+  .post-body { padding: 10px 16px 4px; font-size: 14.5px; line-height: 1.75; }
+  .post-body p { margin: 0 0 .7em; white-space: pre-wrap; word-break: break-word; }
+  .post-body .hash { color: var(--accent); font-weight: 600; }
+  .post-photos { margin: 2px 12px 8px; padding: 10px; border-radius: 16px; background: var(--panel-2); }
+  .post-photos .cap { font-size: 12.5px; font-weight: 700; margin: 0 2px 8px; }
+  .post-photos .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .post-photos .grid.one { grid-template-columns: 1fr; }
+  .post-photos .ph { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-align: center;
+    min-height: 92px; padding: 8px; border-radius: 12px; background: linear-gradient(135deg, var(--panel), var(--accent-soft)); border: 1px solid var(--line); }
+  .post-photos .ph .ic { font-size: 18px; opacity: .8; }
+  .post-photos .ph b { font-size: 12.5px; }
+  .post-photos .ph span:last-child { font-size: 11px; color: var(--muted); line-height: 1.45; }
+  .post-stats { padding: 6px 16px 8px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); }
+  .post-comments { padding: 4px 16px 6px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.6; }
+  .post-comments .cm b { margin-right: 6px; }
+  .post-comments .cm .op { font-size: 10px; color: #fff; background: var(--app); border-radius: 4px; padding: 0 5px; margin-right: 6px; }
+  .post-comments .cm i { font-style: normal; font-size: 10px; color: var(--muted); margin-left: 6px; }
+
+  /* 5.3 通話中 */
+  .im.call { background: linear-gradient(180deg, color-mix(in srgb, var(--app) 22%, var(--phone)), var(--phone) 55%); position: relative; }
+  .im.call.video { background: linear-gradient(160deg, #2a2236, #120e18 70%); color: #f2ecf8; }
+  .call-top { text-align: center; padding: 6px 14px 12px; }
+  .call-top .sub { font-size: 11px; color: var(--muted); display: flex; justify-content: center; align-items: center; gap: 5px; }
+  .call-top .ava.big { width: 74px; height: 74px; margin: 14px auto 8px; border-radius: 50%; background: var(--panel-2); color: var(--accent);
+    font-size: 30px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid var(--accent-line);
+    box-shadow: 0 0 0 8px var(--accent-soft); }
+  .call-top .who { font-size: 18px; font-weight: 700; }
+  .call-top .state { font-size: 12.5px; color: var(--muted); margin-top: 2px; letter-spacing: .03em; }
+  .im.call.video .call-top .sub, .im.call.video .call-top .state, .im.call.video .call-lines .ln b { color: #c9bdd8; }
+  .pip { position: absolute; top: 46px; right: 14px; width: 62px; height: 86px; border-radius: 12px; background: #3b3150;
+    border: 1px solid rgba(255,255,255,.25); color: #e8ddf5; font-size: 11px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; }
+  .call-lines { display: flex; flex-direction: column; gap: 7px; padding: 4px 16px 10px; font-size: 14px; line-height: 1.6; }
+  .call-lines .ln { align-self: flex-start; max-width: 88%; }
+  .call-lines .ln b { display: block; font-size: 10.5px; color: var(--muted); font-weight: 500; }
+  .call-lines .ln span { display: inline-block; background: color-mix(in srgb, var(--panel-2) 80%, transparent); border-radius: 12px; padding: 5px 11px; }
+  .im.call.video .call-lines .ln span { background: rgba(0,0,0,.35); }
+  .call-lines .ln.me { align-self: flex-end; text-align: right; }
+  .call-lines .ln.me span { text-align: left; }
+  .call-lines .ln.sys { align-self: center; font-size: 11.5px; color: var(--muted); }
+  .call-ctl { display: flex; justify-content: space-around; padding: 10px 10px 4px; font-size: 10.5px; color: var(--muted); }
+  .call-ctl span { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .call-ctl i { font-style: normal; width: 42px; height: 42px; border-radius: 50%; background: var(--panel-2); display: flex; align-items: center; justify-content: center; font-size: 17px; color: var(--text); }
+  .im.call.video .call-ctl i { background: rgba(255,255,255,.14); color: #fff; }
+  .im.call .call-ctl .end i { background: #e5484d; color: #fff; transform: rotate(135deg); }
+
   /* 5.3 官方公告 → 公告卡 */
   .im.im-notice .notice-body { padding: 12px 16px 6px; font-size: 14px; line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
   .im.im-notice .notice-body .from { margin-top: 10px; text-align: right; font-size: 12px; color: var(--muted); }
@@ -1478,7 +1533,7 @@ const APP_COLORS = [
   [/weverse/i, "#00C3C3"], [/bubble/i, "#FF6FA3"], [/slack/i, "#611F69"], [/tiktok|抖音/i, "#FE2C55"],
 ];
 // [貼圖]、[貼圖：翻白眼的貓]、（傳了一張照片：…）、【語音 0:12】等寫法都認
-const IM_MEDIA = /^[\[（(【](?:傳送了?|傳了|發了|分享了?)?(?:一張|一則|一段|一個)?(照片|圖片|相片|貼圖|語音|影片|限動截圖|截圖|檔案|位置|通話|未接來電)(?:[:：\s]\s*([^\]）)】]*))?[\]）)】]$/;
+const IM_MEDIA = /^[\[（(【](?:傳送了?|傳了|發了|分享了?)?(?:一張|一則|一段|一個)?(照片|圖片|相片|影像|貼圖|語音|影片|限動截圖|截圖|檔案|位置|通話|未接來電)(?:[:：\s]\s*([^\]）)】]*))?[\]）)】]$/;
 
 function imParse(block) {
   let sep = block.findIndex((l) => /^\s*✧\s*─/.test(l));
@@ -1492,18 +1547,25 @@ function imParse(block) {
   const time = (parts.find((x) => x.startsWith("🕒")) || "").replace(/^🕒\s*/, "");
   const rest = parts.filter((x) => !x.startsWith("🗓") && !x.startsWith("🕒"));
   const type = rest[0] || "";
-  const platform = rest.slice(1).join("｜");
+  const platform = rest[1] || "";
+  const extras = rest.slice(2); // 例如「🔥快速擴散」「匿名顯示」「03:12」
   const msgs = lines.map((raw) => {
-    const m = raw.trim().match(/^([^:：「」]{1,24})[:：]\s*(.*)$/);
+    const line = raw.trim().replace(/^[‣▸▹•·・\-–—*]+\s*/, "");
+    // [影像：…]、（傳了一張照片：…）整行是媒體或旁白，不拆說話者
+    const m = /^[\[（(【]/.test(line) ? null : line.match(/^([^:：「」\[\]（）【】]{1,24})[:：]\s*(.*)$/);
     let speaker = m ? m[1].trim() : "";
-    let body = m ? m[2] : raw.trim();
+    let body = m ? m[2] : line;
     let t = "";
     const tm = body.match(/^(.*?)[\s　]+(\d{1,2}:\d{2})\s*$/);
     if (tm) { body = tm[1]; t = tm[2]; }
     return { speaker, body: body.trim(), time: t };
   });
-  return { who: whoLine.replace(/^👤\s*/, ""), type, platform, date, time, msgs };
+  return { who: whoLine.replace(/^👤\s*/, ""), type, platform, extras, date, time, msgs };
 }
+
+// 名字比對：忽略空白、@ 與前綴符號（「真壁 郁」＝「真壁郁」）
+function imName(x) { return String(x || "").replace(/[\s　@＠]/g, "").replace(/^[^\p{L}\p{N}]+/u, ""); }
+function imSame(a, b) { a = imName(a); b = imName(b); return !!(a && b && (a.includes(b) || b.includes(a))); }
 
 function imColor(platform) {
   for (const [re, c] of APP_COLORS) if (re.test(platform)) return c;
@@ -1549,10 +1611,32 @@ function imHome(wrap) {
   wrap.append(h);
 }
 
+// 依類型名稱、平台、內容三種線索判斷畫面；先符合的先套用，都不符合就是手機聊天
+function imKind(p) {
+  const t = `${p.type} ${p.extras.join(" ")}`;
+  const body = p.msgs.map((m) => m.body).join("\n");
+  const plat = p.platform;
+  if (/公告|聲明|官方通知|announcement/i.test(t)) return "notice";
+  if (/通話|電話|來電|視訊|\bcall\b|facetime/i.test(t) || /接通|掛斷|未接來電|通話時長/.test(body)) return "call";
+  if (/直播|開台|\blive\b|舞台|演唱|錄影|廣播|電台|podcast|配音|彈幕/i.test(t) || /贈禮|斗內|抖內|打賞/.test(body)) return "live";
+  const chatType = /私訊|訊息|聊天|群組|\bdm\b|chat/i.test(t);
+  const socialPlat = /threads|^x$|twitter|dcard|ptt|plurk|微博|小紅書|facebook|臉書|巴哈|reddit/i.test(plat);
+  const stats = /(❤️|♥️?|👍|💬|🔁|↻|讚|留言|分享|轉發)\s*[:：]?\s*[\d.,]+\s*[KkMmWw萬千]?/.test(body);
+  const tagOrPhoto = /(^|\s)#[^\s#]+/.test(body) || /[\[（(【](?:傳了|發了|分享了?)?(?:一張)?(照片|圖片|相片)/.test(body);
+  if (/貼文|動態|限動|發文|論壇|社群|爆料|推文|討論|\bpost\b|tweet|story/i.test(t)) return "post";
+  if (chatType) return "chat"; // 類型寫明私訊、群組就一定是聊天
+  if (socialPlat) return "post";
+  if (stats && tagOrPhoto) return "post";
+  return "chat";
+}
+
 function renderIM(block) {
   const p = imParse(block);
-  if (/公告/.test(p.type)) return renderNotice(p);
-  if (/直播|舞台|演唱|錄影|廣播|電台|配音|彈幕/.test(p.type)) return renderLive(p);
+  const kind = imKind(p);
+  if (kind === "notice") return renderNotice(p);
+  if (kind === "call") return renderCall(p);
+  if (kind === "live") return renderLive(p);
+  if (kind === "post") return renderPost(p);
 
   const wrap = imFrame(p);
   wrap.append(imBar(p));
@@ -1566,7 +1650,7 @@ function renderIM(block) {
   }
 
   // 手機主人靠右：玩家有在對話裡就是玩家；玩家不在（角色自己的群組）就是角色本人
-  const same = (a, b) => a && b && (a.includes(b) || b.includes(a));
+  const same = imSame;
   const me = playerName();
   const char = settings.characterName || "";
   const owner = p.msgs.some((m) => same(m.speaker, me)) ? me : char;
@@ -1623,7 +1707,7 @@ function renderIM(block) {
 
 function imMedia(kind, cap) {
   const d = document.createElement("div");
-  if (/照片|圖片|相片|截圖/.test(kind)) {
+  if (/照片|圖片|相片|影像|截圖/.test(kind)) {
     d.className = "im-media photo";
     d.innerHTML = `<span class="ic">${/限動/.test(kind) ? "🎞️" : "📷"}</span><span class="cap">${esc(cap || kind)}</span>`;
   } else if (kind === "貼圖") {
@@ -1669,6 +1753,152 @@ function renderLive(p) {
     list.append(c);
   }
   wrap.append(list);
+  imHome(wrap);
+  return wrap;
+}
+
+
+// ---------- 5.3 社群貼文：作者、內文、附圖格、互動數、留言 ----------
+const POST_STAT = /(❤️|♥️?|👍|💬|🔁|↻|🔄|📤|分享|轉發|轉貼|按讚|愛心|留言|回覆)\s*[:：]?\s*[\d.,]+\s*[KkMmWw萬千]?/;
+function renderPost(p) {
+  const wrap = imFrame(p, "post");
+  // 模型常把「內文：」「影像：」「💬 留言：」寫成說話者，這些是欄位標籤，不是人
+  const LABEL_BODY = /^(內文|正文|貼文|文字|文案|說明|配文|caption|text|動態)$/i;
+  const LABEL_MEDIA = /^(影像|照片|圖片|相片|附圖|截圖|影片)$/;
+  const LABEL_CMT = /^(留言|評論|回覆|留言區|comments?)$/i;
+  const firstReal = p.msgs.find((m) => m.speaker && !LABEL_BODY.test(imName(m.speaker)) && !LABEL_MEDIA.test(imName(m.speaker)) && !LABEL_CMT.test(imName(m.speaker)));
+  const labelled = p.msgs.some((m) => m.speaker && (LABEL_BODY.test(imName(m.speaker)) || LABEL_MEDIA.test(imName(m.speaker))));
+  const author = (labelled ? p.who : (firstReal && firstReal.speaker) || p.who) || "匿名";
+  const head = document.createElement("div");
+  head.className = "post-head";
+  const tags = p.extras.map((t) => `<span class="post-tag">${inline(t)}</span>`).join("");
+  head.innerHTML =
+    `<div class="ava">${esc([...author.replace(/^[^\p{L}\p{N}]+/u, "")][0] || "?")}</div>` +
+    `<div class="meta"><div class="name">${inline(author)}</div>` +
+    `<div class="sub">${p.platform ? '<span class="dot"></span>' : ""}${inline([p.platform, p.who && p.who !== author ? p.who : "", p.time && `${p.time} 發布`].filter(Boolean).join("・"))}</div></div>` +
+    `<div class="tags">${tags}</div>`;
+  wrap.append(head);
+
+  const body = document.createElement("div");
+  body.className = "post-body";
+  const photos = [];
+  const stats = [];
+  const comments = [];
+  let inPost = true;
+  let photoFirst = null;
+  for (const m of p.msgs) {
+    if (photoFirst === null) photoFirst = undefined;
+    const label = imName(m.speaker);
+    if (LABEL_CMT.test(label) || (!m.speaker && /^💬?\s*(留言|評論|留言區)\s*[:：]?$/.test(m.body))) {
+      inPost = false;
+      if (m.body && !/^(留言|評論|留言區)?\s*[:：]?$/.test(m.body)) comments.push({ speaker: "", body: m.body, time: m.time });
+      continue;
+    }
+    if (LABEL_MEDIA.test(label)) { if (!body.childNodes.length && photoFirst === undefined) photoFirst = true; photos.push(m.body.replace(/^[\[（(【]|[\]）)】]$/g, "")); continue; }
+    const media = m.body.match(IM_MEDIA);
+    if (POST_STAT.test(m.body) && !m.speaker) { stats.push(m.body); continue; }
+    if (inPost && (!m.speaker || LABEL_BODY.test(label) || imSame(m.speaker, author))) {
+      if (media && /照片|圖片|相片|影像|截圖/.test(media[1])) { if (!body.childNodes.length && photoFirst === undefined) photoFirst = true; photos.push(media[2] || ""); continue; }
+      const para = document.createElement("p");
+      para.innerHTML = inline(m.body).replace(/(^|\s)(#[^\s#]+)/g, '$1<span class="hash">$2</span>');
+      body.append(para);
+      continue;
+    }
+    inPost = false;
+    comments.push(m);
+  }
+  wrap.append(body);
+
+  if (photos.length) {
+    const g = document.createElement("div");
+    g.className = "post-photos";
+    g.innerHTML = `<div class="cap">🖼 附圖・${photos.length}張</div>`;
+    const grid = document.createElement("div");
+    grid.className = "grid" + (photos.length === 1 ? " one" : "");
+    photos.forEach((c, i) => {
+      const cell = document.createElement("div");
+      cell.className = "ph";
+      cell.innerHTML = `<span class="ic">📷</span><b>照片 ${i + 1}</b><span>${esc(c)}</span>`;
+      grid.append(cell);
+    });
+    g.append(grid);
+    if (photoFirst === true) body.before(g); else wrap.append(g);
+  }
+
+  const bar = document.createElement("div");
+  bar.className = "post-stats";
+  bar.innerHTML = stats.length ? stats.map(inline).join("　") : "♡　💬　↻　➤";
+  wrap.append(bar);
+
+  if (comments.length) {
+    const list = document.createElement("div");
+    list.className = "post-comments";
+    for (const c of comments) {
+      const d = document.createElement("div");
+      d.className = "cm";
+      const op = imSame(c.speaker, author) ? '<span class="op">作者</span>' : "";
+      d.innerHTML = `<b>${esc(c.speaker || "")}</b>${op}<span>${inline(c.body)}</span>${c.time ? `<i>${esc(c.time)}</i>` : ""}`;
+      list.append(d);
+    }
+    wrap.append(list);
+  }
+  imHome(wrap);
+  return wrap;
+}
+
+// ---------- 5.3 通話中：頭像、通話時間、逐句字幕、控制鍵 ----------
+function renderCall(p) {
+  const video = /視訊/.test(p.type);
+  const wrap = imFrame(p, "call" + (video ? " video" : ""));
+  const me = playerName();
+  const char = settings.characterName || "";
+  const same = imSame;
+  // 手機主人：玩家有發言就是玩家，否則是角色本人（例如角色和部下的通話）
+  const owner = p.msgs.some((m) => same(m.speaker, me)) ? me : char;
+  // 通話對象：「A ⇄ B」取不是主人的那位；沒有 👤 行就取第一個不是主人的說話者
+  const names = p.who ? p.who.split(/\s*(?:⇄|↔|⟷|⇆|×|✕|&|＆|→|與)\s*/).filter(Boolean) : [];
+  const other = names.find((n) => !same(n, owner)) || ((p.msgs.find((m) => m.speaker && !same(m.speaker, owner)) || {}).speaker) || names[0] || char || "通話";
+  const title = p.who || other;
+  // 通話時長：類型行第三格的 03:12；沒有就用第一句到最後一句的時間
+  const stamps = p.msgs.map((m) => m.time).filter(Boolean);
+  const dur = p.extras.find((x) => /\d{1,2}:\d{2}/.test(x)) || (stamps.length > 1 && stamps[0] !== stamps[stamps.length - 1] ? `${stamps[0]} – ${stamps[stamps.length - 1]}` : "");
+  const missed = p.msgs.some((m) => /未接|拒接|已結束|掛斷/.test(m.body)) ;
+  const top = document.createElement("div");
+  top.className = "call-top";
+  top.innerHTML =
+    `<div class="sub">${p.platform ? '<span class="dot"></span>' : ""}${inline([p.platform, p.type].filter(Boolean).join("・"))}</div>` +
+    `<div class="ava big">${esc([...other.replace(/^[^\p{L}\p{N}]+/u, "")][0] || "?")}</div>` +
+    `<div class="who">${inline(title)}</div>` +
+    `<div class="state">${missed ? "通話已結束" : "通話中"}${dur ? `・${esc(dur.replace(/^[^\d]*/, ""))}` : ""}</div>`;
+  wrap.append(top);
+  if (video) {
+    const pip = document.createElement("div");
+    pip.className = "pip";
+    pip.textContent = owner || me || "你";
+    wrap.append(pip);
+  }
+
+  const list = document.createElement("div");
+  list.className = "call-lines";
+  for (const m of p.msgs) {
+    const d = document.createElement("div");
+    if (!m.speaker || IM_MEDIA.test(m.body)) {
+      d.className = "ln sys";
+      d.innerHTML = inline(m.body.replace(/^[\[（(【]|[\]）)】]$/g, ""));
+    } else {
+      d.className = "ln" + (same(m.speaker, owner) ? " me" : "");
+      d.innerHTML = `<b>${esc(m.speaker)}</b><span>${inline(m.body)}</span>`;
+    }
+    list.append(d);
+  }
+  wrap.append(list);
+
+  const ctl = document.createElement("div");
+  ctl.className = "call-ctl";
+  ctl.innerHTML = video
+    ? '<span><i>🎙</i>靜音</span><span><i>📷</i>鏡頭</span><span><i>🔄</i>翻轉</span><span class="end"><i>📞</i>結束</span>'
+    : '<span><i>🎙</i>靜音</span><span><i>🔊</i>擴音</span><span><i>⌨︎</i>鍵盤</span><span class="end"><i>📞</i>結束</span>';
+  wrap.append(ctl);
   imHome(wrap);
   return wrap;
 }
