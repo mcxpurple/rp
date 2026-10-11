@@ -187,6 +187,18 @@
   .post-head .dot, .call-top .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--app); display: inline-block; }
   .post-head .tags { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
   .post-tag { font-size: 11px; font-weight: 700; color: #e5484d; background: rgba(229, 72, 77, .14); border-radius: 999px; padding: 1px 9px; white-space: nowrap; }
+  /* 限動圈：一般＝平台色＋主題色漸層；限定＝綠圈＋右下星章（不分平台） */
+  .im { --limited: #2fbf71; }
+  :root[data-theme="light"] .im { --limited: #1f9d57; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .im { --limited: #1f9d57; } }
+  .post-head.ringed { grid-template-columns: 42px 1fr auto; }
+  .post-head .ring { position: relative; width: 42px; height: 42px; border-radius: 50%; padding: 2.5px; }
+  .post-head .ring .ava { width: 100%; height: 100%; border: 2.5px solid var(--phone); }
+  .post-head .ring.story { background: conic-gradient(from 210deg, var(--app), var(--accent), color-mix(in srgb, var(--app) 55%, #ffb36b), var(--app)); }
+  .post-head .ring.limited { background: var(--limited); }
+  .post-head .ring.limited::after { content: "★"; position: absolute; right: -3px; bottom: -3px; width: 17px; height: 17px; border-radius: 50%;
+    background: var(--limited); color: #fff; font-size: 9.5px; line-height: 1; display: flex; align-items: center; justify-content: center; border: 2px solid var(--phone); }
+  .lim-tag { font-size: 10.5px; font-weight: 700; color: #fff; background: var(--limited); border-radius: 999px; padding: 0 8px; white-space: nowrap; }
   .post-body { padding: 10px 16px 4px; font-size: 14.5px; line-height: 1.75; }
   .post-body p { margin: 0 0 .7em; white-space: pre-wrap; word-break: break-word; }
   .post-body .hash { color: var(--accent); font-weight: 600; }
@@ -294,6 +306,26 @@
   .charlist button.current { border-color: var(--accent); }
   .charlist button small.intro { color: var(--text); opacity: .82; font-size: 13px; line-height: 1.6; margin-top: 6px; }
   .charlist button small { display: block; font-family: "Noto Sans TC", sans-serif; color: var(--muted); font-size: 12px; margin-top: 4px; }
+  /* 選角畫面：搜尋、分頁、分類標籤、分組 */
+  #pickTools[hidden] { display: none; }
+  .pick-search { display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 0 12px; }
+  .pick-search input { border: 0; background: transparent; padding: 10px 0; font-size: 14.5px; }
+  .pick-search input:focus { outline: none; }
+  .pick-search:focus-within { border-color: var(--accent-line); }
+  .pick-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 12px 0 10px; padding: 4px; background: var(--panel); border-radius: 14px; border: 1px solid var(--line); }
+  .pick-tabs button { border: 0; background: transparent; border-radius: 10px; padding: 8px 0; font-size: 14px; color: var(--muted); }
+  .pick-tabs button.on { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+  .pick-tags { display: flex; gap: 6px; overflow-x: auto; margin: 0 -18px 4px; padding: 0 18px 4px; scrollbar-width: none; }
+  .pick-tags::-webkit-scrollbar { display: none; }
+  .pick-tags:empty { display: none; }
+  .pick-tags button { flex-shrink: 0; font-size: 12.5px; padding: 5px 12px; border-radius: 999px; color: var(--muted); background: var(--panel); white-space: nowrap; }
+  .pick-tags button.on { color: var(--accent); border-color: var(--accent-line); background: var(--accent-soft); font-weight: 600; }
+  .charlist .grp { font-size: 12px; color: var(--muted); margin: 8px 2px 0; letter-spacing: .08em; }
+  .charlist button .top { display: flex; align-items: baseline; gap: 8px; }
+  .charlist button .kind { font-family: "Noto Sans TC", sans-serif; font-size: 10.5px; color: var(--accent); border: 1px solid var(--accent-line); border-radius: 4px; padding: 0 5px; }
+  .charlist button .mini-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+  .charlist button .mini-tags i { font-family: "Noto Sans TC", sans-serif; font-style: normal; font-size: 10.5px; color: var(--muted); background: var(--panel-2); border-radius: 4px; padding: 0 6px; }
+  .charlist button small b { color: var(--accent); font-weight: 500; }
   .slot { display: flex; gap: 6px; align-items: stretch; }
   .slot > button:first-child { flex: 1; min-width: 0; }
   .slot .mini { font-family: "Noto Sans TC", sans-serif; font-size: 12.5px; padding: 0 12px; background: transparent; color: var(--muted); }
@@ -459,6 +491,14 @@
   <div class="sheet">
     <h2 id="pickTitle">切換角色</h2>
     <p class="note" id="pickNote">每個角色可以開多個存檔，每個存檔有自己的玩家角色卡與對話。</p>
+    <div id="pickTools">
+      <label class="pick-search" for="pickSearch" style="margin:0"><span aria-hidden="true">🔍</span><input id="pickSearch" type="search" autocomplete="off" placeholder="搜尋角色名稱、簡介或分類"></label>
+      <div class="pick-tabs" role="tablist">
+        <button type="button" id="tabSolo" role="tab">🩷 單人／組合</button>
+        <button type="button" id="tabWorld" role="tab">💜 開放世界</button>
+      </div>
+      <div class="pick-tags" id="pickTags"></div>
+    </div>
     <div id="charList" class="charlist"></div>
     <div id="slotNew" class="row" hidden>
       <input id="slotName" autocomplete="off" maxlength="30" placeholder="為新存檔取名">
@@ -1623,7 +1663,7 @@ function imKind(p) {
   const socialPlat = /threads|^x$|twitter|dcard|ptt|plurk|微博|小紅書|facebook|臉書|巴哈|reddit/i.test(plat);
   const stats = /(❤️|♥️?|👍|💬|🔁|↻|讚|留言|分享|轉發)\s*[:：]?\s*[\d.,]+\s*[KkMmWw萬千]?/.test(body);
   const tagOrPhoto = /(^|\s)#[^\s#]+/.test(body) || /[\[（(【](?:傳了|發了|分享了?)?(?:一張)?(照片|圖片|相片)/.test(body);
-  if (/貼文|動態|限動|發文|論壇|社群|爆料|推文|討論|\bpost\b|tweet|story/i.test(t)) return "post";
+  if (/貼文|動態|限動|快拍|發文|論壇|社群|爆料|推文|討論|\bpost\b|tweet|story|stories/i.test(t)) return "post";
   if (chatType) return "chat"; // 類型寫明私訊、群組就一定是聊天
   if (socialPlat) return "post";
   if (stats && tagOrPhoto) return "post";
@@ -1760,6 +1800,31 @@ function renderLive(p) {
 
 // ---------- 5.3 社群貼文：作者、內文、附圖格、互動數、留言 ----------
 const POST_STAT = /(❤️|♥️?|👍|💬|🔁|↻|🔄|📤|分享|轉發|轉貼|按讚|愛心|留言|回覆)\s*[:：]?\s*[\d.,]+\s*[KkMmWw萬千]?/;
+
+// 限動圈（不分平台）：一般限動＝漸層圈；限定（摯友、會員限定、私密…）＝綠圈＋星章，膠囊文字照模型寫的名稱
+const STORY_RE = /限動|限時動態|快拍|\bstory\b|\bstories\b/i;
+const LIMIT_WORD = /摯友|密友|親密好友|close\s*friends?|好友限定|私密|限定/i;
+const LIMIT_BODY = /摯友|密友|親密好友|close\s*friends?/i; // 內文只認明確的摯友字樣，避免「期間限定」之類誤判
+function storyRing(p) {
+  const head = `${p.type} ${p.extras.join(" ")}`;
+  // 限定名稱：優先取 extras 那一格；其次從類型行取出含關鍵字的那一段（例：限動・摯友限定 → 摯友限定）
+  const clean = (s) => String(s).replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "").trim();
+  let cell = p.extras.find((x) => LIMIT_WORD.test(x)) || "";
+  let label = cell ? clean(cell) : "";
+  if (!label) {
+    const seg = String(p.type).split(/[・\s／/,，、()（）\[\]【】]+/).find((x) => LIMIT_WORD.test(x));
+    if (seg) label = clean(seg);
+  }
+  if (!label && STORY_RE.test(head)) {
+    const body = p.msgs.map((m) => m.body).join("\n");
+    const m = body.match(LIMIT_BODY);
+    if (m) label = m[0];
+  }
+  if (label) return { kind: "limited", label, cell };
+  if (STORY_RE.test(head)) return { kind: "story", label: "", cell: "" };
+  return { kind: "", label: "", cell: "" };
+}
+
 function renderPost(p) {
   const wrap = imFrame(p, "post");
   // 模型常把「內文：」「影像：」「💬 留言：」寫成說話者，這些是欄位標籤，不是人
@@ -1770,12 +1835,16 @@ function renderPost(p) {
   const labelled = p.msgs.some((m) => m.speaker && (LABEL_BODY.test(imName(m.speaker)) || LABEL_MEDIA.test(imName(m.speaker))));
   const author = (labelled ? p.who : (firstReal && firstReal.speaker) || p.who) || "匿名";
   const head = document.createElement("div");
-  head.className = "post-head";
-  const tags = p.extras.map((t) => `<span class="post-tag">${inline(t)}</span>`).join("");
+  const ring = storyRing(p);
+  head.className = "post-head" + (ring.kind ? " ringed" : "");
+  // 限定名稱已改成綠色膠囊，右側紅色標籤不重複
+  const tags = p.extras.filter((t) => t !== ring.cell).map((t) => `<span class="post-tag">${inline(t)}</span>`).join("");
+  const ava = `<div class="ava">${esc([...author.replace(/^[^\p{L}\p{N}]+/u, "")][0] || "?")}</div>`;
+  const subParts = [p.platform && inline(p.platform), ring.label && `<span class="lim-tag">★ ${inline(ring.label)}</span>`, p.who && p.who !== author ? inline(p.who) : "", p.time && inline(`${p.time} 發布`)].filter(Boolean);
   head.innerHTML =
-    `<div class="ava">${esc([...author.replace(/^[^\p{L}\p{N}]+/u, "")][0] || "?")}</div>` +
+    (ring.kind ? `<div class="ring ${ring.kind}">${ava}</div>` : ava) +
     `<div class="meta"><div class="name">${inline(author)}</div>` +
-    `<div class="sub">${p.platform ? '<span class="dot"></span>' : ""}${inline([p.platform, p.who && p.who !== author ? p.who : "", p.time && `${p.time} 發布`].filter(Boolean).join("・"))}</div></div>` +
+    `<div class="sub">${p.platform ? '<span class="dot"></span>' : ""}${subParts.join("・")}</div></div>` +
     `<div class="tags">${tags}</div>`;
   wrap.append(head);
 
@@ -2480,12 +2549,17 @@ async function openChars() {
   if (busy) return;
   if (!settings.invite) { openSettings("請先填寫邀請碼"); return; }
   $("charPicker").classList.add("open");
+  $("pickSearch").value = "";
+  pickTag = ALL_TAG;
   showCharStep();
   pickStatus("載入角色中…");
   try {
     const data = await callWorker("/characters", {});
     pickChars = data.characters || [];
     setLore(data.lorebook);
+    // 打開時停在目前角色所在的分頁
+    const cur = pickChars.find((c) => c.id === settings.character);
+    pickTab = cur ? tabOf(cur) : "solo";
     pickStatus(pickChars.length ? "" : "目前沒有角色");
     showCharStep();
   } catch (e) {
@@ -2493,37 +2567,164 @@ async function openChars() {
   }
 }
 
+// 分頁：單人＋組合一頁、開放世界一頁；分類標籤依 KV characters 填的 tags 自動產生（依第一次出現的順序）
+const ALL_TAG = "全部";
+const RECENT_MAX = 3;
+let pickTab = "solo";
+let pickTag = ALL_TAG;
+
+// 類型：Worker 已整理成 single／combo／world；舊版 Worker 沒給就當單人，中文寫法也認
+function charType(c) {
+  const s = String((c && c.type) || "").trim().toLowerCase();
+  if (/^(world|開放世界|多人|世界)$/.test(s)) return "world";
+  if (/^(combo|cp|組合|組合／cp|組合\/cp|雙人)$/.test(s)) return "combo";
+  return "single";
+}
+function charTags(c) { return Array.isArray(c && c.tags) ? c.tags.map((t) => String(t).trim()).filter(Boolean) : []; }
+function tabOf(c) { return charType(c) === "world" ? "world" : "solo"; }
+function lastPlayed(cid) {
+  const cs = slots[cid];
+  return cs && cs.list.length ? Math.max(...cs.list.map((s) => (s.count ? s.updated || 0 : 0))) : 0;
+}
+
+function setPickTab(tab) {
+  pickTab = tab;
+  pickTag = ALL_TAG;
+  renderCharList();
+}
+
 function showCharStep() {
   $("pickTitle").textContent = "切換角色";
   $("pickNote").textContent = "每個角色可以開多個存檔，每個存檔有自己的玩家角色卡與對話。";
   $("slotNew").hidden = true;
   $("backChars").hidden = true;
+  $("pickTools").hidden = false;
+  renderCharList();
+}
+
+function renderCharList() {
+  $("tabSolo").classList.toggle("on", pickTab === "solo");
+  $("tabWorld").classList.toggle("on", pickTab === "world");
+  $("tabSolo").setAttribute("aria-selected", pickTab === "solo");
+  $("tabWorld").setAttribute("aria-selected", pickTab === "world");
+
+  const inTab = pickChars.filter((c) => tabOf(c) === pickTab);
+  // 分類標籤：只列這一頁有的
+  const tags = [];
+  for (const c of inTab) for (const t of charTags(c)) if (!tags.includes(t)) tags.push(t);
+  if (pickTag !== ALL_TAG && !tags.includes(pickTag)) pickTag = ALL_TAG;
+  const tagBox = $("pickTags");
+  tagBox.innerHTML = "";
+  if (tags.length) {
+    for (const t of [ALL_TAG, ...tags]) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = t;
+      if (t === pickTag) b.className = "on";
+      b.onclick = () => { pickTag = t; renderCharList(); };
+      tagBox.append(b);
+    }
+  }
+
+  const q = $("pickSearch").value.trim().toLowerCase();
+  const shown = inTab.filter((c) => {
+    if (pickTag !== ALL_TAG && !charTags(c).includes(pickTag)) return false;
+    if (!q) return true;
+    return [c.name, c.id, c.intro, ...charTags(c)].some((x) => String(x || "").toLowerCase().includes(q));
+  });
+
   const list = $("charList");
   list.innerHTML = "";
-  for (const c of pickChars) {
-    const b = document.createElement("button");
-    b.type = "button";
-    if (c.id === settings.character) b.className = "current";
-    b.textContent = c.name || c.id;
-    if (c.intro) {
-      const intro = document.createElement("small");
-      intro.className = "intro";
-      intro.textContent = c.intro;
-      b.append(intro);
+  const group = (title) => {
+    const g = document.createElement("div");
+    g.className = "grp";
+    g.textContent = title;
+    list.append(g);
+  };
+
+  if (!pickChars.length) return;
+  if (!shown.length) {
+    const d = document.createElement("div");
+    d.className = "mem-empty";
+    d.textContent = q ? "找不到符合的角色" : pickTab === "world" ? "目前沒有開放世界" : "目前沒有角色";
+    list.append(d);
+    return;
+  }
+
+  // 沒有篩選時：最近玩過置頂（最多 3 個），其餘照 KV 順序
+  if (pickTag === ALL_TAG && !q) {
+    const recent = shown.filter((c) => lastPlayed(c.id)).sort((a, b) => lastPlayed(b.id) - lastPlayed(a.id)).slice(0, RECENT_MAX);
+    const rest = shown.filter((c) => !recent.includes(c));
+    if (recent.length) {
+      group("最近玩過");
+      recent.forEach((c) => list.append(charCard(c)));
+      if (rest.length) group(`其他角色・${rest.length}`);
+    } else {
+      group(`全部角色・${rest.length}`);
     }
-    const n = (slots[c.id] && slots[c.id].list.length) || 0;
-    const note = document.createElement("small");
-    note.textContent = (c.id === settings.character ? "目前角色・" : "") + (n ? `${n} 個存檔` : "尚未開始");
-    b.append(note);
-    b.onclick = () => showSlotStep(c);
-    list.append(b);
+    rest.forEach((c) => list.append(charCard(c)));
+  } else {
+    group(`${q ? "搜尋結果" : pickTag}・${shown.length}`);
+    shown.forEach((c) => list.append(charCard(c)));
   }
 }
+
+function charCard(c) {
+  const b = document.createElement("button");
+  b.type = "button";
+  if (c.id === settings.character) b.className = "current";
+  const top = document.createElement("span");
+  top.className = "top";
+  const nm = document.createElement("span");
+  nm.textContent = c.name || c.id;
+  top.append(nm);
+  if (charType(c) === "combo") {
+    const k = document.createElement("span");
+    k.className = "kind";
+    k.textContent = "組合";
+    top.append(k);
+  }
+  b.append(top);
+  if (c.intro) {
+    const intro = document.createElement("small");
+    intro.className = "intro";
+    intro.textContent = c.intro;
+    b.append(intro);
+  }
+  const tags = charTags(c);
+  if (tags.length) {
+    const mt = document.createElement("span");
+    mt.className = "mini-tags";
+    for (const t of tags) {
+      const i = document.createElement("i");
+      i.textContent = t;
+      mt.append(i);
+    }
+    b.append(mt);
+  }
+  const n = (slots[c.id] && slots[c.id].list.length) || 0;
+  const t = lastPlayed(c.id);
+  const note = document.createElement("small");
+  if (c.id === settings.character) {
+    const cur = document.createElement("b");
+    cur.textContent = "目前角色";
+    note.append(cur, "・");
+  }
+  note.append([n ? `${n} 個存檔` : "尚未開始", t ? `最後遊玩 ${fmtTime(t)}` : ""].filter(Boolean).join("・"));
+  b.append(note);
+  b.onclick = () => showSlotStep(c);
+  return b;
+}
+
+$("tabSolo").onclick = () => setPickTab("solo");
+$("tabWorld").onclick = () => setPickTab("world");
+$("pickSearch").addEventListener("input", renderCharList);
 
 function showSlotStep(c) {
   const cname = c.name || c.id;
   $("pickTitle").textContent = cname;
   $("pickNote").textContent = "選一個存檔繼續，或新增一個存檔，用另一張玩家角色卡開始新的故事線。";
+  $("pickTools").hidden = true;
   $("slotNew").hidden = false;
   $("backChars").hidden = false;
   $("slotName").value = "";
