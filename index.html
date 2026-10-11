@@ -494,8 +494,8 @@
     <div id="pickTools">
       <label class="pick-search" for="pickSearch" style="margin:0"><span aria-hidden="true">🔍</span><input id="pickSearch" type="search" autocomplete="off" placeholder="搜尋角色名稱、簡介或分類"></label>
       <div class="pick-tabs" role="tablist">
-        <button type="button" id="tabSolo" role="tab">🩷 單人／組合</button>
-        <button type="button" id="tabWorld" role="tab">💜 開放世界</button>
+        <button type="button" id="tabSolo" role="tab">🩷 單人</button>
+        <button type="button" id="tabMulti" role="tab">💜 多人</button>
       </div>
       <div class="pick-tags" id="pickTags"></div>
     </div>
@@ -2567,21 +2567,20 @@ async function openChars() {
   }
 }
 
-// 分頁：單人＋組合一頁、開放世界一頁；分類標籤依 KV characters 填的 tags 自動產生（依第一次出現的順序）
+// 分頁：單人一頁、多人（CP、三人行、開放世界…）一頁；再細分交給分類標籤，依 KV characters 填的 tags 自動產生（依第一次出現的順序）
 const ALL_TAG = "全部";
 const RECENT_MAX = 3;
 let pickTab = "solo";
 let pickTag = ALL_TAG;
 
-// 類型：Worker 已整理成 single／combo／world；舊版 Worker 沒給就當單人，中文寫法也認
+// 類型：Worker 整理成 single／multi；舊版 Worker 給的 combo／world 與中文寫法也認，沒給就當單人
 function charType(c) {
   const s = String((c && c.type) || "").trim().toLowerCase();
-  if (/^(world|開放世界|多人|世界)$/.test(s)) return "world";
-  if (/^(combo|cp|組合|組合／cp|組合\/cp|雙人)$/.test(s)) return "combo";
+  if (/^(multi|多人|world|開放世界|世界|combo|cp|組合|組合／cp|組合\/cp|雙人|雙男主|群像)$/.test(s)) return "multi";
   return "single";
 }
 function charTags(c) { return Array.isArray(c && c.tags) ? c.tags.map((t) => String(t).trim()).filter(Boolean) : []; }
-function tabOf(c) { return charType(c) === "world" ? "world" : "solo"; }
+function tabOf(c) { return charType(c) === "multi" ? "multi" : "solo"; }
 function lastPlayed(cid) {
   const cs = slots[cid];
   return cs && cs.list.length ? Math.max(...cs.list.map((s) => (s.count ? s.updated || 0 : 0))) : 0;
@@ -2604,9 +2603,9 @@ function showCharStep() {
 
 function renderCharList() {
   $("tabSolo").classList.toggle("on", pickTab === "solo");
-  $("tabWorld").classList.toggle("on", pickTab === "world");
+  $("tabMulti").classList.toggle("on", pickTab === "multi");
   $("tabSolo").setAttribute("aria-selected", pickTab === "solo");
-  $("tabWorld").setAttribute("aria-selected", pickTab === "world");
+  $("tabMulti").setAttribute("aria-selected", pickTab === "multi");
 
   const inTab = pickChars.filter((c) => tabOf(c) === pickTab);
   // 分類標籤：只列這一頁有的
@@ -2646,7 +2645,7 @@ function renderCharList() {
   if (!shown.length) {
     const d = document.createElement("div");
     d.className = "mem-empty";
-    d.textContent = q ? "找不到符合的角色" : pickTab === "world" ? "目前沒有開放世界" : "目前沒有角色";
+    d.textContent = q ? "找不到符合的角色" : pickTab === "multi" ? "目前沒有多人角色" : "目前沒有單人角色";
     list.append(d);
     return;
   }
@@ -2678,12 +2677,6 @@ function charCard(c) {
   const nm = document.createElement("span");
   nm.textContent = c.name || c.id;
   top.append(nm);
-  if (charType(c) === "combo") {
-    const k = document.createElement("span");
-    k.className = "kind";
-    k.textContent = "組合";
-    top.append(k);
-  }
   b.append(top);
   if (c.intro) {
     const intro = document.createElement("small");
@@ -2717,7 +2710,7 @@ function charCard(c) {
 }
 
 $("tabSolo").onclick = () => setPickTab("solo");
-$("tabWorld").onclick = () => setPickTab("world");
+$("tabMulti").onclick = () => setPickTab("multi");
 $("pickSearch").addEventListener("input", renderCharList);
 
 function showSlotStep(c) {
