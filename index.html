@@ -280,6 +280,8 @@
   .st-rows { display: flex; flex-direction: column; gap: 4px; }
   .st-row { display: grid; grid-template-columns: 1.6em 1fr; gap: 6px; font-size: 13.5px; line-height: 1.75; word-break: break-word; }
   .st-row .ic { text-align: center; }
+  .st-row .k { font-weight: 500; font-size: 10.5px; letter-spacing: .15em; color: var(--muted); margin-right: 8px; }
+  .st-row.rel .k { color: var(--accent); }
   .st-people { display: flex; flex-direction: column; gap: 8px; }
   .st-person { position: relative; border-radius: 14px; padding: 0 12px; border: 1px solid var(--line); overflow: hidden;
     background: linear-gradient(160deg, var(--accent-soft), transparent 55%), var(--panel-2); }
@@ -1431,6 +1433,19 @@ function stTitle(l) {
 }
 function stCells(l) { return l.split(/[｜|]/).map((x) => x.trim()); }
 
+// 狀態欄欄位分類：Worker 讀後台範本算好 {emoji: outfit/body/rel/player/node}，網頁存起來用
+// 還沒收到（舊 Worker 或還沒對話過）時用常見圖示猜
+const statusFieldMap = store.get("rp_fields", {});
+const FIELD_GUESS = { "☔": "outfit", "❄": "outfit", "👔": "outfit", "🌡": "body", "🌈": "player", "💍": "player", "🔭": "node", "🎐": "node", "🌠": "rel", "🕸": "rel" };
+const FIELD_LABEL = { outfit: "穿搭", body: "生理", rel: "關係" };
+function fieldOf(icon) {
+  const k = String(icon || "").replace(/\uFE0F/g, "");
+  const map = statusFieldMap[settings.character];
+  return (map && map[k]) || (!map || !Object.keys(map).length ? FIELD_GUESS[k] || "" : "");
+}
+// 單人角色的狀態行不寫名字：收進以角色名為標題的人物卡（「Vito × 星座彼氏」→ Vito）
+function charShort() { return String(settings.characterName || "角色").split(/\s*[×✕]\s*/)[0].trim() || "角色"; }
+
 function parseStatus(lines) {
   const out = { people: [], player: [], nodes: [], groups: [], helpers: [], misc: [] };
   // 行程分組：每遇到一個行程標題（例：㊙️ 駱懷柏 機密行程雷達）開新的一組；沒有標題的放進「行程」
@@ -1479,12 +1494,19 @@ function parseStatus(lines) {
     if (ST_TIME.test(t)) { addSched(t); continue; }
     const c = stCells(t);
     if (c.length >= 3 && isIcon(c[0]) && c[1] && [...c[1]].length <= 12) {
-      const row = { icon: c[0], text: c.slice(2).join("｜") };
+      const row = { icon: c[0], text: c.slice(2).join("｜"), kind: fieldOf(c[0]) };
       if (me && imSame(c[1], me)) out.player.push(row);
       else person(c[1]).rows.push(row);
       continue;
     }
-    if (c.length === 2 && isIcon(c[0])) { out.nodes.push({ icon: c[0], text: c[1] }); continue; }
+    if (c.length === 2 && isIcon(c[0])) {
+      const kind = fieldOf(c[0]);
+      const row = { icon: c[0], text: c[1], kind };
+      if (kind === "player") out.player.push(row);
+      else if (kind === "outfit" || kind === "body" || kind === "rel") person(charShort()).rows.push(row);
+      else out.nodes.push(row);
+      continue;
+    }
     // 行程前的小標題（例：🥏 樊翼祁 星盤行運追蹤）
     const next = (list.slice(i + 1).find((x) => x.trim()) || "").trim();
     if (!t.includes("｜") && [...t].length <= 24 && ST_TIME.test(next)) { newGroup(t); continue; }
@@ -1527,8 +1549,9 @@ function stRows(rows) {
   box.className = "st-rows";
   for (const r of rows) {
     const d = document.createElement("div");
-    d.className = "st-row";
-    d.innerHTML = `<span class="ic">${esc(r.icon)}</span><span>${inline(r.text)}</span>`;
+    d.className = "st-row" + (r.kind === "rel" ? " rel" : "");
+    const lab = FIELD_LABEL[r.kind] ? `<b class="k">${FIELD_LABEL[r.kind]}</b>` : "";
+    d.innerHTML = `<span class="ic">${esc(r.icon)}</span><span>${lab}${inline(r.text)}</span>`;
     box.append(d);
   }
   return box;
@@ -1572,7 +1595,9 @@ function renderStatus(lines, latest) {
       ps.innerHTML = `<span class="ava">${esc([...p.name.replace(/^[^\p{L}\p{N}]+/u, "")][0] || "?")}</span><span>${inline(p.name)}</span>`;
       const rows = stRows(p.rows);
       // 最後一行通常是關係進度：拉出來放在卡片底部，像小工具的「關係」欄
-      if (p.rows.length >= 3) rows.lastElementChild.classList.add("rel");
+      if (p.rows.length >= 3 && !p.rows.some((r) => r.kind === "rel")) rows.lastElementChild.classList.add("rel");
+      // 關係行一律排到卡片最後
+      rows.querySelectorAll(".st-row.rel").forEach((x) => rows.append(x));
       pd.append(ps, rows);
       foldable(pd, `person:${imName(p.name)}`, pdDef);
       box.append(pd);
@@ -2456,6 +2481,10 @@ async function send(text, { addUser = true } = {}) {
       history: prior,
       message,
     });
+    if (data.fields && typeof data.fields === "object" && JSON.stringify(statusFieldMap[settings.character] || {}) !== JSON.stringify(data.fields)) {
+      statusFieldMap[settings.character] = data.fields;
+      store.set("rp_fields", statusFieldMap);
+    }
     if (typeof data.tail === "string" && tailMarks[settings.character] !== data.tail) {
       tailMarks[settings.character] = data.tail;
       store.set("rp_tail", tailMarks);
