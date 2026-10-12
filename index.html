@@ -267,12 +267,32 @@
   /* 5.2 狀態卡 */
   .stcard { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-top-width: 1px; border-radius: 4px 14px 14px 4px;
     background: var(--panel); padding: 0; margin-top: 26px; color: var(--text); }
-  .stcard > summary { display: flex; align-items: baseline; gap: 10px; padding: 11px 14px; font-size: 12.5px; }
-  .stcard > summary .ttl { color: var(--accent); letter-spacing: .3em; font-weight: 700; }
-  .stcard > summary .sub { color: var(--muted); font-size: 11.5px; letter-spacing: .05em; }
-  .stcard > summary::before { content: "▸"; color: var(--muted); }
-  .stcard[open] > summary::before { content: "▾"; }
-  .stcard[open] > summary { border-bottom: 1px solid var(--line); }
+  .stcard > summary { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 12px 10px 14px; font-size: 12.5px; border-radius: 0 13px 13px 0;
+    background: linear-gradient(100deg, var(--accent-soft), transparent 70%); transition: background .2s; }
+  .stcard > summary::before, .stcard[open] > summary::before { content: none; }
+  .stcard[open] > summary { border-bottom: 1px dashed var(--accent-line); border-radius: 0 13px 0 0; }
+  .stcard > summary .r1 { display: flex; align-items: center; gap: 10px; }
+  .stcard > summary .ttl { color: var(--accent); letter-spacing: .15em; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .stcard > summary .pg { margin-left: auto; color: var(--muted); font-size: 11.5px; letter-spacing: .1em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .stcard > summary .r2 { display: flex; justify-content: space-between; gap: 10px; color: var(--text); opacity: .8; font-size: 12px; }
+  .stcard > summary .r2 .pl { text-align: right; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .stcard > summary .r3 { display: flex; gap: 5px; flex-wrap: wrap; }
+  .stcard > summary .r3 b { font-weight: 500; font-size: 11px; color: var(--accent); background: var(--panel); border: 1px solid var(--accent-line);
+    border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+  .stcard[open] > summary .r3 { display: none; }
+  .stcard > summary .avas { display: flex; }
+  .stcard > summary .avas i { font-style: normal; width: 24px; height: 24px; margin-left: -5px; border-radius: 50%; display: inline-flex; align-items: center;
+    justify-content: center; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--panel); border: 1.5px solid var(--accent);
+    box-shadow: 0 0 0 2px var(--panel); }
+  .stcard > summary .avas i:first-child { margin-left: 0; }
+  .stcard > summary .avas i.more { font-size: 9.5px; color: var(--muted); border-color: var(--line); }
+  .stcard > summary .pills { display: flex; gap: 5px; flex-wrap: wrap; flex: 1; min-width: 0; }
+  .stcard > summary .pills b { font-weight: 500; font-size: 11px; color: var(--accent); background: var(--panel); border: 1px solid var(--accent-line);
+    border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+  .stcard > summary .arr { width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    background: var(--accent); color: var(--accent-ink); font-size: 15px; line-height: 1; transition: transform .2s; }
+  .stcard[open] > summary .arr { transform: rotate(90deg); }
+  .stcard > summary:active .arr { transform: scale(.9); }
   .st-body { padding: 4px 14px 14px; }
   .st-sec { margin-top: 12px; }
   .st-lab { font-size: 10.5px; letter-spacing: .25em; color: var(--muted); margin-bottom: 6px; }
@@ -323,9 +343,11 @@
   .st-opbox { margin-top: 14px; }
   .st-oplab { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; line-height: 1.6; }
   .st-ops { display: flex; flex-direction: column; gap: 6px; }
-  .st-ops button { text-align: left; font-size: 13px; line-height: 1.6; padding: 7px 12px; border-radius: 12px; background: var(--panel); border-color: var(--accent-line); }
+  .st-ops button .go { margin-left: auto; flex-shrink: 0; font-size: 11px; color: var(--accent); white-space: nowrap; }
+  .st-ops button { display: flex; align-items: center; gap: 10px; text-align: left; font-size: 13px; line-height: 1.6; padding: 7px 12px; border-radius: 12px; background: var(--panel); border-color: var(--accent-line); }
   .st-ops button:active { transform: scale(.98); }
   .st-misc { margin-top: 12px; font-size: 13px; line-height: 1.8; color: var(--muted); word-break: break-word; }
+  .stcard .chip i { font-style: normal; }
   .stcard .peek { margin-top: 14px; padding-top: 10px; border-top: 1px dotted var(--line); }
   .stcard .peek summary { font-size: 12.5px; letter-spacing: .2em; }
   .stcard .peek summary::before { content: "▸ "; }
@@ -517,6 +539,107 @@
     .overlay { align-items: center; }
     .sheet { border-radius: 22px; }
   }
+
+  /* ===== 狀態卡 skin：文青・紙本 ===== */
+  .st-lab .pk-en, .stcard .pk-en { display: none; }
+  :root[data-skin^="paper"] .stcard {
+    --pp-bg: #f1e5c6; --pp-card: #f8f0da; --pp-ink: #45372a; --pp-mute: #8a765a; --pp-line: #d8c49a; --pp-acc: #8c5a30; --pp-red: #b4584c;
+    --pp-age: rgba(150, 105, 40, .16); --pp-fox: rgba(160, 110, 40, .10);
+    --pp-serif: "Noto Serif TC", "Noto Serif CJK TC", "Songti TC", serif; --pp-mono: ui-monospace, "Courier New", monospace;
+    position: relative; background: var(--pp-bg); color: var(--pp-ink); border: 1px solid var(--pp-line); border-left: 1px solid var(--pp-line);
+    border-radius: 16px; overflow: hidden; box-shadow: 0 1px 0 var(--pp-line), 0 6px 18px rgba(80, 60, 30, .10); font-family: var(--pp-serif);
+    /* 舊紙：四周微微泛黃加深＋很淡的橫格線 */
+    background-image: radial-gradient(circle at 88% 78%, var(--pp-fox) 0 18px, transparent 40px),
+      radial-gradient(circle at 12% 18%, var(--pp-fox) 0 10px, transparent 26px),
+      radial-gradient(ellipse at 50% 40%, transparent 55%, var(--pp-age) 100%),
+      repeating-linear-gradient(transparent 0 27px, rgba(140, 105, 60, .09) 27px 28px);
+  }
+  @media (prefers-color-scheme: dark) { :root[data-skin^="paper"]:not([data-theme="light"]) .stcard {
+    --pp-bg: #2a2219; --pp-card: #33291f; --pp-ink: #eadcc4; --pp-mute: #a8957a; --pp-line: #54463a; --pp-acc: #d4a271; --pp-red: #cf7f6f; --pp-age: rgba(0, 0, 0, .38); --pp-fox: rgba(190, 140, 70, .10); } }
+  :root[data-skin^="paper"][data-theme="dark"] .stcard {
+    --pp-bg: #2a2219; --pp-card: #33291f; --pp-ink: #eadcc4; --pp-mute: #a8957a; --pp-line: #54463a; --pp-acc: #d4a271; --pp-red: #cf7f6f; --pp-age: rgba(0, 0, 0, .38); --pp-fox: rgba(190, 140, 70, .10); }
+  /* 色系：紫・薰衣草信紙、綠・舊帳本（版型同紙本，只換顏色） */
+  :root[data-skin="paper-lilac"] .stcard { --pp-bg: #ece4f0; --pp-card: #f5eff7; --pp-ink: #3f3346; --pp-mute: #857694; --pp-line: #d3c4dc; --pp-acc: #7a4f8f; --pp-red: #a56a9a; --pp-age: rgba(110, 70, 130, .14); --pp-fox: rgba(120, 80, 140, .07); }
+  :root[data-skin="paper-sage"] .stcard { --pp-bg: #e5e9d8; --pp-card: #eef1e3; --pp-ink: #34392c; --pp-mute: #78806a; --pp-line: #c5cdb2; --pp-acc: #55704a; --pp-red: #9a6b45; --pp-age: rgba(80, 100, 60, .15); --pp-fox: rgba(120, 110, 60, .08); }
+  @media (prefers-color-scheme: dark) {
+    :root[data-skin="paper-lilac"]:not([data-theme="light"]) .stcard { --pp-bg: #251f2b; --pp-card: #2c2533; --pp-ink: #e6dcec; --pp-mute: #9d8fab; --pp-line: #463c50; --pp-acc: #c3a3e0; --pp-red: #d79ac8; --pp-age: rgba(0,0,0,.35); --pp-fox: rgba(170,130,200,.07); }
+    :root[data-skin="paper-sage"]:not([data-theme="light"]) .stcard { --pp-bg: #1f241d; --pp-card: #262c23; --pp-ink: #dfe5d3; --pp-mute: #96a087; --pp-line: #3d4636; --pp-acc: #a9c48f; --pp-red: #d0a072; --pp-age: rgba(0,0,0,.35); --pp-fox: rgba(150,170,110,.07); } }
+  :root[data-skin="paper-lilac"][data-theme="dark"] .stcard { --pp-bg: #251f2b; --pp-card: #2c2533; --pp-ink: #e6dcec; --pp-mute: #9d8fab; --pp-line: #463c50; --pp-acc: #c3a3e0; --pp-red: #d79ac8; --pp-age: rgba(0,0,0,.35); --pp-fox: rgba(170,130,200,.07); }
+  :root[data-skin="paper-sage"][data-theme="dark"] .stcard { --pp-bg: #1f241d; --pp-card: #262c23; --pp-ink: #dfe5d3; --pp-mute: #96a087; --pp-line: #3d4636; --pp-acc: #a9c48f; --pp-red: #d0a072; --pp-age: rgba(0,0,0,.35); --pp-fox: rgba(150,170,110,.07); }
+  /* 書籤緞帶 */
+  :root[data-skin^="paper"] .stcard::after { content: ""; position: absolute; top: 0; right: 22px; width: 12px; height: 30px; background: var(--pp-red);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); opacity: .85; }
+  :root[data-skin^="paper"] .stcard > summary { background: none; border-radius: 0; padding: 14px 40px 12px 18px; gap: 7px; }
+  :root[data-skin^="paper"] .stcard[open] > summary { border-bottom: 1px solid var(--pp-line); box-shadow: 0 3px 0 -2px var(--pp-line); }
+  :root[data-skin^="paper"] .stcard > summary .ttl { color: var(--pp-ink); font-family: var(--pp-serif); font-weight: 600; font-size: 15px; letter-spacing: .2em; }
+  :root[data-skin^="paper"] .stcard > summary .avas i { width: auto; height: auto; margin: 0 0 0 4px; border: 0; box-shadow: none; background: none; border-radius: 0;
+    font-family: var(--pp-serif); font-weight: 400; font-size: 12px; color: var(--pp-mute); }
+  :root[data-skin^="paper"] .stcard > summary .avas i + i::before { content: "・"; }
+  :root[data-skin^="paper"] .stcard > summary .pg { font-family: var(--pp-serif); font-style: italic; font-size: 13px; color: var(--pp-acc); letter-spacing: .15em; }
+  :root[data-skin^="paper"] .stcard > summary .pg:not(:empty)::before { content: "— "; } 
+  :root[data-skin^="paper"] .stcard > summary .pg:not(:empty)::after { content: " —"; }
+  :root[data-skin^="paper"] .stcard > summary .arr { display: none; }
+  :root[data-skin^="paper"] .stcard > summary .r2 { font-family: var(--pp-mono); font-size: 11.5px; color: var(--pp-mute); opacity: 1; letter-spacing: .02em; }
+  :root[data-skin^="paper"] .stcard > summary .r3 b { background: none; border: 0; border-bottom: 1px dotted var(--pp-acc); border-radius: 0; padding: 0 2px;
+    color: var(--pp-acc); font-family: var(--pp-serif); font-size: 11.5px; }
+  :root[data-skin^="paper"] .stcard .st-body { padding: 6px 18px 18px; }
+  :root[data-skin^="paper"] .stcard .st-lab { font-family: var(--pp-serif); color: var(--pp-mute); font-size: 11px; letter-spacing: .2em; margin: 4px 0 8px;
+    display: flex; align-items: center; gap: 8px; }
+  :root[data-skin^="paper"] .stcard .st-lab::before { content: attr(data-en); font-family: var(--pp-mono); font-size: 9.5px; letter-spacing: .25em; color: var(--pp-acc); }
+  :root[data-skin^="paper"] .stcard .st-lab::after { content: ""; flex: 1; border-top: 1px solid var(--pp-line); }
+  :root[data-skin^="paper"] .stcard .st-row { font-family: var(--pp-serif); font-size: 13.5px; }
+  :root[data-skin^="paper"] .stcard .st-row .k { font-family: var(--pp-mono); font-weight: 400; font-size: 9.5px; letter-spacing: .1em; color: var(--pp-acc); }
+  /* 人物卡＝索引卡 */
+  :root[data-skin^="paper"] .stcard .st-person { background: var(--pp-card); border: 1px solid var(--pp-line); border-radius: 8px; box-shadow: 2px 2px 0 var(--pp-line); padding: 0 14px; }
+  :root[data-skin^="paper"] .stcard .st-person::before { display: none; }
+  :root[data-skin^="paper"] .stcard .st-person summary { font-family: var(--pp-serif); font-size: 14.5px; font-weight: 600; letter-spacing: .25em; padding: 10px 0 8px; }
+  :root[data-skin^="paper"] .stcard .st-person .ava { display: none; }
+  :root[data-skin^="paper"] .stcard .st-person .st-rows { border-top: 1.5px solid var(--pp-red); padding-top: 9px; }
+  :root[data-skin^="paper"] .stcard .st-person .st-row.rel { background: none; border: 0; border-radius: 0; padding: 6px 0 0; margin-top: 4px; color: var(--pp-mute);
+    font-style: italic; border-top: 1px dashed var(--pp-line); }
+  :root[data-skin^="paper"] .stcard .st-person .st-row.rel .k { color: var(--pp-red); font-style: normal; }
+  /* 行程 */
+  :root[data-skin^="paper"] .stcard .st-fold { background: none; border: 0; border-bottom: 1px dotted var(--pp-line); border-radius: 0; padding: 0; }
+  :root[data-skin^="paper"] .stcard .st-fold summary { font-family: var(--pp-serif); font-weight: 600; font-size: 13px; }
+  :root[data-skin^="paper"] .stcard .st-fold summary .n { font-family: var(--pp-mono); }
+  :root[data-skin^="paper"] .stcard .st-sched { border-left: 1px solid var(--pp-line); }
+  :root[data-skin^="paper"] .stcard .st-item::before { background: var(--pp-bg); border: 1px solid var(--pp-acc); }
+  :root[data-skin^="paper"] .stcard .st-item .tm { font-family: var(--pp-mono); color: var(--pp-acc); font-weight: 400; font-size: 12px; }
+  :root[data-skin^="paper"] .stcard .st-item .nt { font-style: italic; }
+  /* 小幫手＝頁邊批註 */
+  :root[data-skin^="paper"] .stcard .st-helper { background: none; border: 0; border-left: 2px solid var(--pp-acc); border-radius: 0; }
+  :root[data-skin^="paper"] .stcard .st-helper summary { color: var(--pp-acc); font-family: var(--pp-serif); font-weight: 600; }
+  :root[data-skin^="paper"] .stcard .st-helper summary::before { content: "※ "; }
+  :root[data-skin^="paper"] .stcard .st-hbody { font-family: var(--pp-serif); color: var(--pp-ink); }
+  /* 三條路＝便條 */
+  :root[data-skin^="paper"] .stcard .st-oplab { font-family: var(--pp-serif); font-style: italic; color: var(--pp-mute); }
+  :root[data-skin^="paper"] .stcard .st-ops { gap: 12px; }
+  :root[data-skin^="paper"] .stcard .st-ops button { background: var(--pp-card); border: 1px solid var(--pp-line); border-radius: 12px; padding: 11px 14px;
+    box-shadow: 0 3px 0 var(--pp-acc); font-family: var(--pp-serif); color: var(--pp-ink); transition: transform .1s, box-shadow .1s; }
+  :root[data-skin^="paper"] .stcard .st-ops button:active { transform: translateY(3px); box-shadow: 0 0 0 var(--pp-acc); }
+  :root[data-skin^="paper"] .stcard .st-ops button .go { font-family: var(--pp-mono); font-size: 11px; color: var(--pp-bg); background: var(--pp-acc);
+    border-radius: 999px; padding: 3px 9px; letter-spacing: .02em; }
+  /* 翻看 */
+  :root[data-skin^="paper"] .stcard .peek { border-top: 1px solid var(--pp-line); }
+  :root[data-skin^="paper"] .stcard .peek summary { font-family: var(--pp-serif); color: var(--pp-mute); }
+  :root[data-skin^="paper"] .stcard .pk-en { display: inline; font-family: var(--pp-mono); font-size: 9.5px; color: var(--pp-acc); letter-spacing: .25em; }
+  /* 翻看：方格便條＋彩色紙膠帶 */
+  :root[data-skin^="paper"] .stcard .peek .chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 12px 2px 6px; margin-top: 4px; }
+  :root[data-skin^="paper"] .stcard .chip { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 15px 2px 9px;
+    background: var(--pp-card); border: 0; border-radius: 3px; color: var(--pp-ink); font-family: var(--pp-serif); font-size: 11.5px; line-height: 1.3;
+    box-shadow: 0 2px 6px rgba(80, 60, 30, .18); transition: transform .15s; }
+  :root[data-skin^="paper"] .stcard .chip i { font-size: 22px; line-height: 1; }
+  :root[data-skin^="paper"] .stcard .chip:nth-child(4n+1) { transform: rotate(-2deg); }
+  :root[data-skin^="paper"] .stcard .chip:nth-child(4n+2) { transform: rotate(1.5deg); }
+  :root[data-skin^="paper"] .stcard .chip:nth-child(4n+3) { transform: rotate(-1deg); }
+  :root[data-skin^="paper"] .stcard .chip:nth-child(4n+4) { transform: rotate(2deg); }
+  :root[data-skin^="paper"] .stcard .chip:active { transform: scale(.94); }
+  :root[data-skin^="paper"] .stcard .chip::before { content: ""; position: absolute; top: -7px; left: 50%; width: 30px; height: 13px;
+    transform: translateX(-50%) rotate(-4deg); background: rgba(180, 88, 76, .38); }
+  :root[data-skin^="paper"] .stcard .chip:nth-child(4n+2)::before { background: rgba(196, 150, 60, .45); transform: translateX(-50%) rotate(3deg); }
+  :root[data-skin^="paper"] .stcard .chip:nth-child(4n+3)::before { background: rgba(110, 140, 100, .45); }
+  :root[data-skin^="paper"] .stcard .chip:nth-child(4n+4)::before { background: rgba(100, 125, 160, .42); transform: translateX(-50%) rotate(5deg); }
+  :root[data-skin^="paper"] .stcard .chip::after { content: none; }
 </style>
 </head>
 <body>
@@ -639,6 +762,14 @@
       <option value="auto">跟隨手機設定</option>
       <option value="dark">深色・夜讀</option>
       <option value="light">淺色・霧紫信紙</option>
+    </select>
+
+    <label for="skin">狀態卡樣式</label>
+    <select id="skin">
+      <option value="paper">黃・舊書頁</option>
+      <option value="paper-lilac">紫・薰衣草信紙</option>
+      <option value="paper-sage">綠・舊帳本</option>
+      <option value="card">紫色卡片</option>
     </select>
 
     <label for="invite">邀請碼</label>
@@ -1410,7 +1541,7 @@ function renderPage(text, latest) {
   flush();
 
   // 5.2 狀態欄：整理成可收合的狀態卡（翻看也收在卡片裡）；沒有狀態欄的頁面，翻看照舊放在最下面
-  if (end < lines.length) page.append(renderStatus(lines.slice(end), latest));
+  if (end < lines.length) page.append(renderStatus(lines.slice(end), latest, headInfo(headLines)));
   else if (latest && lorebook.length) page.append(renderPeek());
   return page;
 }
@@ -1535,12 +1666,14 @@ function stSched(l) {
   return item;
 }
 
-function stSection(label, body) {
+const ST_EN = { 人物: "CHARACTERS", 劇情: "SCENE", 玩家: "YOU", 行程: "SCHEDULE" };
+function stSection(label, body, en) {
   const sec = document.createElement("div");
   sec.className = "st-sec";
   const h = document.createElement("div");
   h.className = "st-lab";
   h.textContent = label;
+  h.dataset.en = en || ST_EN[label] || "";
   sec.append(h, body);
   return sec;
 }
@@ -1571,14 +1704,50 @@ function foldable(d, key, def) {
   if (sum) sum.addEventListener("click", () => { foldMem[key] = !d.open; store.set("rp_fold", foldMem); });
 }
 
-function renderStatus(lines, latest) {
+// 頭像字：中文名取最後一個字（駱懷柏→柏、駱懷鎮→鎮，同姓也分得出來），英文名取第一個字母
+function nameMark(n) {
+  const chars = [...String(n).replace(/^[^\p{L}\p{N}]+/u, "").replace(/[（(].*$/, "").trim()];
+  if (!chars.length) return "?";
+  const cjk = chars.filter((c) => /[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]/.test(c));
+  return cjk.length >= 2 ? cjk[cjk.length - 1] : chars[0].toUpperCase();
+}
+
+// 從 5.1 頁首抓日期、時間、頁數、場景，給收起來的狀態列用（頁首本身照常顯示）
+function headInfo(head) {
+  const info = { date: "", time: "", page: "", place: "" };
+  if (!head || !head.some((l) => /page/i.test(l))) return info;
+  const all = head.join("｜");
+  const d = all.match(/(\d{3,4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})/);
+  if (d) info.date = d[0];
+  const t = all.match(/(?<!\d)(\d{1,2}:\d{2})(?!\d)/);
+  if (t) info.time = t[1];
+  const pl = head.find((l) => /page/i.test(l)) || "";
+  const pm = pl.match(/page\s*[.．:：]?\s*(\d+)/i);
+  if (pm) info.page = pm[1];
+  // 場景：頁數那一行裡，最後一格不是圖示、不是頁數的文字
+  const cells = stCells(pl).filter((x) => x && !isIcon(x) && !/page/i.test(x));
+  if (cells.length) info.place = cells[cells.length - 1].replace(/^[{【]|[}】]$/g, "");
+  return info;
+}
+
+function renderStatus(lines, latest, head = {}) {
   const st = parseStatus(lines);
   const det = document.createElement("details");
   det.className = "tracker stcard";
   if (latest) det.open = true;
   const sum = document.createElement("summary");
-  const info = [st.people.length && `人物 ${st.people.length}`, st.groups.length && `行程 ${st.groups.reduce((a, g) => a + g.items.length, 0)}`].filter(Boolean).join("・");
-  sum.innerHTML = `<span class="ttl">狀態</span>${info ? `<span class="sub">${esc(info)}</span>` : ""}`;
+  // 收起來時的標題列：人物小頭像疊在一起＋行程、小幫手小膠囊＋右邊圓形小箭頭
+  const initial = (n) => esc(nameMark(n));
+  const avas = st.people.slice(0, 3).map((p) => `<i>${initial(p.name)}</i>`).join("") + (st.people.length > 3 ? `<i class="more">+${st.people.length - 3}</i>` : "");
+  const nSched = st.groups.reduce((a, g) => a + g.items.length, 0);
+  const pills = [nSched && `🗓 ${nSched}`, st.helpers.some((h) => h.options.length) && "✦ 三條路"].filter(Boolean).map((x) => `<b>${esc(x)}</b>`).join("");
+  // 標題列像書籤：第一行＝作品名＋人物頭像＋頁數，第二行＝日期時間＋場景（頁首沒有這些就只顯示第一行）
+  const when = [head.date, head.time].filter(Boolean).join(" ");
+  sum.innerHTML =
+    `<span class="r1"><span class="ttl">${esc(settings.characterName || "狀態")}</span>${avas ? `<span class="avas">${avas}</span>` : ""}` +
+    `<span class="pg">${head.page ? `page.${esc(head.page)}` : ""}</span><span class="arr" aria-hidden="true">›</span></span>` +
+    (when || head.place ? `<span class="r2"><span>${when ? `🗓 ${inline(when)}` : ""}</span><span class="pl">${head.place ? `📍 ${inline(head.place)}` : ""}</span></span>` : "") +
+    (pills ? `<span class="r3">${pills}</span>` : "");
   det.append(sum);
   const body = document.createElement("div");
   body.className = "st-body";
@@ -1592,7 +1761,7 @@ function renderStatus(lines, latest) {
       pd.className = "st-person";
       const pdDef = st.people.length <= 2 || n === 0;
       const ps = document.createElement("summary");
-      ps.innerHTML = `<span class="ava">${esc([...p.name.replace(/^[^\p{L}\p{N}]+/u, "")][0] || "?")}</span><span>${inline(p.name)}</span>`;
+      ps.innerHTML = `<span class="ava">${esc(nameMark(p.name))}</span><span>${inline(p.name)}</span>`;
       const rows = stRows(p.rows);
       // 最後一行通常是關係進度：拉出來放在卡片底部，像小工具的「關係」欄
       if (p.rows.length >= 3 && !p.rows.some((r) => r.kind === "rel")) rows.lastElementChild.classList.add("rel");
@@ -1604,7 +1773,7 @@ function renderStatus(lines, latest) {
     });
     body.append(stSection("人物", box));
   }
-  if (st.player.length) body.append(stSection(playerName() || "玩家", stRows(st.player)));
+  if (st.player.length) body.append(stSection(playerName() || "玩家", stRows(st.player), "YOU"));
   if (st.nodes.length) body.append(stSection("劇情", stRows(st.nodes)));
 
   for (const g of st.groups) {
@@ -1668,7 +1837,7 @@ function renderStatus(lines, latest) {
     for (const o of h.options) {
       const b = document.createElement("button");
       b.type = "button";
-      b.innerHTML = inline(o);
+      b.innerHTML = `<span class="tx">${inline(o)}</span><span class="go">點我填入 ↵</span>`;
       b.onclick = () => fillInput(o.replace(/^[^①②③④⑤❶❷❸❹❺]*[①②③④⑤❶❷❸❹❺]\s*/, ""));
       ops.append(b);
     }
@@ -1681,14 +1850,14 @@ function renderStatus(lines, latest) {
     const pk = document.createElement("details");
     pk.className = "peek st-peek";
     const ps = document.createElement("summary");
-    ps.innerHTML = '翻看<span class="spark">✧</span>';
+    ps.innerHTML = '<span class="pk-en">MARGINALIA · </span>翻看<span class="spark">✧</span>';
     const chips = document.createElement("div");
     chips.className = "chips";
     for (const e of lorebook) {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "chip";
-      b.textContent = `${e.icon || "📂"} ${e.name}`;
+      b.innerHTML = `<i>${esc(e.icon || "📂")}</i><span>${esc(e.name)}</span>`;
       b.onclick = () => { fillInput(((e.keys || [])[0] || "") + " "); pk.open = false; foldMem.peek = false; store.set("rp_fold", foldMem); };
       chips.append(b);
     }
@@ -3348,6 +3517,14 @@ function applyTheme(t) {
   const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
   document.querySelector('meta[name="theme-color"]').setAttribute("content", bg || "#17131d");
 }
+// 狀態卡樣式：預設黃・舊書頁；「紫色卡片」＝原本的圓角紫卡（不套紙本）
+function applySkin(k) {
+  if (k && k !== "card") document.documentElement.dataset.skin = k;
+  else delete document.documentElement.dataset.skin;
+}
+$("skin").value = store.get("rp_skin", "paper");
+$("skin").addEventListener("change", () => { store.set("rp_skin", $("skin").value); applySkin($("skin").value); });
+applySkin($("skin").value);
 $("theme").value = store.get("rp_theme", "auto");
 $("theme").addEventListener("change", () => {
   store.set("rp_theme", $("theme").value);
