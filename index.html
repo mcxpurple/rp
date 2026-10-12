@@ -965,6 +965,35 @@
       linear-gradient(135deg, #8a5a38, #6a4226 60%, #55331c); }
   :root[data-theme="dark"] .deck .dk-front { background: linear-gradient(180deg, rgba(0,0,0,.3), rgba(0,0,0,.08) 30%, rgba(0,0,0,.25)),
       repeating-linear-gradient(90deg, rgba(0,0,0,.1) 0 3px, transparent 3px 9px), linear-gradient(135deg, #5a3820, #45291a); }
+
+  /* ===== 直播：舞台區動畫＋觀眾彈幕 ===== */
+  .live-stage { position: relative; overflow: hidden; height: 92px; flex-direction: column; gap: 2px; }
+  .live-stage .ls-main { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center; padding: 0 60px; }
+  .live-stage .ls-ic { font-size: 22px; line-height: 1.1; }
+  .live-stage .ls-t { font-size: 12.5px; font-weight: 700; color: var(--text); }
+  .live-stage .ls-who { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .live-stage .ls-badge { position: absolute; z-index: 2; left: 10px; top: 9px; display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; color: #fff;
+    background: #e5484d; border-radius: 4px; padding: 1px 6px; letter-spacing: .05em; }
+  .live-stage .ls-badge i { width: 6px; height: 6px; border-radius: 50%; background: #fff; animation: ls-blink 1.2s ease-in-out infinite; }
+  .live-stage .ls-view { position: absolute; z-index: 2; right: 10px; top: 9px; font-size: 10.5px; color: var(--muted); background: color-mix(in srgb, var(--phone) 70%, transparent); border-radius: 999px; padding: 0 7px; }
+  @keyframes ls-blink { 50% { opacity: .2; } }
+  .live-stage .ls-heart { position: absolute; right: 22px; bottom: -14px; color: #e5484d; font-size: 14px; opacity: 0; animation: ls-float 3.2s ease-in infinite; }
+  .live-stage .ls-heart.b { right: 34px; color: var(--accent); font-size: 11px; animation-delay: 1.1s; }
+  .live-stage .ls-heart.c { right: 14px; color: #f0a35c; font-size: 12px; animation-delay: 2.1s; }
+  @keyframes ls-float { 0% { transform: translateY(0) scale(.8); opacity: 0; } 15% { opacity: .9; } 100% { transform: translate(-10px, -96px) scale(1.15); opacity: 0; } }
+  .live-stage .ls-wave { position: absolute; left: 0; right: 0; bottom: 8px; display: flex; justify-content: center; align-items: flex-end; gap: 3px; height: 18px; opacity: .55; }
+  .live-stage .ls-wave i { width: 3px; height: 6px; border-radius: 2px; background: var(--accent); animation: dk-eq 1s ease-in-out infinite alternate; }
+  .live-stage .ls-wave i:nth-child(3n) { animation-delay: -.4s; } .live-stage .ls-wave i:nth-child(3n+1) { animation-delay: -.7s; } .live-stage .ls-wave i:nth-child(4n) { animation-delay: -.2s; }
+  .live-stage .ls-spot { position: absolute; top: -20px; left: 22%; width: 70px; height: 130px; background: linear-gradient(rgba(255,240,200,.45), transparent 80%);
+    clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%); transform: rotate(-14deg); transform-origin: top center; animation: ls-sweep 4s ease-in-out infinite alternate; }
+  .live-stage .ls-spot.r { left: auto; right: 22%; transform: rotate(14deg); animation-delay: -2s; }
+  @keyframes ls-sweep { to { transform: rotate(10deg); } }
+  .live-stage .ls-spot.r { animation-name: ls-sweep-r; } @keyframes ls-sweep-r { from { transform: rotate(14deg); } to { transform: rotate(-10deg); } }
+  .live-list .c.dm { font-size: 12.5px; color: var(--muted); line-height: 1.55; padding-left: 2px; }
+  .live-list .c.dm .dmi { font-size: 10px; margin-right: 5px; opacity: .7; }
+  .live-list .c.dm b { color: var(--muted); font-weight: 600; margin-right: 5px; }
+  .live-list .c.dm.gift { color: var(--gift); }
+  @media (prefers-reduced-motion: reduce) { .live-stage .ls-badge i, .live-stage .ls-heart, .live-stage .ls-wave i, .live-stage .ls-spot { animation: none; } .live-stage .ls-heart { display: none; } }
 </style>
 </head>
 <body>
@@ -3079,13 +3108,27 @@ function imMedia(kind, cap) {
 }
 
 // 直播、舞台、錄影、廣播：彈幕留言串；角色本人的發言標「主播」
+// 彈幕判斷：內容以 [彈幕]／【彈幕】／(彈幕) 開頭，或說話者寫成「彈幕／觀眾／網友」
+const DM_TAG = /^[\[【（(]\s*(彈幕|留言|觀眾|網友|聊天室|comment|chat)\s*[\]】）)]\s*/i;
+function isDanmaku(m) {
+  return DM_TAG.test(m.body || "") || /^(彈幕|觀眾|網友|留言|聊天室|comments?|chat)$/i.test(m.speaker || "");
+}
 function renderLive(p) {
   const wrap = imFrame(p, "live");
-  const extra = ` <span class="live">● LIVE</span>${p.time ? ` <span class="view">🕒${esc(p.time)}</span>` : ""}`;
+  // LIVE 標記放在舞台區（會閃），頂欄只留時間
+  const extra = p.time ? ` <span class="view">🕒${esc(p.time)}</span>` : "";
   wrap.append(imBar(p, extra));
+  // 舞台區：依類型換圖示與動畫（直播＝鏡頭＋飄愛心、電台／Podcast／配音＝聲波、舞台／演唱＝聚光燈）
   const stage = document.createElement("div");
-  stage.className = "live-stage";
-  stage.textContent = `${p.type || "直播"}${p.who ? `・${p.who}` : ""}`;
+  const kindT = `${p.type} ${p.platform}`;
+  const mode = /廣播|電台|podcast|配音|radio/i.test(kindT) ? "radio" : /舞台|演唱|公演|音樂節|簽售|fancon|concert/i.test(kindT) ? "show" : "cam";
+  stage.className = `live-stage ${mode}`;
+  const icon = { radio: "🎙️", show: "🎤", cam: "📹" }[mode];
+  const dms = p.msgs.filter((m) => isDanmaku(m)).length;
+  stage.innerHTML =
+    `<span class="ls-badge"><i></i>LIVE</span>${dms ? `<span class="ls-view">💬 ${dms}</span>` : ""}` +
+    `<span class="ls-main"><span class="ls-ic">${icon}</span><span class="ls-t">${inline(String(p.type || "直播").replace(/^[^\p{L}\p{N}]+/u, ""))}</span>${p.who ? `<span class="ls-who">${inline(p.who)}</span>` : ""}</span>` +
+    (mode === "radio" ? `<span class="ls-wave">${"<i></i>".repeat(14)}</span>` : mode === "show" ? '<span class="ls-spot"></span><span class="ls-spot r"></span>' : '<span class="ls-heart">♥</span><span class="ls-heart b">♥</span><span class="ls-heart c">♥</span>');
   wrap.append(stage);
   const list = document.createElement("div");
   list.className = "live-list";
@@ -3094,6 +3137,15 @@ function renderLive(p) {
   for (const m of p.msgs) {
     const c = document.createElement("div");
     c.className = "c";
+    // 觀眾彈幕：去掉「[彈幕]」字樣，改成淡色小字；有寫暱稱就保留暱稱
+    if (isDanmaku(m)) {
+      const body = m.body.replace(DM_TAG, "").trim();
+      const nm = /^(彈幕|觀眾|網友|留言|聊天室|comments?|chat)$/i.test(m.speaker || "") ? "" : m.speaker;
+      c.className = "c dm" + (/贈禮|禮物|斗內|抖內|打賞|贊助/.test(body) ? " gift" : "");
+      c.innerHTML = `<span class="dmi">💬</span>${nm ? `<b>${esc(nm)}</b>` : ""}${inline(body)}${m.time ? `<span class="t">${esc(m.time)}</span>` : ""}`;
+      list.append(c);
+      continue;
+    }
     const gift = /贈禮|禮物|斗內|抖內|打賞|贊助/.test(m.body);
     const host = char && m.speaker && (m.speaker.includes(char) || char.includes(m.speaker));
     if (gift) c.classList.add("gift");
