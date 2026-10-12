@@ -717,12 +717,25 @@
   .d-strike { margin-top: 12px; font-size: 14.5px; line-height: 30px; }
   .d-strike del { text-decoration: line-through 2px #8b2a2a; color: #8a7458; }
   .d-strike .fix { display: block; color: #6e2228; font-style: italic; padding-left: 1.2em; }
-  .d-band { margin: 10px 0 0; display: inline-block; background: rgba(196,150,90,.42); padding: 2px 10px; transform: rotate(-1.2deg); font-size: 14px; line-height: 1.8; box-shadow: 0 1px 2px rgba(80,50,20,.2); }
-  .d-unsent { margin: 22px 40px 0 0; background: #f4e8cc; border: 1px solid rgba(110,80,45,.4); padding: 12px 12px 10px; font-size: 14px; line-height: 1.8; position: relative; transform: rotate(.7deg); box-shadow: 2px 3px 6px rgba(80,50,20,.25); }
-  .d-unsent::before { content: ""; position: absolute; top: -9px; left: 38%; width: 52px; height: 16px; transform: rotate(-4deg); background: repeating-linear-gradient(45deg, rgba(176,90,90,.42) 0 5px, rgba(196,120,110,.30) 5px 10px); }
-  .d-unsent .k { display: block; font-size: 11px; color: #6e2228; letter-spacing: .12em; margin-bottom: 2px; }
+  /* 🩹 不想承認的一句：鉛筆小字、斜斜縮在右邊，前半被橡皮擦淡 */
+  .d-band { position: relative; margin: 14px 0 6px auto; width: 13.5em; max-width: 92%; font-size: 12.5px; line-height: 1.65; color: #7b746b; font-style: italic; letter-spacing: .03em;
+    transform: rotate(-4deg); transform-origin: right center; text-shadow: 0 0 .35px #7b746b; }
+  .d-band .er { position: absolute; left: -8px; right: 35%; top: -2px; height: 62%; border-radius: 45% 55% 50% 40%; pointer-events: none;
+    background: radial-gradient(ellipse at 45% 50%, rgba(234,217,180,.78), rgba(234,217,180,.4) 60%, transparent 76%); }
+  /* 🔒 沒有傳出去：左上折角＋中間豎摺痕 */
+  .d-unsent { margin: 22px 40px 0 0; padding: 12px 12px 10px; font-size: 14px; line-height: 1.8; position: relative; isolation: isolate; transform: rotate(.7deg);
+    filter: drop-shadow(2px 3px 3px rgba(80,50,20,.28)); }
+  .d-unsent::before { content: ""; position: absolute; inset: 0; z-index: -1; clip-path: polygon(22px 0, 100% 0, 100% 100%, 0 100%, 0 22px);
+    outline: 1px solid rgba(110,80,45,.3); outline-offset: -1px;
+    background: linear-gradient(90deg, transparent 0 56%, rgba(120,85,40,.10) 58.6%, rgba(120,85,40,.22) 59.2%, rgba(255,255,255,.6) 59.6%, rgba(255,255,255,.15) 61%, transparent 64%),
+      linear-gradient(90deg, #f6ecd2 0 59%, #efe3c6 60% 100%); }
+  .d-unsent::after { content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px; filter: drop-shadow(1.5px 1.5px 1.5px rgba(80,50,20,.3));
+    background: linear-gradient(135deg, transparent 50%, #d9c69c 50%, #c8b285); }
+  .d-unsent .k { padding-left: 16px; display: block; font-size: 11px; color: #6e2228; letter-spacing: .12em; margin-bottom: 2px; }
   .d-note { margin-top: 8px; font-size: 14px; line-height: 1.8; }
   .d-seal { position: absolute; right: 4px; bottom: -4px; transform: rotate(-8deg); line-height: 0; pointer-events: none; }
+  .diary.pin .d-unsent { margin-right: 56px; }
+  .diary.pin .d-seal { right: 6px; bottom: 6px; }
   .d-seal svg { filter: drop-shadow(1.5px 3px 2.5px rgba(50,15,10,.45)); }
 
   /* ===== 翻看・論壇：匿名論壇 App ===== */
@@ -2444,7 +2457,7 @@ function renderDiary(secs) {
       } else if (/^🩹/.test(t)) {
         const b = document.createElement("div");
         b.className = "d-band";
-        b.innerHTML = `🩹 ${inline(t.replace(/^🩹\s*[｜|]\s*/, ""))}`;
+        b.innerHTML = `<span class="er"></span>${inline(t.replace(/^🩹\s*[｜|]\s*/, ""))}`;
         d.append(b);
       } else if (/^🔒/.test(t)) {
         const u = document.createElement("div");
@@ -2466,6 +2479,7 @@ function renderDiary(secs) {
     }
   }
   if (!body) return null;
+  if (d.lastElementChild?.classList.contains("d-unsent")) d.classList.add("pin");
   const s = document.createElement("div");
   s.className = "d-seal";
   s.innerHTML = waxSeal(nameMark(who || "?"), who, 110);
