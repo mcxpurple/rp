@@ -838,6 +838,133 @@
   .ds-sheet.pend small { display: block; font-size: 11.5px; color: #8a7552; }
   .ds-sheet.pend .st { position: absolute; right: 12px; top: 10px; color: #9b2a2a; border: 2px solid #9b2a2a; font-size: 11px; padding: 0 6px; transform: rotate(-5deg);
     font-family: "Noto Sans TC", sans-serif; font-weight: 700; opacity: .88; background: rgba(255,250,240,.6); }
+
+  /* ===== 5.4 歌曲卡：黑膠／播放器（跟狀態卡換色） ===== */
+  .im.song-card { border: 0; border-radius: 18px; max-width: 24em; margin: 14px auto 26px; padding: 16px; font-size: 13.5px; line-height: 1.7; }
+  .sc-art { position: relative; display: block; width: 150px; height: 150px; border-radius: 4px; overflow: hidden; flex-shrink: 0;
+    background: radial-gradient(circle at 70% 25%, rgba(255,255,255,.2), transparent 45%), linear-gradient(145deg, color-mix(in srgb, var(--accent) 35%, #0d0608), var(--accent) 55%, color-mix(in srgb, var(--accent) 30%, #050304));
+    box-shadow: 4px 6px 14px rgba(0,0,0,.3); }
+  .sc-art .a { position: absolute; left: 10px; top: 9px; right: 36px; color: rgba(255,248,240,.75); font-size: 9px; letter-spacing: .22em; line-height: 1.4; }
+  .sc-art .no { position: absolute; right: 9px; top: 8px; color: rgba(255,248,240,.6); font-family: ui-monospace, monospace; font-size: 10px; }
+  .sc-art .t { position: absolute; left: 10px; right: 10px; bottom: 10px; color: #fff8f0; font-family: "Noto Serif TC", serif; font-weight: 900; font-size: 18px; line-height: 1.2; word-break: break-word; }
+  .sv-stage { position: relative; height: 156px; margin-bottom: 12px; color: var(--accent); }
+  .sv-stage .sc-art { position: absolute; left: 0; top: 2px; z-index: 2; }
+  .sv-disc { position: absolute; left: 84px; top: 0; width: 150px; height: 150px; border-radius: 50%; z-index: 1;
+    background: radial-gradient(circle, #111 0 9%, transparent 9.5%), radial-gradient(circle, var(--accent) 0 26%, transparent 26.5%), repeating-radial-gradient(circle, #161616 0 1.2px, #232323 1.2px 2.4px), #111;
+    box-shadow: 0 6px 14px rgba(0,0,0,.35); animation: sv-spin 7s linear infinite; }
+  .sv-disc::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 20deg, transparent 0 15%, rgba(255,255,255,.14) 20%, transparent 26% 62%, rgba(255,255,255,.1) 68%, transparent 74%); }
+  .sv-disc .lbl { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin-top: -12px; font-size: 7px; letter-spacing: .15em; color: #fff8f0; white-space: nowrap; max-width: 34px; overflow: hidden; }
+  .sv-arm { position: absolute; left: 184px; top: -8px; width: 66px; height: 104px; z-index: 3; }
+  @keyframes sv-spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .sv-disc { animation: none; } }
+  .sc-ti { font-family: "Noto Serif TC", serif; font-size: 17px; font-weight: 700; line-height: 1.45; }
+  .sc-ar { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .sc-moods { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 8px; }
+  .sc-moods span { font-size: 11px; color: var(--accent); border: 1px solid var(--accent-line); border-radius: 999px; padding: 0 8px; }
+  .sc-q { font-family: "Noto Serif TC", serif; font-size: 13.5px; line-height: 1.8; border-left: 2px solid var(--accent); padding-left: 10px; margin: 6px 0 4px; }
+  .sc-play { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; background: var(--accent); color: var(--phone); border-radius: 999px; padding: 7px 16px; font-size: 13px; font-weight: 700; text-decoration: none; }
+  .song-card.player .sc-play { display: block; text-align: center; background: none; color: var(--accent); padding: 4px 0 0; }
+  .sp-top { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; color: var(--muted); letter-spacing: .1em; margin-bottom: 12px; }
+  .sp-top .al { flex: 1; text-align: center; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sp-row { display: flex; gap: 14px; align-items: center; }
+  .sp-row .sc-art { width: 96px; height: 96px; border-radius: 10px; }
+  .sp-row .sc-art .t { font-size: 12px; } .sp-row .sc-art .a { display: none; }
+  .sp-ti { font-size: 16.5px; font-weight: 700; line-height: 1.35; word-break: break-word; }
+  .sp-ty { display: inline-block; font-size: 10.5px; color: var(--accent); border: 1px solid var(--accent-line); border-radius: 4px; padding: 0 5px; margin-top: 6px; }
+  .sp-bar { height: 4px; border-radius: 2px; background: var(--panel-2); margin: 16px 0 6px; position: relative; }
+  .sp-bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 34%; background: var(--accent); border-radius: 2px; }
+  .sp-bar i::after { content: ""; position: absolute; right: -5px; top: -4px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+  .sp-ctl { display: flex; justify-content: center; align-items: center; gap: 24px; margin: 8px 0 12px; font-size: 19px; }
+  .sp-ctl .pp { width: 46px; height: 46px; border-radius: 50%; background: var(--accent); color: var(--phone); display: flex; align-items: center; justify-content: center; font-size: 17px; }
+  .sp-lyr { background: var(--panel-2); border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.85; text-align: center; }
+  .sp-lyr .m { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+  /* ===== 歌曲卡・黑膠：胡桃木唱盤機（固定色，不跟主題）＋暖燈＋等化器 ===== */
+  .song-card.deck { position: relative; isolation: isolate; overflow: hidden; max-width: 24em; margin: 14px auto 26px; padding: 16px 16px 14px; border-radius: 16px;
+    color: #f3e8d8; font-size: 13.5px; line-height: 1.7; letter-spacing: 0; font-family: "Noto Sans TC", sans-serif;
+    box-shadow: 0 14px 30px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.12);
+    background: linear-gradient(180deg, rgba(255,255,255,.06), transparent 30%),
+      repeating-linear-gradient(88deg, rgba(0,0,0,.08) 0 3px, transparent 3px 9px, rgba(255,220,180,.04) 9px 11px, transparent 11px 18px),
+      linear-gradient(135deg, #5a3520, #3b2214 60%, #2c190e); }
+  .deck .dk-lamp { position: absolute; z-index: 0; right: -40px; top: -60px; width: 260px; height: 260px; pointer-events: none;
+    background: radial-gradient(circle, rgba(255,205,140,.42), rgba(255,190,120,.16) 40%, transparent 70%); }
+  .deck .sv-stage { color: #7a2f35; z-index: 1; }
+  .deck .dk-plat { position: absolute; z-index: 0; left: 79px; top: -5px; width: 160px; height: 160px; border-radius: 50%;
+    background: radial-gradient(circle, #9a9a9a 0 66%, #5a5a5a 67%, #bdbdbd 70%, #6a6a6a 74%); box-shadow: 0 4px 10px rgba(0,0,0,.5); }
+  .deck .sv-disc { background: radial-gradient(circle, #111 0 9%, transparent 9.5%), radial-gradient(circle, #7a2f35 0 26%, transparent 26.5%),
+    repeating-radial-gradient(circle, #161616 0 1.2px, #232323 1.2px 2.4px), #111; }
+  /* 封套：米白紙＋酒紅字，在木頭上跳出來 */
+  .deck .sc-art { background: #f3e8d6; border: 1px solid rgba(255,255,255,.6); box-shadow: 6px 8px 16px rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,.15);
+    background-image: linear-gradient(transparent 30%, #7a2f35 30%, #7a2f35 31.5%, transparent 31.5%), radial-gradient(circle at 75% 60%, rgba(122,47,53,.12), transparent 50%),
+      repeating-linear-gradient(0deg, rgba(120,90,50,.05) 0 1px, transparent 1px 3px); }
+  .deck .sc-art .a { color: #7a5e48; } .deck .sc-art .no { color: #7a2f35; }
+  .deck .sc-art .t { color: #7a2f35; }
+  .deck .dk-knobs { position: absolute; right: 0; top: 118px; display: flex; gap: 6px; align-items: center; font-family: ui-monospace, monospace; font-size: 9px; }
+  .deck .dk-knobs b { width: 22px; height: 14px; border-radius: 3px; background: linear-gradient(#d9d2c6, #9d968a); color: #3b2214; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+  .deck .dk-knobs b.on { box-shadow: 0 0 0 1.5px #e6b25c; }
+  .deck .dk-knobs .led { width: 6px; height: 6px; border-radius: 50%; background: #ff6b4a; box-shadow: 0 0 6px #ff6b4a; }
+  .deck .dk-info { position: relative; z-index: 1; background: rgba(0,0,0,.28); border-radius: 10px; padding: 10px 12px; box-shadow: inset 0 1px 3px rgba(0,0,0,.4); }
+  .deck .sc-ar { color: #d9c8b2; }
+  .deck .sc-moods span { color: #e6b25c; border-color: rgba(230,178,92,.55); }
+  .deck .sc-q { border-left-color: #e6b25c; color: #f3e8d8; }
+  .deck .dk-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+  .deck .sc-play { background: #e6b25c; color: #2c190e; }
+  .sc-play .g { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: conic-gradient(#4285f4 0 25%, #ea4335 0 50%, #fbbc05 0 75%, #34a853 0); }
+  .deck .dk-eq { display: flex; gap: 3px; align-items: flex-end; height: 22px; margin-bottom: 4px; }
+  .deck .dk-eq i { width: 4px; height: 8px; background: #f0c9a0; border-radius: 2px; opacity: .85; animation: dk-eq 1.1s ease-in-out infinite alternate; }
+  .deck .dk-eq i:nth-child(2) { animation-delay: -.3s; } .deck .dk-eq i:nth-child(3) { animation-delay: -.7s; }
+  .deck .dk-eq i:nth-child(4) { animation-delay: -.15s; } .deck .dk-eq i:nth-child(5) { animation-delay: -.5s; }
+  @keyframes dk-eq { 0% { height: 5px; } 50% { height: 20px; } 100% { height: 10px; } }
+  @media (prefers-reduced-motion: reduce) { .deck .dk-eq i { animation: none; height: 12px; } }
+
+  .deck .sc-art { display: none; }
+  .deck .sv-stage { height: 176px; }
+  .deck .dk-plat { left: calc(50% - 92px); top: -4px; width: 184px; height: 184px; }
+  .deck .sv-disc { left: calc(50% - 86px); top: 2px; width: 172px; height: 172px; }
+  .deck .sv-disc .lbl { font-size: 8px; max-width: 44px; }
+  .deck .sv-arm { left: calc(50% + 40px); top: -6px; width: 74px; height: 116px; }
+  .deck .dk-knobs { top: 150px; }
+
+  /* 立體：上蓋木紋較亮＋四邊斜角高光，下方前面板（喇叭網＋旋鈕）做出機身厚度，底部腳墊與桌面陰影 */
+  .song-card.deck { overflow: visible; padding: 18px 16px 0; border-radius: 14px 14px 6px 6px; margin-bottom: 26px; outline: 1px solid rgba(255,220,180,.1); outline-offset: -1px;
+    box-shadow: inset 0 2px 0 rgba(255,235,210,.22), inset 2px 0 0 rgba(255,235,210,.08), inset -2px 0 0 rgba(0,0,0,.25), 0 26px 22px -14px rgba(0,0,0,.7); }
+  .deck .dk-lamp { inset: 0; right: 0; top: 0; width: auto; height: auto; border-radius: 14px 14px 6px 6px; background: radial-gradient(circle at 80% 8%, rgba(255,210,150,.55), rgba(255,190,120,.2) 30%, transparent 55%); }
+  .deck .dk-plat { box-shadow: 0 2px 0 #4a4a4a, 0 5px 0 #2e2e2e, 0 10px 16px rgba(0,0,0,.6); }
+  .deck .sv-disc { box-shadow: 0 3px 6px rgba(0,0,0,.55); }
+  .deck .sv-arm { filter: drop-shadow(4px 6px 3px rgba(0,0,0,.45)); }
+  .deck .dk-hinge { position: absolute; top: -21px; width: 34px; height: 7px; border-radius: 0 0 3px 3px; background: linear-gradient(#8a8580, #3a3632); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 2px 2px rgba(0,0,0,.4); }
+  .deck .dk-hinge.l { left: 40px; } .deck .dk-hinge.r { right: 40px; }
+  .deck .dk-info { margin-bottom: 14px; }
+  .deck .dk-front { position: relative; display: flex; align-items: center; gap: 10px; margin: 0 -16px; height: 46px; padding: 0 14px;
+    border-radius: 0 0 6px 6px; border-top: 1px solid rgba(0,0,0,.55);
+    background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.1) 30%, rgba(0,0,0,.3)),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.1) 0 3px, transparent 3px 9px), linear-gradient(135deg, #3b2214, #2a170c);
+    box-shadow: inset 0 1px 0 rgba(255,220,180,.12); }
+  .deck .dk-front .grille { flex: 1; height: 26px; border-radius: 4px; background: radial-gradient(rgba(0,0,0,.55) 1px, transparent 1.3px) 0 0/4px 4px, #24150c;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,.7), 0 1px 0 rgba(255,220,180,.08); }
+  .deck .dk-front .ctl { display: flex; gap: 6px; align-items: center; font-family: ui-monospace, monospace; font-size: 9px; }
+  .deck .dk-front .ctl b { width: 22px; height: 14px; border-radius: 3px; background: linear-gradient(#e2dbcf, #9d968a); color: #3b2214; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; box-shadow: 0 2px 0 #5a5246; }
+  .deck .dk-front .ctl b.on { box-shadow: 0 1px 0 #5a5246, 0 0 0 1.5px #e6b25c; transform: translateY(1px); }
+  .deck .dk-front .led { width: 6px; height: 6px; border-radius: 50%; background: #ff6b4a; box-shadow: 0 0 6px #ff6b4a; }
+  .deck .dk-front .vol { width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #f0ebe2, #9d968a 70%); box-shadow: 0 2px 3px rgba(0,0,0,.5); position: relative; }
+  .deck .dk-front .vol::after { content: ""; position: absolute; left: 9px; top: 2px; width: 2px; height: 6px; background: #3b2214; border-radius: 1px; }
+  .deck .dk-foot-l, .deck .dk-foot-r { position: absolute; bottom: -7px; width: 26px; height: 8px; border-radius: 0 0 5px 5px; background: linear-gradient(#5e5650, #2a2522); box-shadow: inset 0 1px 0 rgba(255,255,255,.18); }
+  .deck .dk-foot-l { left: 22px; } .deck .dk-foot-r { right: 22px; }
+
+  /* 深色頁面：木紋提亮一階（淺色頁面維持原本深胡桃木） */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .song-card.deck { background: linear-gradient(180deg, rgba(255,255,255,.08), transparent 30%),
+      repeating-linear-gradient(88deg, rgba(0,0,0,.08) 0 3px, transparent 3px 9px, rgba(255,220,180,.05) 9px 11px, transparent 11px 18px),
+      linear-gradient(135deg, #8a5a38, #6a4226 60%, #55331c); }
+    :root:not([data-theme="light"]) .deck .dk-front { background: linear-gradient(180deg, rgba(0,0,0,.3), rgba(0,0,0,.08) 30%, rgba(0,0,0,.25)),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.1) 0 3px, transparent 3px 9px), linear-gradient(135deg, #5a3820, #45291a); }
+  }
+  :root[data-theme="dark"] .song-card.deck { background: linear-gradient(180deg, rgba(255,255,255,.08), transparent 30%),
+      repeating-linear-gradient(88deg, rgba(0,0,0,.08) 0 3px, transparent 3px 9px, rgba(255,220,180,.05) 9px 11px, transparent 11px 18px),
+      linear-gradient(135deg, #8a5a38, #6a4226 60%, #55331c); }
+  :root[data-theme="dark"] .deck .dk-front { background: linear-gradient(180deg, rgba(0,0,0,.3), rgba(0,0,0,.08) 30%, rgba(0,0,0,.25)),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.1) 0 3px, transparent 3px 9px), linear-gradient(135deg, #5a3820, #45291a); }
 </style>
 </head>
 <body>
@@ -3173,7 +3300,41 @@ function renderNotice(p) {
   return wrap;
 }
 
+// 歌曲卡樣式："vinyl"＝黑膠、"player"＝播放器
+const SONG_STYLE = "vinyl";
+
+// 拆歌曲卡：💿 TRACK 5｜🎵 專輯、🎧 [曲名](連結)、❣️ 概念、✦ mood ✦、🎤 演唱者；認不出的行當成概念
+function parseSong(block) {
+  const out = { no: "", album: "", title: "", url: "", concept: [], moods: [], artist: "" };
+  for (const raw of block) {
+    const t = raw.trim();
+    if (!t || /^[├│─━┄┈╌]+$/.test(t) || /^├/.test(t)) continue;
+    const tr = t.match(/track\s*#?\s*(\d+)/i);
+    if (tr && !out.no) {
+      out.no = tr[1];
+      const al = t.split(/[｜|]/).slice(1).join("｜").replace(/^[^\p{L}\p{N}]+/u, "").trim();
+      if (al) out.album = al;
+      continue;
+    }
+    const link = t.match(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/);
+    const bare = t.match(/https?:\/\/\S+/);
+    if (/^🎧/.test(t) || (link && !out.title)) {
+      out.title = (link ? link[1] : t.replace(/^🎧\s*/, "").replace(/https?:\/\/\S+/, "")).replace(/^[《〈「]|[》〉」]$/g, "").trim();
+      if (link) out.url = link[2]; else if (bare) out.url = bare[0];
+      continue;
+    }
+    if (bare && !out.url) { out.url = bare[0]; continue; }
+    if (/^🎤/.test(t)) { out.artist = t.replace(/^🎤\s*/, "").trim(); continue; }
+    if (/^✦/.test(t) || (t.match(/✦/g) || []).length >= 2) { out.moods = t.split("✦").map((x) => x.trim()).filter(Boolean); continue; }
+    if (/^🎵/.test(t) && !out.album) { out.album = t.replace(/^🎵\s*/, "").trim(); continue; }
+    out.concept.push(t.replace(/^[^\p{L}\p{N}「『《〈(（]+/u, ""));
+  }
+  return out.title ? out : null;
+}
+
 function renderSong(block) {
+  const sg = parseSong(block);
+  if (sg) return SONG_STYLE === "player" ? songPlayer(sg) : songVinyl(sg);
   const d = document.createElement("div");
   d.className = "song";
   d.innerHTML = block
@@ -3181,6 +3342,49 @@ function renderSong(block) {
     .filter((l) => l && !/^├/.test(l))
     .map(inline)
     .join("<br>");
+  return d;
+}
+
+
+// 封面：主題色漸層＋曲名
+function songCover(sg) {
+  return `<span class="sc-art">${sg.album ? `<span class="a">${esc(sg.album)}</span>` : ""}${sg.no ? `<span class="no">#${esc(sg.no.padStart(2, "0"))}</span>` : ""}<span class="t">${esc(sg.title)}</span></span>`;
+}
+// 收聽按鈕依連結換字：Suno／Gemini／其他
+function songListen(sg, label) {
+  if (!sg.url) return "";
+  const gem = /gemini\.google|g\.co\/gemini/i.test(sg.url);
+  const suno = /suno\./i.test(sg.url);
+  const text = gem ? '<span class="g"></span>在 Gemini 收聽' : suno ? label : label.replace(/在 Suno /, "");
+  return `<a class="sc-play" href="${esc(sg.url)}" target="_blank" rel="noopener">${text}</a>`;
+}
+function songVinyl(sg) {
+  const d = document.createElement("div");
+  d.className = "song-card vinyl deck";
+  const sub = [sg.artist, sg.album, sg.no ? `Track ${sg.no}` : ""].filter(Boolean).map(esc).join("・");
+  d.innerHTML =
+    `<span class="dk-lamp"></span>` +
+    `<div class="sv-stage"><span class="dk-plat"></span><span class="sv-disc"><span class="lbl">${esc(sg.artist || sg.album || "")}</span></span>${songCover(sg)}` +
+    `<span class="dk-hinge l"></span><span class="dk-hinge r"></span>` +
+    `<svg class="sv-arm" viewBox="0 0 70 110" aria-hidden="true"><circle cx="54" cy="14" r="9" fill="#cfc6b8" stroke="#8a7f70" stroke-width="2"/><path d="M54 14 L40 78 L30 92" stroke="#bdb3a3" stroke-width="4" fill="none" stroke-linecap="round"/><rect x="22" y="88" width="14" height="10" rx="2" fill="currentColor" transform="rotate(-30 29 93)"/></svg></div>` +
+    `<div class="dk-info"><div class="sc-ti">《${esc(sg.title)}》</div>${sub ? `<div class="sc-ar">${sub}</div>` : ""}` +
+    (sg.moods.length ? `<div class="sc-moods">${sg.moods.map((m) => `<span>${esc(m)}</span>`).join("")}</div>` : "") +
+    sg.concept.map((c) => `<div class="sc-q">${inline(c)}</div>`).join("") +
+    `<div class="dk-foot">${songListen(sg, "▶ 在 Suno 收聽")}<span class="dk-eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></div></div>` +
+    `<div class="dk-front"><span class="grille"></span><span class="ctl"><span class="led"></span><b class="on">33</b><b>45</b><i class="vol"></i></span><span class="grille"></span></div>` +
+    `<span class="dk-foot-l"></span><span class="dk-foot-r"></span>`;
+  return d;
+}
+function songPlayer(sg) {
+  const d = document.createElement("div");
+  d.className = "im song-card player";
+  d.innerHTML =
+    `<div class="sp-top"><span>⌄ 正在播放</span><span class="al">${esc(sg.album || "")}</span><span>⋯</span></div>` +
+    `<div class="sp-row">${songCover(sg)}<div><div class="sp-ti">${esc(sg.title)}</div>${sg.artist ? `<div class="sc-ar">${esc(sg.artist)}</div>` : ""}${sg.no ? `<span class="sp-ty">Track ${esc(sg.no)}</span>` : ""}</div></div>` +
+    `<div class="sp-bar"><i></i></div>` +
+    `<div class="sp-ctl"><span>🔀</span><span>⏮</span><span class="pp">❚❚</span><span>⏭</span><span>🔁</span></div>` +
+    (sg.concept.length || sg.moods.length ? `<div class="sp-lyr">${sg.concept.map((c) => `<b>${inline(c)}</b>`).join("<br>")}${sg.moods.length ? `<div class="m">${sg.moods.map(esc).join("　✦　")}</div>` : ""}</div>` : "") +
+    songListen(sg, "在 Suno 開啟 ↗");
   return d;
 }
 
