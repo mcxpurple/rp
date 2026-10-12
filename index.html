@@ -3307,7 +3307,8 @@ const SONG_STYLE = "vinyl";
 function parseSong(block) {
   const out = { no: "", album: "", title: "", url: "", concept: [], moods: [], artist: "" };
   for (const raw of block) {
-    const t = raw.trim();
+    // 模型常用粗體字母（𝐓𝐑𝐀𝐂𝐊）或 **粗體**：先轉成一般字母再判斷
+    const t = raw.trim().normalize("NFKC").replace(/\*\*/g, "");
     if (!t || /^[├│─━┄┈╌]+$/.test(t) || /^├/.test(t)) continue;
     const tr = t.match(/track\s*#?\s*(\d+)/i);
     if (tr && !out.no) {
