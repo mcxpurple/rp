@@ -1003,11 +1003,20 @@ function loadHistory() {
     if (c) { s.card = c; saveSlots(); }
   }
 }
+// 手機瀏覽器空間滿了：對話存不進去時提醒玩家（一分鐘內只提醒一次）
+let fullWarned = 0;
+function warnFull() {
+  if (Date.now() - fullWarned < 60000) return;
+  fullWarned = Date.now();
+  const msg = "⚠︎ 手機空間不夠，最新的對話沒有存進去。請先到 ☰ →「📦 匯出／匯入」匯出記憶庫，再到「👤 切換角色」刪掉不玩的舊存檔或舊窗。";
+  addBubble("error", msg);
+  toast("手機空間不夠，對話沒有存進去 ⚠︎");
+}
 function saveHistory() {
   const s = curSlot();
   if (!s) return;
   s.pages = numberPages(history, s.base || 0).pages;
-  store.set(historyKey(), history);
+  if (!store.set(historyKey(), history)) warnFull();
   s.updated = Date.now();
   s.count = history.length;
   saveSlots();
@@ -2657,7 +2666,7 @@ async function send(text, { addUser = true } = {}) {
       playerName: playerName(),
       memory,
       recall,
-      history: prior,
+      history: prior.slice(-HISTORY_LIMIT), // 只送最近 40 則（Worker 本來就只用這些），不再每輪上傳整個存檔
       message,
     });
     if (data.fields && typeof data.fields === "object" && JSON.stringify(statusFieldMap[settings.character] || {}) !== JSON.stringify(data.fields)) {
