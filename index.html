@@ -690,8 +690,8 @@
   .lp-gal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
   .lp-gal { align-items: stretch; }
   .lp-gal div { min-height: 84px; border-radius: 8px; background: linear-gradient(135deg, var(--panel-2), var(--panel)); border: 1px solid var(--line);
-    font-size: 11px; color: var(--muted); display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; padding: 7px 6px 6px; line-height: 1.45; word-break: break-word; }
-  .lp-gal div::before { content: "🖼"; font-size: 15px; opacity: .55; margin-bottom: auto; }
+    font-size: 11px; color: var(--muted); display: flex; flex-direction: column; justify-content: flex-start; gap: 4px; padding: 7px 6px 6px; line-height: 1.45; word-break: break-word; }
+  .lp-gal div .gi { font-size: 16px; line-height: 1; margin-bottom: 2px; }
   .lp-gal.long { grid-template-columns: repeat(2, 1fr); }
   .lp-li { font-size: 13.5px; padding: 3px 0; line-height: 1.6; display: flex; gap: 8px; }
   .lp-li span { flex: 1; }
@@ -2126,7 +2126,9 @@ function renderLorePhone(secs) {
       d.innerHTML = `<div class="ava">${esc(nameMark(a))}</div><span>${inline(a)}</span>${b ? `<em>${inline(b)}</em>` : ""}`;
     } else if (kind === "gal") {
       const g = app.querySelector(".lp-gal");
-      d.innerHTML = inline(t);
+      // 左上小圖示依內容換：文件📄、截圖📱、影片🎬、錄音🎙️，其餘照片📷
+      const gi = /文件|檔案|\.pdf|\.docx?|\.xlsx?/i.test(t) ? "📄" : /截圖|螢幕/.test(t) ? "📱" : /影片|錄影|\.mp4/i.test(t) ? "🎬" : /錄音|語音|\.m4a|\.mp3/i.test(t) ? "🎙️" : "📷";
+      d.innerHTML = `<span class="gi">${gi}</span><span>${inline(t)}</span>`;
       // 描述很長（例如檔名＋說明）時改兩欄，字才放得下
       if ([...t].length > 16) g.classList.add("long");
       g.append(d); count++; continue;
