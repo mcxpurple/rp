@@ -9,7 +9,7 @@
 <title>mcx_purple</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
 <style>
   /* 深色：夜讀 */
   :root {
@@ -650,6 +650,77 @@
   :root[data-skin^="paper"] .stcard .chip:nth-child(4n+3)::before { background: rgba(110, 140, 100, .45); }
   :root[data-skin^="paper"] .stcard .chip:nth-child(4n+4)::before { background: rgba(100, 125, 160, .42); transform: translateX(-50%) rotate(5deg); }
   :root[data-skin^="paper"] .stcard .chip::after { content: none; }
+
+  /* ===== 手機畫面：跟著狀態卡樣式換色（黃＝米白信箋、棕、紫、綠；棕紫綠深色模式另有夜版） ===== */
+  .im { border: 6px solid var(--case, var(--line)); }
+  .im-sbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 18px 0; font-size: 11.5px; font-weight: 700; color: var(--text); }
+  .im-sbar .r { display: flex; gap: 6px; align-items: center; font-weight: 500; }
+  .im-sbar .bat { width: 20px; height: 10px; border: 1.2px solid currentColor; border-radius: 3px; position: relative; opacity: .85; }
+  .im-sbar .bat::after { content: ""; position: absolute; left: 1px; top: 1px; bottom: 1px; width: 72%; background: currentColor; border-radius: 1px; }
+  .im .tr { display: block; font-size: 12px; line-height: 1.5; color: var(--muted); margin-top: 3px; }
+  .im-row.me .bub .tr { color: color-mix(in srgb, var(--bubble-me-ink) 72%, transparent); }
+  :root[data-skin] .im { --accent-soft: color-mix(in srgb, var(--accent) 13%, transparent); --accent-line: color-mix(in srgb, var(--accent) 40%, transparent); }
+  :root[data-skin="paper"] .im { --case: #1d1b2a; --phone: #fbf6ec; --text: #2f2722; --muted: #8b7d70; --accent: #7a2f35; --panel: #ffffff; --panel-2: #f3ece0; --line: #e6dccb; --bubble-them: #efe6d6; --bubble-me: #7a2f35; --bubble-me-ink: #fff8f0; }
+  :root[data-skin="paper-coffee"] .im { --case: #4b2b1a; --phone: #efe4d6; --text: #36251b; --muted: #86695a; --accent: #74432b; --panel: #f8f1e7; --panel-2: #e4d4c3; --line: #d6c2ad; --bubble-them: #e4d4c3; --bubble-me: #74432b; --bubble-me-ink: #fff8ef; }
+  :root[data-skin="paper-lilac"] .im { --case: #4a3d55; --phone: #f0eaf3; --text: #3c3342; --muted: #84788d; --accent: #7a5e88; --panel: #faf7fb; --panel-2: #e5dde9; --line: #d6cbdc; --bubble-them: #e5dde9; --bubble-me: #7a5e88; --bubble-me-ink: #fbf7fd; }
+  :root[data-skin="paper-sage"] .im { --case: #3d4a3a; --phone: #eef1e3; --text: #34392c; --muted: #78806a; --accent: #55704a; --panel: #f7f8ef; --panel-2: #e2e7d2; --line: #cdd5bb; --bubble-them: #e2e7d2; --bubble-me: #55704a; --bubble-me-ink: #f8fbf2; }
+  @media (prefers-color-scheme: dark) {
+    :root[data-skin="paper-coffee"]:not([data-theme="light"]) .im { --case: #120d09; --phone: #2a2219; --text: #f7eddc; --muted: #c9b498; --accent: #ebc38e; --panel: #33291f; --panel-2: #3d3226; --line: #5a4a3c; --bubble-them: #3d3226; --bubble-me: #8a5f3a; --bubble-me-ink: #fff6e8; }
+    :root[data-skin="paper-lilac"]:not([data-theme="light"]) .im { --case: #1f1a24; --phone: #3d3542; --text: #f6f1f7; --muted: #cbc0ce; --accent: #ebcdb9; --panel: #483f4d; --panel-2: #534858; --line: #66596c; --bubble-them: #534858; --bubble-me: #7a5e88; --bubble-me-ink: #fbf7fd; }
+    :root[data-skin="paper-sage"]:not([data-theme="light"]) .im { --case: #1a201c; --phone: #353e38; --text: #ebeee6; --muted: #acb5a8; --accent: #cdbb98; --panel: #3f4942; --panel-2: #49544c; --line: #58645c; --bubble-them: #49544c; --bubble-me: #55704a; --bubble-me-ink: #f8fbf2; } }
+  :root[data-skin="paper-coffee"][data-theme="dark"] .im { --case: #120d09; --phone: #2a2219; --text: #f7eddc; --muted: #c9b498; --accent: #ebc38e; --panel: #33291f; --panel-2: #3d3226; --line: #5a4a3c; --bubble-them: #3d3226; --bubble-me: #8a5f3a; --bubble-me-ink: #fff6e8; }
+  :root[data-skin="paper-lilac"][data-theme="dark"] .im { --case: #1f1a24; --phone: #3d3542; --text: #f6f1f7; --muted: #cbc0ce; --accent: #ebcdb9; --panel: #483f4d; --panel-2: #534858; --line: #66596c; --bubble-them: #534858; --bubble-me: #7a5e88; --bubble-me-ink: #fbf7fd; }
+  :root[data-skin="paper-sage"][data-theme="dark"] .im { --case: #1a201c; --phone: #353e38; --text: #ebeee6; --muted: #acb5a8; --accent: #cdbb98; --panel: #3f4942; --panel-2: #49544c; --line: #58645c; --bubble-them: #49544c; --bubble-me: #55704a; --bubble-me-ink: #f8fbf2; }
+  .im { color: var(--text); }
+
+  /* ===== 翻看・隨身紀錄：角色的手機畫面 ===== */
+  .im.lore-phone { margin: 18px auto 28px; font-size: 14px; }
+  .lp-h { padding: 6px 16px 10px; border-bottom: 1px solid var(--line); }
+  .lp-h b { font-size: 16px; } .lp-h small { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .lp-app { margin: 10px 12px 0; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 10px 12px; }
+  .lp-app h4 { margin: 0 0 8px; font-size: 12.5px; color: var(--accent); letter-spacing: .08em; font-weight: 700; }
+  .lp-todo { display: flex; gap: 8px; font-size: 13.5px; padding: 3px 0; line-height: 1.6; }
+  .lp-todo i { width: 15px; height: 15px; border: 1.5px solid var(--muted); border-radius: 4px; flex-shrink: 0; margin-top: 4px; }
+  .lp-q { display: flex; align-items: center; gap: 8px; font-size: 13.5px; padding: 6px 12px; background: var(--panel-2); border-radius: 999px; margin-bottom: 6px; line-height: 1.5; }
+  .lp-q span { flex: 1; min-width: 0; } .lp-q em, .lp-call em, .lp-li em { font-style: normal; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .lp-call { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13.5px; border-bottom: 1px dotted var(--line); line-height: 1.5; }
+  .lp-call:last-child { border: 0; }
+  .lp-call .ava { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; background: var(--panel-2); color: var(--accent); font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); }
+  .lp-call span { flex: 1; min-width: 0; } .lp-call.miss span { color: #c0444c; }
+  .lp-gal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+  .lp-gal div { aspect-ratio: 1; border-radius: 8px; background: linear-gradient(135deg, var(--panel-2), var(--panel)); border: 1px solid var(--line);
+    font-size: 10.5px; color: var(--muted); display: flex; align-items: flex-end; padding: 5px; line-height: 1.35; overflow: hidden; }
+  .lp-li { font-size: 13.5px; padding: 3px 0; line-height: 1.6; display: flex; gap: 8px; }
+  .lp-li span { flex: 1; }
+
+  /* ===== 翻看・日記：線裝舊書＋滴蠟封印（固定舊書色，不跟主題） ===== */
+  .diary-book { position: relative; max-width: 23.5em; margin: 22px auto 34px; isolation: isolate; }
+  .diary-book::before, .diary-book::after { content: ""; position: absolute; inset: 0; border-radius: 2px 12px 12px 2px; z-index: -1; }
+  .diary-book::before { transform: translate(5px, 5px); background: #cdb68a; }
+  .diary-book::after { transform: translate(9px, 9px); background: #bea677; box-shadow: 0 10px 24px rgba(0,0,0,.4); }
+  .diary { position: relative; color: #3e2e20; font-family: "Noto Serif TC", serif; border-radius: 2px 12px 12px 2px; padding: 22px 22px 34px 52px; letter-spacing: .02em;
+    background: radial-gradient(circle at 84% 20%, rgba(150,95,35,.17) 0 8px, transparent 22px), radial-gradient(circle at 26% 82%, rgba(150,95,35,.12) 0 6px, transparent 18px),
+      radial-gradient(circle at 68% 92%, rgba(150,95,35,.10) 0 14px, transparent 32px), radial-gradient(ellipse at 55% 45%, transparent 48%, rgba(120,80,30,.34) 100%),
+      repeating-linear-gradient(transparent 0 29px, rgba(110,80,45,.13) 29px 30px), #ead9b4;
+    box-shadow: inset 0 0 28px rgba(90,55,20,.35), 0 12px 28px rgba(0,0,0,.4); }
+  .diary .spine { position: absolute; left: 0; top: 0; bottom: 0; width: 30px; border-radius: 2px 0 0 2px; background: linear-gradient(90deg, #5a1f24, #7a2f35 60%, #6a262b); box-shadow: inset -3px 0 4px rgba(0,0,0,.35); }
+  .diary .spine::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 2px, transparent 2px 4px); }
+  .diary .stitch { position: absolute; left: 14px; top: 26px; bottom: 26px; width: 22px; display: flex; flex-direction: column; justify-content: space-between; }
+  .diary .stitch i { position: relative; height: 16px; display: block; }
+  .diary .stitch i::before { content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 2.5px; background: #e9dcc0; border-radius: 2px; box-shadow: 0 1px 1px rgba(0,0,0,.4); }
+  .diary .stitch i::after { content: ""; position: absolute; right: -2px; top: 5px; width: 6px; height: 6px; border-radius: 50%; background: #2a1a12; }
+  .d-date { font-size: 12.5px; letter-spacing: .14em; color: #6e5236; display: flex; justify-content: space-between; gap: 10px; line-height: 30px; border-bottom: 1px solid rgba(110,80,45,.35); margin-bottom: 6px; }
+  .diary .d-body { font-size: 15px; line-height: 30px; margin: 0; text-indent: 2em; color: #3a2a1c; word-break: break-word; }
+  .d-strike { margin-top: 12px; font-size: 14.5px; line-height: 30px; }
+  .d-strike del { text-decoration: line-through 2px #8b2a2a; color: #8a7458; }
+  .d-strike .fix { display: block; color: #6e2228; font-style: italic; padding-left: 1.2em; }
+  .d-band { margin: 10px 0 0; display: inline-block; background: rgba(196,150,90,.42); padding: 2px 10px; transform: rotate(-1.2deg); font-size: 14px; line-height: 1.8; box-shadow: 0 1px 2px rgba(80,50,20,.2); }
+  .d-unsent { margin: 22px 40px 0 0; background: #f4e8cc; border: 1px solid rgba(110,80,45,.4); padding: 12px 12px 10px; font-size: 14px; line-height: 1.8; position: relative; transform: rotate(.7deg); box-shadow: 2px 3px 6px rgba(80,50,20,.25); }
+  .d-unsent::before { content: ""; position: absolute; top: -9px; left: 38%; width: 52px; height: 16px; transform: rotate(-4deg); background: repeating-linear-gradient(45deg, rgba(176,90,90,.42) 0 5px, rgba(196,120,110,.30) 5px 10px); }
+  .d-unsent .k { display: block; font-size: 11px; color: #6e2228; letter-spacing: .12em; margin-bottom: 2px; }
+  .d-note { margin-top: 8px; font-size: 14px; line-height: 1.8; }
+  .d-seal { position: absolute; right: 4px; bottom: -4px; transform: rotate(-8deg); line-height: 0; pointer-events: none; }
+  .d-seal svg { filter: drop-shadow(1.5px 3px 2.5px rgba(50,15,10,.45)); }
 </style>
 </head>
 <body>
@@ -1404,7 +1475,7 @@ function playerName(card = currentCard()) {
     if (intro) { const v = ok(clean(intro[1])); if (v) return v; }
     // 3. 「玩家角色卡」標題之後（沒有標題就從頭）第一段的第一格
     const h = card.match(/【?玩家角色卡】?\s*[：:]?/);
-    const rest = h ? card.slice(h.index + h[0].length) : card;
+    const rest = (h ? card.slice(h.index + h[0].length) : card).replace(/^[\s｜|]+/, "");
     const first = rest.split("\n").map((l) => l.trim()).find(Boolean) || "";
     const v = ok(clean(first.split(SEP)[0]));
     if (v) return v;
@@ -1546,7 +1617,7 @@ function renderPage(text, latest) {
       let last = i;
       for (let k = i + 1; k < end; k++) if (isLoreSep(lines[k].trim())) last = k;
       const stop = loreCommentsEnd(lines, last + 1, end);
-      page.append(renderLoreCard(lines.slice(i, stop)));
+      page.append(renderLoreBlock(lines.slice(i, stop)));
       i = stop - 1;
     } else if (isRuleLine(t)) {
       // 分隔線前面補空行，避免上一行被當成標題
@@ -1981,6 +2052,196 @@ function renderPeek() {
   return det;
 }
 
+
+// ---------- 翻看：隨身紀錄畫成手機、日記畫成線裝舊書，其餘照舊用翻看卡 ----------
+function loreSections(block) {
+  const secs = [[]];
+  for (const l of block) {
+    if (isLoreSep(l.trim())) { if (secs[secs.length - 1].length) secs.push([]); }
+    else secs[secs.length - 1].push(l);
+  }
+  return secs.map((s) => s.map((l) => l.replace(/\r/g, "")).filter((l) => l.trim())).filter((s) => s.length);
+}
+function renderLoreBlock(block) {
+  const secs = loreSections(block);
+  const first = secs.length ? secs[0][0].trim() : "";
+  try {
+    if (/^📱/.test(first)) { const el = renderLorePhone(secs); if (el) return el; }
+    if (/^📒/.test(first)) { const el = renderDiary(secs); if (el) return el; }
+  } catch {}
+  return renderLoreCard(block);
+}
+// 「🔎｜查詢紀錄」→ { icon, label }
+function loreHead(t) {
+  const m = t.trim().match(/^([^\s｜|]{1,4})\s*[｜|]\s*(.*)$/);
+  return m && !/^└/.test(t.trim()) ? { icon: m[1], label: m[2].trim() } : null;
+}
+function loreItem(t) { return t.trim().replace(/^└\s*/, ""); }
+function splitDash(t) {
+  const m = t.match(/^(.*?)\s+[—–－-]{1,2}\s+(.*)$/);
+  return m ? [m[1].trim(), m[2].trim()] : [t, ""];
+}
+
+function renderLorePhone(secs) {
+  const head = secs[0][0].trim().replace(/^📱\s*[｜|]\s*/, "");
+  const tm = head.match(/(\d{1,2}[:：]\d{2})\s*$/);
+  const title = (tm ? head.slice(0, tm.index) : head).trim();
+  const wrap = document.createElement("div");
+  wrap.className = "im lore-phone";
+  wrap.append(imStatusBar(tm ? tm[1] : ""));
+  const notch = document.createElement("div");
+  notch.className = "im-notch";
+  notch.textContent = "✧✦ ───── ✦✧";
+  const h = document.createElement("div");
+  h.className = "lp-h";
+  h.innerHTML = `<b>📱 ${inline(title)}</b><small>翻看中</small>`;
+  wrap.append(notch, h);
+  // 標題區裡第一行之後的內容，加上之後各區，全部依「emoji｜欄名」分成一個個 App 卡片
+  const rest = [...secs[0].slice(1), ...secs.slice(1).flat()];
+  let app = null, kind = "", count = 0;
+  const open = (icon, label) => {
+    app = document.createElement("div");
+    app.className = "lp-app";
+    const k = `${icon}${label}`;
+    kind = /📋|待辦|todo/i.test(k) ? "todo" : /🔎|🔍|查詢|搜尋|search/i.test(k) ? "search" : /📵|📞|☎|聯絡|通話|來電|call/i.test(k) ? "call" : /🖼|📷|📸|影像|相簿|照片|收藏|photo/i.test(k) ? "gal" : "list";
+    app.innerHTML = `<h4>${esc(icon)} ${inline(label)}</h4>`;
+    if (kind === "gal") { const g = document.createElement("div"); g.className = "lp-gal"; app.append(g); }
+    wrap.append(app);
+  };
+  for (const raw of rest) {
+    const hd = loreHead(raw);
+    if (hd) { open(hd.icon, hd.label); continue; }
+    const t = loreItem(raw);
+    if (!t) continue;
+    if (!app) open("📝", "紀錄");
+    const [a, b] = splitDash(t);
+    const d = document.createElement("div");
+    if (kind === "todo") { d.className = "lp-todo"; d.innerHTML = `<i></i><span>${inline(t)}</span>`; }
+    else if (kind === "search") { d.className = "lp-q"; d.innerHTML = `🔍<span>${inline(a)}</span>${b ? `<em>${inline(b)}</em>` : ""}`; }
+    else if (kind === "call") {
+      d.className = "lp-call" + (/未接|拒接|沒接/.test(t) ? " miss" : "");
+      d.innerHTML = `<div class="ava">${esc(nameMark(a))}</div><span>${inline(a)}</span>${b ? `<em>${inline(b)}</em>` : ""}`;
+    } else if (kind === "gal") { d.innerHTML = inline(t); app.querySelector(".lp-gal").append(d); count++; continue; }
+    else { d.className = "lp-li"; d.innerHTML = `<span>${inline(a)}</span>${b ? `<em>${inline(b)}</em>` : ""}`; }
+    app.append(d);
+    count++;
+  }
+  if (!count) return null;
+  imHome(wrap);
+  return wrap;
+}
+
+function renderDiary(secs) {
+  const head = secs[0];
+  const dateLine = (head.find((l) => /^\s*📒/.test(l)) || "").trim().replace(/^📒\s*[｜|]\s*/, "");
+  const whoLine = (head.find((l) => /^\s*👤/.test(l)) || "").trim().replace(/^👤\s*[｜|]\s*/, "");
+  const who = whoLine || settings.characterName || "";
+  const book = document.createElement("div");
+  book.className = "diary-book";
+  const d = document.createElement("div");
+  d.className = "diary";
+  d.innerHTML = '<div class="spine"></div><div class="stitch"><i></i><i></i><i></i><i></i><i></i></div>';
+  const date = document.createElement("div");
+  date.className = "d-date";
+  date.innerHTML = `<span>${inline(dateLine)}</span><span>${inline(who)}</span>`;
+  d.append(date);
+  let body = 0;
+  const extras = head.filter((l) => !/^\s*(📒|👤)/.test(l));
+  for (const sec of [extras, ...secs.slice(1)]) {
+    for (let i = 0; i < sec.length; i++) {
+      const t = sec[i].trim();
+      if (/^✒/.test(t)) {
+        const box = document.createElement("div");
+        box.className = "d-strike";
+        const txt = t.replace(/^✒️?\s*[｜|]\s*/, "").replace(/\s*❌\s*$/, "");
+        const del = /~~/.test(txt) ? inline(txt) : `<del>${inline(txt)}</del>`;
+        const nx = sec[i + 1] && /^\s*└/.test(sec[i + 1]) ? sec[++i] : "";
+        box.innerHTML = del + (nx ? `<span class="fix">${inline(loreItem(nx))}</span>` : "");
+        d.append(box);
+      } else if (/^🩹/.test(t)) {
+        const b = document.createElement("div");
+        b.className = "d-band";
+        b.innerHTML = `🩹 ${inline(t.replace(/^🩹\s*[｜|]\s*/, ""))}`;
+        d.append(b);
+      } else if (/^🔒/.test(t)) {
+        const u = document.createElement("div");
+        u.className = "d-unsent";
+        u.innerHTML = `<span class="k">🔒 沒有傳出去</span>${inline(t.replace(/^🔒\s*[｜|]\s*/, ""))}`;
+        d.append(u);
+      } else if (/^└/.test(t)) {
+        const n = document.createElement("div");
+        n.className = "d-note";
+        n.innerHTML = inline(loreItem(t));
+        d.append(n);
+      } else {
+        const p = document.createElement("p");
+        p.className = "d-body";
+        p.innerHTML = inline(t);
+        d.append(p);
+        body++;
+      }
+    }
+  }
+  if (!body) return null;
+  const s = document.createElement("div");
+  s.className = "d-seal";
+  s.innerHTML = waxSeal(nameMark(who || "?"), who, 110);
+  d.append(s);
+  book.append(d);
+  return book;
+}
+
+// 滴蠟封印：外形依名字固定（同一個角色每次一樣），光影用 SVG 濾鏡做出蠟的厚度與壓印
+let sealN = 0;
+function waxSeal(ch, key, size) {
+  let x = [...String(key || ch)].reduce((a, c) => (a * 31 + c.codePointAt(0)) % 233280, 7) || 1;
+  const rnd = () => (x = (x * 9301 + 49297) % 233280) / 233280;
+  const N = 14, P = [];
+  for (let i = 0; i < N; i++) {
+    const a = (2 * Math.PI * i) / N + rnd() * 0.25;
+    const r = 42 + rnd() * 6 - (i % 3 === 0 ? 2.5 : 0);
+    P.push([60 + r * Math.cos(a), 60 + r * Math.sin(a)]);
+  }
+  const f = (n) => n.toFixed(1);
+  let d = `M${f(P[0][0])} ${f(P[0][1])}`;
+  for (let i = 0; i < N; i++) {
+    const p0 = P[(i - 1 + N) % N], p1 = P[i], p2 = P[(i + 1) % N], p3 = P[(i + 2) % N];
+    d += `C${f(p1[0] + (p2[0] - p0[0]) / 6)} ${f(p1[1] + (p2[1] - p0[1]) / 6)} ${f(p2[0] - (p3[0] - p1[0]) / 6)} ${f(p2[1] - (p3[1] - p1[1]) / 6)} ${f(p2[0])} ${f(p2[1])}`;
+  }
+  d += "Z";
+  const id = `wax${++sealN}`;
+  const seed = Math.floor(rnd() * 90) + 1;
+  const dx = 92 + rnd() * 10, dy = 84 + rnd() * 10;
+  return `<svg width="${size}" height="${size}" viewBox="-12 -12 144 144" aria-hidden="true">
+ <defs>
+  <filter id="o${id}" filterUnits="userSpaceOnUse" x="-12" y="-12" width="144" height="144">
+   <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="3" seed="${seed}" result="n"/>
+   <feDisplacementMap in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G" result="d"/>
+   <feGaussianBlur in="d" stdDeviation="1.3" result="db"/>
+   <feColorMatrix in="db" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 14 -6"/>
+  </filter>
+  <filter id="${id}" filterUnits="userSpaceOnUse" x="-12" y="-12" width="144" height="144" color-interpolation-filters="sRGB">
+   <feColorMatrix in="SourceGraphic" type="luminanceToAlpha" result="h"/>
+   <feGaussianBlur in="h" stdDeviation="1.25" result="hb"/>
+   <feDiffuseLighting in="hb" surfaceScale="4" diffuseConstant="1.35" lighting-color="#fff" result="diff"><feDistantLight azimuth="235" elevation="52"/></feDiffuseLighting>
+   <feSpecularLighting in="hb" surfaceScale="4" specularConstant="1" specularExponent="26" lighting-color="#ffe9e4" result="spec"><feDistantLight azimuth="235" elevation="48"/></feSpecularLighting>
+   <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+   <feFlood flood-color="#7c1820" result="c"/>
+   <feComposite in="c" in2="diff" operator="arithmetic" k1=".78" k2=".32" result="shade"/>
+   <feComposite in="shade" in2="specIn" operator="arithmetic" k2="1" k3=".55" result="lit"/>
+   <feComposite in="lit" in2="SourceAlpha" operator="in"/>
+  </filter>
+ </defs>
+ <g filter="url(#${id})">
+  <g filter="url(#o${id})"><path d="${d}" fill="#fff"/><circle cx="${f(dx)}" cy="${f(dy)}" r="4.2" fill="#fff"/></g>
+  <circle cx="60" cy="60" r="30" fill="#ddd"/>
+  <circle cx="60" cy="60" r="27.5" fill="#7a7a7a"/>
+  <circle cx="60" cy="60" r="23" fill="none" stroke="#a8a8a8" stroke-width="1.2" stroke-dasharray="1.6 2.4"/>
+  <text x="60" y="62" text-anchor="middle" dominant-baseline="middle" font-family="Noto Serif TC, serif" font-weight="900" font-size="27" fill="#e8e8e8">${esc(ch)}</text>
+ </g>
+</svg>`;
+}
+
 // ---------- 記憶庫寫入標記 ----------
 let saving = null;   // 進行中的寫入 { cid, sid, from, to }
 let saveFail = null; // 最近一次失敗 { cid, sid, to, msg }
@@ -2158,11 +2419,35 @@ function imFrame(p, kind) {
   wrap.className = "im" + (kind ? " " + kind : "");
   const c = imColor(p.platform);
   if (c) wrap.style.setProperty("--app", c);
+  wrap.append(imStatusBar(p.time));
   const notch = document.createElement("div");
   notch.className = "im-notch";
   notch.textContent = "✧✦ ───── ✦✧";
   wrap.append(notch);
   return wrap;
+}
+
+// 手機頂端狀態列：時間取 🕒（沒有就留空），訊號與電量是裝飾
+function imStatusBar(time) {
+  const sb = document.createElement("div");
+  sb.className = "im-sbar";
+  sb.innerHTML = `<span>${esc(String(time || "").replace(/^[^\d]*/, ""))}</span><span class="r">5G<i class="bat"></i></span>`;
+  return sb;
+}
+
+// 外文訊息＋（中文翻譯）：拆成原文與翻譯；原文要以日文、韓文或英文為主，才不會誤拆中文的（笑）之類
+function splitTr(body) {
+  const m = String(body).match(/^(.+?)\s*[（(]([^（）()]+)[）)]\s*$/);
+  if (!m) return null;
+  const main = m[1].replace(/[『』「」]/g, "");
+  const chars = [...main.replace(/[\s\p{P}\p{S}\d]/gu, "")];
+  // 有日文假名或韓文就算外文；沒有的話，英文字母要佔七成以上（避免「OK啦（笑）」被拆）
+  const kana = /[\u3040-\u30ff\uac00-\ud7af]/.test(main);
+  const latin = chars.filter((c) => /[A-Za-z]/.test(c)).length;
+  if (chars.length < 2 || (!kana && latin / chars.length < 0.7)) return null;
+  if ((m[2].match(/[\u4e00-\u9fff]/g) || []).length < 2) return null;
+  if (!/[\u4e00-\u9fff]/.test(m[2]) || /[\u3040-\u30ff\uac00-\ud7af]/.test(m[2])) return null;
+  return [m[1].trim(), m[2].trim()];
 }
 
 function imBar(p, extra = "") {
@@ -2256,7 +2541,8 @@ function renderIM(block) {
       bub.classList.add("media");
       bub.append(imMedia(media[1], media[2] || ""));
     } else {
-      bub.innerHTML = inline(m.body).replace(/\[([^\]\n]{1,12})\]/g, '<span class="im-chip">$1</span>');
+      const tr = splitTr(m.body);
+      bub.innerHTML = inline(tr ? tr[0] : m.body).replace(/\[([^\]\n]{1,12})\]/g, '<span class="im-chip">$1</span>') + (tr ? `<span class="tr">${inline(tr[1])}</span>` : "");
     }
     line.append(bub);
     if (m.time || mine) {
@@ -2489,7 +2775,8 @@ function renderCall(p) {
       d.innerHTML = inline(m.body.replace(/^[\[（(【]|[\]）)】]$/g, ""));
     } else {
       d.className = "ln" + (same(m.speaker, owner) ? " me" : "");
-      d.innerHTML = `<b>${esc(m.speaker)}</b><span>${inline(m.body)}</span>`;
+      const tr = splitTr(m.body);
+      d.innerHTML = `<b>${esc(m.speaker)}</b><span>${inline(tr ? tr[0] : m.body)}${tr ? `<span class="tr">${inline(tr[1])}</span>` : ""}</span>`;
     }
     list.append(d);
   }
