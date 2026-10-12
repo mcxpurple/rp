@@ -298,6 +298,11 @@
   #card { min-height: 120px; }
   .sheet .actions { display: flex; gap: 8px; margin-top: 22px; }
   .sheet .actions button { flex: 1; padding: 12px; }
+  .key-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .key-chips:empty { display: none; }
+  .key-chips .lab { font-size: 12.5px; color: var(--muted); align-self: center; margin-right: 2px; }
+  .key-chips button { font-size: 13px; padding: 5px 12px; border-radius: 999px; background: var(--panel); color: var(--text); }
+  .key-chips button.on { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent); font-weight: 700; }
   .status { font-size: 13px; color: var(--muted); margin-top: 6px; min-height: 1em; }
   .status.err { color: var(--danger); }
   .charlist { display: flex; flex-direction: column; gap: 8px; }
@@ -479,6 +484,7 @@
   <div class="tools">
     <button id="newGame">開始新遊戲</button>
     <button id="retry">重來最後一則</button>
+    <button id="editLast">修改上一句</button>
     <button id="pasteCard" hidden>貼上我的角色卡</button>
   </div>
   <div class="composer">
@@ -586,6 +592,7 @@
       <input id="apikey" type="password" autocomplete="off">
       <button id="toggleKey" type="button">顯示</button>
     </div>
+    <div class="key-chips" id="keyChips"></div>
     <div class="status" id="keyHint"></div>
 
     <label for="model">模型</label>
@@ -667,6 +674,10 @@ if (!PROVIDERS[settings.provider]) {
   settings.provider = d === "sk" ? "openai" : d || "gemini";
   store.set("rp_settings", settings);
 }
+// 每個服務商各記一把 key 與上次用的模型：切換服務商時自動帶入，不用重貼
+if (!settings.keys || typeof settings.keys !== "object") settings.keys = settings.key ? { [settings.provider]: settings.key } : {};
+if (!settings.models || typeof settings.models !== "object") settings.models = settings.model ? { [settings.provider]: settings.model } : {};
+store.set("rp_settings", settings);
 // 存檔欄位：{ 角色id: { current: 存檔id, list: [{ id, name, card, updated, count }] } }
 // 每個存檔的對話存在 rp_history_{角色id}__{存檔id}
 let slots = store.get("rp_slots", {});
@@ -2018,7 +2029,7 @@ function scrollDown() { chatEl.scrollTop = chatEl.scrollHeight; }
 
 function setBusy(on) {
   busy = on;
-  for (const id of ["send", "retry", "newGame"]) $(id).disabled = on;
+  for (const id of ["send", "retry", "editLast", "newGame"]) $(id).disabled = on;
   const old = chatEl.querySelector(".typing");
   if (old) old.remove();
   if (on) {
@@ -2038,8 +2049,40 @@ async function callWorker(path, payload) {
     body: JSON.stringify({ invite: settings.invite, provider: settings.provider, ...payload }),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `連線失敗（${res.status}）`);
+  if (!res.ok) {
+    const err = new Error(data.error || `連線失敗（${res.status}）`);
+    err.status = res.status;
+    throw err;
+  }
   return data;
+}
+
+// 平台塞車（太忙／暫時出問題）：自動重送，畫面告訴玩家正在重送、失敗的那次不扣錢
+const RETRY_WAIT = [2, 4]; // 第 1 次等 2 秒、第 2 次等 4 秒，之後才顯示錯誤
+const RETRY_STATUS = [500, 503, 529];
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function setTyping(text) {
+  const t = chatEl.querySelector(".typing");
+  if (t) { t.textContent = text; scrollDown(); }
+}
+async function callWithRetry(path, payload) {
+  const name = PROVIDERS[settings.provider] || "平台";
+  for (let n = 0; ; n++) {
+    try {
+      return await callWorker(path, payload);
+    } catch (e) {
+      if (!RETRY_STATUS.includes(e.status)) throw e;
+      if (n >= RETRY_WAIT.length) {
+        e.message = `${name} 那邊目前太忙，已經自動重送 ${n} 次還是沒成功。沒有成功的這幾次都不會扣錢，可以等一下再按「重來最後一則」，或到設定換一個模型試試。`;
+        throw e;
+      }
+      for (let w = RETRY_WAIT[n]; w > 0; w--) {
+        setTyping(`${name} 那邊有點忙，${w} 秒後自動重送（第 ${n + 1} 次）。沒有成功的這次不會扣錢，不用做任何事，等一下就好。`);
+        await sleep(1000);
+      }
+      setTyping("重新送出中，角色正在回應…");
+    }
+  }
 }
 
 function ready() {
@@ -2093,7 +2136,7 @@ async function send(text, { addUser = true } = {}) {
 
   setBusy(true);
   try {
-    const data = await callWorker("/chat", {
+    const data = await callWithRetry("/chat", {
       key: settings.key,
       model: settings.model,
       character: settings.character,
@@ -2167,13 +2210,13 @@ $("pasteCard").onclick = () => {
   $("input").focus();
 };
 
-$("retry").onclick = () => {
-  if (busy || !history.length) return;
-  // 移除最後一則角色回覆，用最後一則玩家訊息重新送出
+// 收回最後一輪：移除最後一則角色回覆與玩家訊息，回傳那則玩家訊息（重來、修改上一句共用）
+function takeBackLast() {
+  if (busy || !history.length) return null;
   let dropped = 0;
   if (history[history.length - 1].role === "model") dropped = history.pop().page || 0;
   const lastUser = history[history.length - 1];
-  if (!lastUser || lastUser.role !== "user") return;
+  if (!lastUser || lastUser.role !== "user") return null;
   history.pop();
   saveHistory();
   // 重來的那頁如果已經寫入記憶庫，含這頁的記憶片段作廢，之後重新寫入
@@ -2188,17 +2231,45 @@ $("retry").onclick = () => {
     }
   }
   render();
+  return lastUser;
+}
+
+$("retry").onclick = () => {
+  // 移除最後一則角色回覆，用最後一則玩家訊息重新送出
+  const lastUser = takeBackLast();
+  if (!lastUser) return;
   history.push(lastUser);
   saveHistory();
   addBubble("user", lastUser.text);
   send(lastUser.text, { addUser: false });
 };
 
+// 修改上一句：收回最後一輪，把玩家上一句放回輸入框，改好再送出
+$("editLast").onclick = () => {
+  if (busy) return;
+  const last = [...history].reverse().find((m) => m.role === "user");
+  if (!last) { toast("還沒有可以修改的句子"); return; }
+  if (last.text === NEW_GAME || isOldGame(last.text)) { toast("開場那一句不能修改，可以用「重來最後一則」"); return; }
+  const lastUser = takeBackLast();
+  if (!lastUser) return;
+  // 改的是角色卡那一則：先清掉舊卡，送出後重新存
+  if (lastUser.text === currentCard()) { setCard(""); $("pasteCard").hidden = true; }
+  $("input").value = lastUser.text;
+  autoGrow();
+  $("input").focus();
+  toast("已收回上一輪，改好再按送出 ✎");
+};
+
 // ---------- 設定面板 ----------
+// 設定面板開著時的暫存：各服務商的 key 與模型，按「儲存」才寫入
+let draftKeys = {}, draftModels = {}, draftProvider = "";
 function openSettings(msg = "") {
+  draftKeys = { ...settings.keys };
+  draftModels = { ...settings.models };
+  draftProvider = settings.provider || "gemini";
   $("invite").value = settings.invite;
   $("apikey").value = settings.key;
-  $("provider").value = settings.provider || "gemini";
+  $("provider").value = draftProvider;
   keyHint();
   $("card").value = currentCard();
   fillSelect($("model"), settings.model ? [{ id: settings.model, name: settings.model }] : [], settings.model, "先按「載入」");
@@ -2822,8 +2893,42 @@ function keyHint() {
   const bad = keyMismatch();
   let tip = KEY_TIP;
   if (!bad && d === "sk") tip = `sk- 開頭的 key 可能是 ChatGPT 或 DeepSeek，目前選的是 ${PROVIDERS[$("provider").value]}，不對請改選`;
-  $("keyHint").textContent = bad || tip;
+  const cur = $("provider").value;
+  const saved = Object.keys(PROVIDERS).filter((p) => draftKeys[p] || (p === cur && $("apikey").value.trim()));
+  // 記住的 key 排成一排按鈕：點一下就換到那一家，key 和模型自動帶入
+  const box = $("keyChips");
+  box.innerHTML = "";
+  if (saved.length > 1 || (saved.length === 1 && saved[0] !== cur)) {
+    const lab = document.createElement("span");
+    lab.className = "lab";
+    lab.textContent = "已記住：";
+    box.append(lab);
+    for (const p of saved) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = (p === cur ? "✓ " : "") + PROVIDERS[p];
+      if (p === cur) b.className = "on";
+      b.onclick = () => { if (p === $("provider").value) return; keepDraft(); showProvider(p); keyHint(); };
+      box.append(b);
+    }
+  }
+  $("keyHint").textContent = bad || (saved.length > 1 ? "點上面的按鈕就能換服務商，key 和模型會自動帶入，不用重貼。" : tip);
   $("keyHint").className = "status" + (bad ? " err" : "");
+  $("keyHint").style.whiteSpace = "pre-line";
+}
+// 記下目前欄位裡的 key 與模型（屬於目前選的服務商）
+function keepDraft() {
+  const k = $("apikey").value.trim();
+  if (k && keyFits(k, draftProvider)) draftKeys[draftProvider] = k;
+  if ($("model").value) draftModels[draftProvider] = $("model").value;
+}
+// 換到某個服務商：帶出那一家記住的 key 與模型，沒有就留空等輸入
+function showProvider(p, { fillKey = true } = {}) {
+  draftProvider = p;
+  $("provider").value = p;
+  if (fillKey) $("apikey").value = draftKeys[p] || "";
+  const m = draftModels[p];
+  fillSelect($("model"), m ? [{ id: m, name: m }] : [], m || "", "先按「載入」");
 }
 // 換服務商：模型清單不通用，清空等重新載入
 function resetModels() {
@@ -2831,10 +2936,20 @@ function resetModels() {
 }
 $("apikey").addEventListener("input", () => {
   const d = detectProvider($("apikey").value);
-  if (!keyFits($("apikey").value, $("provider").value)) { $("provider").value = d === "sk" ? "openai" : d; resetModels(); }
+  // 貼上別家的 key：切到那一家（key 保留剛貼的，模型帶出那一家上次用的）
+  if (!keyFits($("apikey").value, $("provider").value)) {
+    if ($("model").value) draftModels[draftProvider] = $("model").value;
+    showProvider(d === "sk" ? "openai" : d, { fillKey: false });
+  }
   keyHint();
 });
-$("provider").addEventListener("change", () => { resetModels(); keyHint(); });
+$("provider").addEventListener("change", () => {
+  const next = $("provider").value;
+  $("provider").value = draftProvider;
+  keepDraft();
+  showProvider(next);
+  keyHint();
+});
 
 $("loadModels").onclick = async () => {
   settings.invite = $("invite").value.trim();
@@ -2842,7 +2957,7 @@ $("loadModels").onclick = async () => {
   status("載入模型中…");
   try {
     const data = await callWorker("/models", { key, provider: $("provider").value });
-    fillSelect($("model"), data.models, settings.model, "沒有可用的模型");
+    fillSelect($("model"), data.models, draftModels[$("provider").value] || settings.model, "沒有可用的模型");
     status(data.models.length ? `找到 ${data.models.length} 個可用模型` : "這把 key 沒有可用的模型", !data.models.length);
   } catch (e) { status(e.message, true); }
 };
@@ -2869,11 +2984,14 @@ $("saveSettings").onclick = () => {
   const prevChar = settings.character;
   const bad = keyMismatch();
   if (bad) { keyHint(); status(bad, true); return; }
+  keepDraft();
   settings = {
     invite: $("invite").value.trim(),
     key: $("apikey").value.trim(),
     provider: $("provider").value,
     model: $("model").value,
+    keys: draftKeys,
+    models: draftModels,
     character: charSel.value,
     characterName: charSel.value ? charSel.options[charSel.selectedIndex].textContent : "",
   };
