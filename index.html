@@ -554,21 +554,31 @@
       radial-gradient(ellipse at 50% 40%, transparent 55%, var(--pp-age) 100%),
       repeating-linear-gradient(transparent 0 27px, rgba(140, 105, 60, .09) 27px 28px);
   }
-  @media (prefers-color-scheme: dark) { :root[data-skin^="paper"]:not([data-theme="light"]) .stcard {
-    --pp-bg: #2a2219; --pp-card: #33291f; --pp-ink: #eadcc4; --pp-mute: #a8957a; --pp-line: #54463a; --pp-acc: #d4a271; --pp-red: #cf7f6f; --pp-age: rgba(0, 0, 0, .38); --pp-fox: rgba(190, 140, 70, .10); } }
-  :root[data-skin^="paper"][data-theme="dark"] .stcard {
-    --pp-bg: #2a2219; --pp-card: #33291f; --pp-ink: #eadcc4; --pp-mute: #a8957a; --pp-line: #54463a; --pp-acc: #d4a271; --pp-red: #cf7f6f; --pp-age: rgba(0, 0, 0, .38); --pp-fox: rgba(190, 140, 70, .10); }
+  /* 黃・舊書頁：白天晚上都是舊書頁黃（不跟手機深淺切換） */
+  :root[data-skin="paper"] .stcard { --pp-acc: #7a2f35; --pp-red: #8e3b3f; --pp-ribbon: #7a2f35; } /* 黃：酒紅書籤＋酒紅標籤 */
   /* 色系：紫・薰衣草信紙、綠・舊帳本（版型同紙本，只換顏色） */
-  :root[data-skin="paper-lilac"] .stcard { --pp-bg: #ece4f0; --pp-card: #f5eff7; --pp-ink: #3f3346; --pp-mute: #857694; --pp-line: #d3c4dc; --pp-acc: #7a4f8f; --pp-red: #a56a9a; --pp-age: rgba(110, 70, 130, .14); --pp-fox: rgba(120, 80, 140, .07); }
+  :root[data-skin="paper-lilac"] .stcard { --pp-bg: #e5dde9; --pp-card: #f0eaf3; --pp-ink: #3c3342; --pp-mute: #84788d; --pp-line: #cdc0d5; --pp-acc: #7a5e88; --pp-red: #9d7290; --pp-age: rgba(95, 65, 115, .13); --pp-fox: rgba(120, 95, 125, .07); }
   :root[data-skin="paper-sage"] .stcard { --pp-bg: #e5e9d8; --pp-card: #eef1e3; --pp-ink: #34392c; --pp-mute: #78806a; --pp-line: #c5cdb2; --pp-acc: #55704a; --pp-red: #9a6b45; --pp-age: rgba(80, 100, 60, .15); --pp-fox: rgba(120, 110, 60, .08); }
   @media (prefers-color-scheme: dark) {
-    :root[data-skin="paper-lilac"]:not([data-theme="light"]) .stcard { --pp-bg: #251f2b; --pp-card: #2c2533; --pp-ink: #e6dcec; --pp-mute: #9d8fab; --pp-line: #463c50; --pp-acc: #c3a3e0; --pp-red: #d79ac8; --pp-age: rgba(0,0,0,.35); --pp-fox: rgba(170,130,200,.07); }
-    :root[data-skin="paper-sage"]:not([data-theme="light"]) .stcard { --pp-bg: #1f241d; --pp-card: #262c23; --pp-ink: #dfe5d3; --pp-mute: #96a087; --pp-line: #3d4636; --pp-acc: #a9c48f; --pp-red: #d0a072; --pp-age: rgba(0,0,0,.35); --pp-fox: rgba(150,170,110,.07); } }
-  :root[data-skin="paper-lilac"][data-theme="dark"] .stcard { --pp-bg: #251f2b; --pp-card: #2c2533; --pp-ink: #e6dcec; --pp-mute: #9d8fab; --pp-line: #463c50; --pp-acc: #c3a3e0; --pp-red: #d79ac8; --pp-age: rgba(0,0,0,.35); --pp-fox: rgba(170,130,200,.07); }
-  :root[data-skin="paper-sage"][data-theme="dark"] .stcard { --pp-bg: #1f241d; --pp-card: #262c23; --pp-ink: #dfe5d3; --pp-mute: #96a087; --pp-line: #3d4636; --pp-acc: #a9c48f; --pp-red: #d0a072; --pp-age: rgba(0,0,0,.35); --pp-fox: rgba(150,170,110,.07); }
+    :root[data-skin="paper-lilac"]:not([data-theme="light"]) .stcard { --pp-bg: #3d3542; --pp-card: #483f4d; --pp-ink: #f6f1f7; --pp-mute: #cbc0ce; --pp-line: #66596c; --pp-acc: #ebcdb9; --pp-red: #d4a5b2; --pp-age: rgba(20,10,25,.22); --pp-fox: rgba(214,184,168,.06); }
+    :root[data-skin="paper-sage"]:not([data-theme="light"]) .stcard { --pp-bg: #353e38; --pp-card: #3f4942; --pp-ink: #ebeee6; --pp-mute: #acb5a8; --pp-line: #58645c; --pp-acc: #cdbb98; --pp-red: #cb9e8a; --pp-age: rgba(10,15,10,.22); --pp-fox: rgba(205,187,152,.06); } }
+  :root[data-skin="paper-lilac"][data-theme="dark"] .stcard { --pp-bg: #3d3542; --pp-card: #483f4d; --pp-ink: #f6f1f7; --pp-mute: #cbc0ce; --pp-line: #66596c; --pp-acc: #ebcdb9; --pp-red: #d4a5b2; --pp-age: rgba(20,10,25,.22); --pp-fox: rgba(214,184,168,.06); }
+  :root[data-skin="paper-sage"][data-theme="dark"] .stcard { --pp-bg: #353e38; --pp-card: #3f4942; --pp-ink: #ebeee6; --pp-mute: #acb5a8; --pp-line: #58645c; --pp-acc: #cdbb98; --pp-red: #cb9e8a; --pp-age: rgba(10,15,10,.22); --pp-fox: rgba(205,187,152,.06); }
+  /* 棕・咖啡：淺色＝拿鐵（濃縮咖啡色書籤）、深色＝黑咖啡（奶泡白書籤） */
+  :root[data-skin="paper-coffee"] .stcard { --pp-bg: #d3bba4; --pp-card: #e4d4c3; --pp-ink: #36251b; --pp-mute: #74584a; --pp-line: #bd9d83; --pp-acc: #74432b; --pp-red: #944f33; --pp-ribbon: #4b2b1a; --pp-age: rgba(95, 60, 40, .16); --pp-fox: rgba(120, 80, 55, .09); }
+  @media (prefers-color-scheme: dark) { :root[data-skin="paper-coffee"]:not([data-theme="light"]) .stcard { --pp-bg: #2a2219; --pp-card: #33291f; --pp-ink: #f7eddc; --pp-mute: #c9b498; --pp-line: #5a4a3c; --pp-acc: #ebc38e; --pp-red: #eba58a; --pp-ribbon: #efe5d6; --pp-age: rgba(0, 0, 0, .34); --pp-fox: rgba(235, 195, 142, .07); } }
+  :root[data-skin="paper-coffee"][data-theme="dark"] .stcard { --pp-bg: #2a2219; --pp-card: #33291f; --pp-ink: #f7eddc; --pp-mute: #c9b498; --pp-line: #5a4a3c; --pp-acc: #ebc38e; --pp-red: #eba58a; --pp-ribbon: #efe5d6; --pp-age: rgba(0, 0, 0, .34); --pp-fox: rgba(235, 195, 142, .07); }
+  /* 緞帶顏色：紫＝霧金、綠＝灰紅 */
+  :root[data-skin="paper-lilac"] .stcard { --pp-ribbon: #c4a46e; }
+  :root[data-skin="paper-sage"] .stcard { --pp-ribbon: #a9706a; }
+  @media (prefers-color-scheme: dark) {
+    :root[data-skin="paper-lilac"]:not([data-theme="light"]) .stcard { --pp-ribbon: #cdb07c; }
+    :root[data-skin="paper-sage"]:not([data-theme="light"]) .stcard { --pp-ribbon: #b8847c; } }
+  :root[data-skin="paper-lilac"][data-theme="dark"] .stcard { --pp-ribbon: #cdb07c; }
+  :root[data-skin="paper-sage"][data-theme="dark"] .stcard { --pp-ribbon: #b8847c; }
   /* 書籤緞帶 */
-  :root[data-skin^="paper"] .stcard::after { content: ""; position: absolute; top: 0; right: 22px; width: 12px; height: 30px; background: var(--pp-red);
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); opacity: .85; }
+  :root[data-skin^="paper"] .stcard::after { content: ""; position: absolute; top: 0; right: 22px; width: 12px; height: 30px; background: var(--pp-ribbon, var(--pp-red));
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); opacity: .9; }
   :root[data-skin^="paper"] .stcard > summary { background: none; border-radius: 0; padding: 14px 40px 12px 18px; gap: 7px; }
   :root[data-skin^="paper"] .stcard[open] > summary { border-bottom: 1px solid var(--pp-line); box-shadow: 0 3px 0 -2px var(--pp-line); }
   :root[data-skin^="paper"] .stcard > summary .ttl { color: var(--pp-ink); font-family: var(--pp-serif); font-weight: 600; font-size: 15px; letter-spacing: .2em; }
@@ -767,9 +777,9 @@
     <label for="skin">狀態卡樣式</label>
     <select id="skin">
       <option value="paper">黃・舊書頁</option>
+      <option value="paper-coffee">棕・拿鐵與黑咖啡</option>
       <option value="paper-lilac">紫・薰衣草信紙</option>
       <option value="paper-sage">綠・舊帳本</option>
-      <option value="card">紫色卡片</option>
     </select>
 
     <label for="invite">邀請碼</label>
@@ -3517,12 +3527,10 @@ function applyTheme(t) {
   const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
   document.querySelector('meta[name="theme-color"]').setAttribute("content", bg || "#17131d");
 }
-// 狀態卡樣式：預設黃・舊書頁；「紫色卡片」＝原本的圓角紫卡（不套紙本）
-function applySkin(k) {
-  if (k && k !== "card") document.documentElement.dataset.skin = k;
-  else delete document.documentElement.dataset.skin;
-}
-$("skin").value = store.get("rp_skin", "paper");
+// 狀態卡樣式：黃・舊書頁（預設）／棕・拿鐵與黑咖啡／紫・薰衣草信紙／綠・舊帳本，都跟著手機深淺切換
+const SKINS = ["paper", "paper-coffee", "paper-lilac", "paper-sage"];
+function applySkin(k) { document.documentElement.dataset.skin = SKINS.includes(k) ? k : "paper"; }
+$("skin").value = SKINS.includes(store.get("rp_skin", "paper")) ? store.get("rp_skin", "paper") : "paper";
 $("skin").addEventListener("change", () => { store.set("rp_skin", $("skin").value); applySkin($("skin").value); });
 applySkin($("skin").value);
 $("theme").value = store.get("rp_theme", "auto");
