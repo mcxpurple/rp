@@ -767,6 +767,77 @@
   .bbs .ln .who { color: #ffff5f; } .bbs .ln .tx { color: #e6c35f; }
   .bbs .ln.op .who { color: #5fd7ff; } .bbs .ln.op .tx { color: #9fe8ff; }
   .bbs .hot { color: #ff5f5f; font-size: 11px; margin-left: 6px; border: 1px solid #ff5f5f; padding: 0 4px; border-radius: 3px; white-space: nowrap; }
+
+  /* ===== 翻看・刪除與收藏 1：資源回收筒視窗（跟狀態卡換色） ===== */
+  .im.trash-win { border: 1px solid var(--line); border-radius: 12px; max-width: 24em; margin: 18px auto 28px; font-size: 13.5px; }
+  .tw-tb { display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: var(--panel-2); border-bottom: 1px solid var(--line); }
+  .tw-tb i { width: 11px; height: 11px; border-radius: 50%; background: #e5605a; } .tw-tb i:nth-child(2) { background: #e2b13c; } .tw-tb i:nth-child(3) { background: #5bb85a; }
+  .tw-tb b { flex: 1; text-align: center; font-size: 12.5px; margin-right: 40px; min-width: 0; }
+  .tw-side { display: grid; grid-template-columns: 84px 1fr; }
+  .tw-nav { background: var(--panel-2); padding: 8px 6px; font-size: 12px; color: var(--muted); border-right: 1px solid var(--line); line-height: 2.1; }
+  .tw-nav .on { color: var(--accent); font-weight: 700; }
+  .tw-list { padding: 2px 0 6px; min-width: 0; }
+  .tw-grp { font-size: 11px; letter-spacing: .12em; color: var(--accent); padding: 8px 10px 2px; font-weight: 700; }
+  .tw-row { display: grid; grid-template-columns: 22px 1fr; gap: 6px; padding: 6px 10px; border-bottom: 1px dotted var(--line); line-height: 1.5; word-break: break-word; }
+  .tw-row small, .tw-dlg small { display: block; color: var(--muted); font-size: 11px; }
+  .tw-row.del .tx { color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+  .tw-dlg { margin: 10px; border: 1px solid var(--accent); border-radius: 10px; padding: 10px; background: var(--panel); }
+  .tw-dlg b { font-size: 12.5px; }
+  .tw-dlg .btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+  .tw-dlg .btns span { font-size: 12px; border: 1px solid var(--line); border-radius: 6px; padding: 2px 10px; }
+  .tw-dlg .btns .no { background: var(--accent); color: var(--phone); border-color: var(--accent); opacity: .35; }
+  .tw-ft { display: flex; justify-content: space-between; padding: 8px 10px; font-size: 11.5px; color: var(--muted); background: var(--panel-2); border-top: 1px solid var(--line); }
+
+  /* ===== 翻看・刪除與收藏 3：手機相簿「最近刪除」（跟狀態卡換色） ===== */
+  .tp-hd { display: flex; align-items: center; padding: 6px 14px 8px; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .tp-hd b { flex: 1; text-align: center; font-size: 14.5px; } .tp-hd span { color: var(--accent); }
+  .tp-lab { font-size: 12px; color: var(--accent); font-weight: 700; padding: 10px 14px 6px; display: flex; justify-content: space-between; gap: 8px; }
+  .tp-lab em { font-style: normal; color: var(--muted); font-weight: 400; }
+  .tp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 0 10px; }
+  .tp-t { position: relative; min-height: 96px; background: linear-gradient(135deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); border-radius: 6px; padding: 24px 6px 6px;
+    font-size: 10.5px; line-height: 1.4; color: var(--muted); display: flex; align-items: flex-end; overflow: hidden; word-break: break-word; }
+  .tp-t .ic { position: absolute; top: 5px; left: 6px; font-size: 14px; }
+  .tp-t .d { position: absolute; top: 5px; right: 5px; font-size: 9.5px; color: #fff; background: rgba(0,0,0,.45); border-radius: 999px; padding: 0 6px; }
+  .tp-t .cap i { font-style: normal; opacity: .75; }
+  .tp-grid.hid .tp-t .cap { filter: blur(2.5px); opacity: .7; }
+  .tp-grid.hid .tp-t::after { content: "🔒"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .tp-pend { margin: 12px 10px 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px; display: flex; gap: 10px; align-items: center; font-size: 12.5px; line-height: 1.5; }
+  .tp-pend .tp-t { width: 64px; min-height: 64px; flex-shrink: 0; }
+  .tp-pend small { display: block; color: var(--muted); font-size: 11px; }
+  .tp-pend .bt { display: flex; gap: 6px; margin-top: 6px; font-size: 11.5px; }
+  .tp-pend .bt span { border-radius: 8px; padding: 3px 12px; border: 1px solid var(--line); }
+  .tp-pend .bt .rm { background: #c0444c; color: #fff; border-color: #c0444c; opacity: .45; }
+
+  /* ===== 翻看・刪除與收藏 4：機密卷宗（固定牛皮紙色；其他容器的預設） ===== */
+  .dossier { position: relative; max-width: 24em; margin: 44px auto 30px; filter: drop-shadow(0 12px 18px rgba(0,0,0,.45)); letter-spacing: 0; }
+  .ds-tab { position: absolute; top: -24px; left: 0; height: 26px; padding: 5px 18px 0 16px; background: #d9b97f; border-radius: 9px 12px 0 0;
+    font-family: ui-monospace, "Courier New", monospace; font-size: 11px; letter-spacing: .22em; color: #5a4426; clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 100%, 0 100%); }
+  .ds-fold { position: relative; background: #d9b97f; border-radius: 0 12px 12px 12px; padding: 22px 16px 20px; color: #2e2416; font-family: "Noto Serif TC", serif;
+    background-image: radial-gradient(ellipse at 50% 0, rgba(255,240,200,.35), transparent 60%), repeating-linear-gradient(0deg, rgba(90,60,20,.04) 0 2px, transparent 2px 4px); }
+  .ds-fold h4 { margin: 0 90px 12px 0; font-size: 15px; letter-spacing: .15em; line-height: 1.5; color: #2e2416; font-family: "Noto Serif TC", serif; }
+  .ds-stamp { position: absolute; top: 14px; right: 16px; border: 2.5px solid #9b2a2a; color: #9b2a2a; font-weight: 900; font-size: 13px; letter-spacing: .2em; padding: 1px 8px; transform: rotate(8deg); opacity: .82; }
+  .ds-sheet { position: relative; background: #f7f1e3; padding: 12px 14px; margin-top: 12px; font-size: 12.8px; line-height: 1.75; color: #2e2416; word-break: break-word;
+    background-image: radial-gradient(circle at 80% 30%, rgba(160,120,60,.06), transparent 40%), repeating-linear-gradient(0deg, transparent 0 23px, rgba(120,90,50,.08) 23px 24px);
+    box-shadow: 0 2px 3px rgba(0,0,0,.22), 0 0 0 1px rgba(120,90,50,.08); }
+  .ds-sheet:nth-of-type(2) { transform: rotate(-.6deg); } .ds-sheet:nth-of-type(3) { transform: rotate(.5deg); }
+  .ds-sheet .lb { display: flex; align-items: center; gap: 8px; font-family: ui-monospace, "Courier New", monospace; font-size: 11px; letter-spacing: .18em; color: #5a4426;
+    border-bottom: 1px solid #cbb994; margin-bottom: 6px; padding-bottom: 2px; }
+  .ds-sheet .lb em { font-style: normal; margin-left: auto; margin-right: var(--em-r, 0); font-size: 10px; color: #8a7552; letter-spacing: .05em; }
+  .ds-sheet.dog { --em-r: 62px; clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%); }
+  .ds-sheet.dog::after { content: ""; position: absolute; top: 0; right: 0; width: 22px; height: 22px; background: linear-gradient(225deg, transparent 50%, #e3d6bb 50%, #d4c4a3 100%); }
+  .ds-sheet .clip { position: absolute; top: -14px; right: 46px; width: 16px; height: 40px; border: 2.5px solid #9aa0a6; border-radius: 10px; border-bottom-color: #7d838a; }
+  .ds-sheet .clip::after { content: ""; position: absolute; left: 2px; top: 6px; width: 7px; height: 24px; border: 2.5px solid #9aa0a6; border-top: 0; border-radius: 0 0 8px 8px; }
+  .ds-sheet .staple { position: absolute; top: 6px; left: 14px; width: 18px; height: 4px; border: 1.5px solid #8a8f95; border-bottom: 0; border-radius: 2px 2px 0 0; transform: rotate(-8deg); }
+  .ds-shred { display: flex; gap: 3px; margin: 2px 0 8px; height: 44px; }
+  .ds-shred i { flex: 1; font-style: normal; font-size: 10px; line-height: 1.2; color: #5a4a36; overflow: hidden; padding: 3px 2px; background: #fbf8ef;
+    background-image: repeating-linear-gradient(0deg, transparent 0 9px, rgba(120,90,50,.1) 9px 10px); transform: rotate(var(--r)) translateY(var(--y));
+    box-shadow: 0 1px 2px rgba(0,0,0,.2); clip-path: polygon(0 0, 100% 2%, 96% 100%, 4% 97%); }
+  .ds-row b { font-weight: 400; color: #8a7552; margin-left: 4px; }
+  .dossier .redact { background: #2a2015; color: transparent; border-radius: 1px; padding: 0 3px; }
+  .ds-sheet.pend { background: #fffaf0; outline: 2px dashed #9b2a2a; outline-offset: -6px; }
+  .ds-sheet.pend small { display: block; font-size: 11.5px; color: #8a7552; }
+  .ds-sheet.pend .st { position: absolute; right: 12px; top: 10px; color: #9b2a2a; border: 2px solid #9b2a2a; font-size: 11px; padding: 0 6px; transform: rotate(-5deg);
+    font-family: "Noto Sans TC", sans-serif; font-weight: 700; opacity: .88; background: rgba(255,250,240,.6); }
 </style>
 </head>
 <body>
@@ -2115,6 +2186,7 @@ function renderLoreBlock(block) {
     if (/^📱/.test(first)) { const el = renderLorePhone(secs); if (el) return el; }
     if (/^📒/.test(first)) { const el = renderDiary(secs); if (el) return el; }
     if (/^🗨|^💬/.test(first)) { const el = renderForum(secs); if (el) return el; }
+    if (/^🗑/.test(first)) { const el = renderTrash(secs); if (el) return el; }
   } catch {}
   return renderLoreCard(block);
 }
@@ -2367,6 +2439,122 @@ function renderBBS(f) {
   }
   box.innerHTML = html + '<div style="height:10px"></div>';
   return box;
+}
+
+
+// ---------- 翻看・刪除與收藏：依 {容器} 選畫面 ----------
+// 電腦、筆電、資料夾、信箱 → 資源回收筒視窗；手機、相簿 → 相簿「最近刪除」；其他（保險箱、儲物袋、皮箱…）→ 機密卷宗
+function mediaIcon(t) {
+  return /文件|檔案|\.pdf|\.docx?|\.xlsx?|合約|帳本|平面圖/i.test(t) ? "📄" : /截圖|螢幕/.test(t) ? "📱" : /影片|錄影|\.mp4/i.test(t) ? "🎬"
+    : /錄音|語音|留言|\.m4a|\.mp3/i.test(t) ? "🎙️" : /信|郵件|mail/i.test(t) ? "✉️" : /照|相片|圖|背影|自拍/.test(t) ? "📷" : "📦";
+}
+function parseTrash(secs) {
+  const title = secs[0][0].trim().replace(/^🗑️?\s*[｜|]\s*/, "").trim();
+  const groups = [];
+  let g = null;
+  for (const raw of [...secs[0].slice(1), ...secs.slice(1).flat()]) {
+    const hd = loreHead(raw);
+    if (hd) {
+      const k = `${hd.icon}${hd.label}`;
+      const kind = /♻|標記|未執行|猶豫/.test(k) ? "pend" : /🚮|已刪除|刪掉|銷毀/.test(k) ? "del" : /📦|收起|收藏|封存|藏/.test(k) ? "keep" : "other";
+      g = { icon: hd.icon, label: hd.label, kind, items: [] };
+      groups.push(g);
+      continue;
+    }
+    const t = loreItem(raw);
+    if (!t) continue;
+    if (!g) { g = { icon: "📝", label: "", kind: "other", items: [] }; groups.push(g); }
+    const [a, b] = splitDash(t);
+    g.items.push({ text: a, note: b });
+  }
+  return groups.some((x) => x.items.length) ? { title, groups } : null;
+}
+function renderTrash(secs) {
+  const d = parseTrash(secs);
+  if (!d) return null;
+  if (/電腦|筆電|筆記型|桌機|資料夾|硬碟|雲端|信箱|郵件|mail|laptop|pc/i.test(d.title)) return trashWindow(d);
+  if (/手機|相簿|相機|平板|phone/i.test(d.title)) return trashPhone(d);
+  return trashDossier(d);
+}
+
+function trashWindow(d) {
+  const w = document.createElement("div");
+  w.className = "im trash-win";
+  const it = (x, cls) => `<div class="tw-row ${cls}"><span>${mediaIcon(x.text)}</span><span><span class="tx">${inline(x.text)}</span>${x.note ? `<small>${inline(x.note)}</small>` : ""}</span></div>`;
+  let list = "", n = 0;
+  for (const g of d.groups) {
+    if (g.kind === "pend") {
+      for (const x of g.items) list += `<div class="tw-dlg"><b>確定要永久刪除「${inline(x.text)}」嗎？</b>${x.note ? `<small>${inline(x.note)}</small>` : ""}<div class="btns"><span>取消</span><span class="no">永久刪除</span></div></div>`;
+      n += g.items.length;
+      continue;
+    }
+    list += `<div class="tw-grp">${esc(g.label || "項目")}</div>` + g.items.map((x) => it(x, g.kind)).join("");
+    n += g.items.length;
+  }
+  w.innerHTML =
+    `<div class="tw-tb"><i></i><i></i><i></i><b>🗑️ ${inline(d.title)}</b></div>` +
+    `<div class="tw-side"><div class="tw-nav"><div>📁 文件</div><div>🖼 圖片</div><div class="on">🗑️ 回收筒</div><div>🔒 封存</div></div><div class="tw-list">${list}</div></div>` +
+    `<div class="tw-ft"><span>${n} 個項目</span><span>上次清空：從未</span></div>`;
+  return w;
+}
+
+function trashPhone(d) {
+  const w = document.createElement("div");
+  w.className = "im lore-phone trash-ph";
+  w.append(imStatusBar(""));
+  const notch = document.createElement("div");
+  notch.className = "im-notch";
+  notch.textContent = "✧✦ ───── ✦✧";
+  w.append(notch);
+  let html = `<div class="tp-hd"><span>‹ 相簿</span><b>最近刪除</b><span>選取</span></div>`;
+  const days = [29, 12, 3, 21, 7, 1];
+  for (const g of d.groups) {
+    if (g.kind === "pend") {
+      for (const x of g.items)
+        html += `<div class="tp-pend"><div class="tp-t"><span class="ic">${mediaIcon(x.text)}</span></div><div><b>${esc(g.icon)} ${inline(x.text)}</b>${x.note ? `<small>${inline(x.note)}</small>` : ""}<div class="bt"><span class="kp">保留</span><span class="rm">刪除</span></div></div></div>`;
+      continue;
+    }
+    const lab = g.kind === "del" ? `<em>30 天後永久刪除</em>` : g.kind === "keep" ? `<em>${g.items.length} 項・已上鎖</em>` : "";
+    html += `<div class="tp-lab"><span>${esc(g.icon)} ${inline(g.kind === "keep" ? "隱藏的相簿" : g.label)}</span>${lab}</div><div class="tp-grid${g.kind === "keep" ? " hid" : ""}">`;
+    g.items.forEach((x, i) => {
+      html += `<div class="tp-t"><span class="ic">${mediaIcon(x.text)}</span>${g.kind === "del" ? `<span class="d">剩 ${days[i % days.length]} 天</span>` : ""}<span class="cap">${inline(x.text)}${x.note ? `<br><i>${inline(x.note)}</i>` : ""}</span></div>`;
+    });
+    html += `</div>`;
+  }
+  const box = document.createElement("div");
+  box.innerHTML = html;
+  w.append(...box.childNodes);
+  imHome(w);
+  return w;
+}
+
+function trashDossier(d) {
+  const w = document.createElement("div");
+  w.className = "dossier";
+  const redact = (t) => inline(t).replace(/「([^」]{1,12})」/g, '「<span class="redact">$1</span>」');
+  const row = (x) => `<div class="ds-row"><span>${redact(x.text)}</span>${x.note ? `<b>— ${inline(x.note)}</b>` : ""}</div>`;
+  let html = `<div class="ds-tab">CASE FILE</div><div class="ds-fold"><span class="ds-stamp">極機密</span><h4>${inline(d.title)}</h4>`;
+  let first = true;
+  for (const g of d.groups) {
+    if (g.kind === "pend") {
+      html += `<div class="ds-sheet pend"><span class="st">待銷毀・未執行</span><div class="lb">${esc(g.icon)} 待銷毀</div>${g.items.map((x) => `<div>${inline(x.text)}</div>${x.note ? `<small>${inline(x.note)}</small>` : ""}`).join("")}</div>`;
+      continue;
+    }
+    const en = g.kind === "del" ? "SHREDDED" : g.kind === "keep" ? "ARCHIVED" : "";
+    const name = g.kind === "del" ? "已銷毀" : g.kind === "keep" ? "封存" : g.label;
+    let extra = "";
+    if (g.kind === "del") {
+      // 碎紙條：把被刪掉的東西切成一條條，每條留幾個殘字
+      const src = g.items.map((x) => x.text.replace(/[「」『』（）()\s]/g, "")).join("");
+      const parts = (src.match(/.{1,3}/gu) || []).slice(0, 7);
+      const rot = [-2, 1.5, -1, 2, -2.5, 1, -1.5], dy = [2, -1, 3, 0, 2, -2, 1];
+      extra = `<div class="ds-shred">${parts.map((p, i) => `<i style="--r:${rot[i]}deg;--y:${dy[i]}px">${esc(p)}</i>`).join("")}</div>`;
+    }
+    html += `<div class="ds-sheet${first ? " dog" : ""}">${first ? '<span class="clip"></span>' : '<span class="staple"></span>'}<div class="lb">${esc(g.icon)} ${inline(name)}${en ? `<em>${en}</em>` : ""}</div>${extra}${g.items.map(row).join("")}</div>`;
+    first = false;
+  }
+  w.innerHTML = html + "</div>";
+  return w;
 }
 
 // 滴蠟封印：外形依名字固定（同一個角色每次一樣），光影用 SVG 濾鏡做出蠟的厚度與壓印
