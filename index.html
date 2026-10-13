@@ -634,7 +634,7 @@
   :root[data-skin^="paper"] .stcard .peek summary { font-family: var(--pp-serif); color: var(--pp-mute); }
   :root[data-skin^="paper"] .stcard .pk-en { display: inline; font-family: var(--pp-mono); font-size: 9.5px; color: var(--pp-acc); letter-spacing: .25em; }
   /* 翻看：方格便條＋彩色紙膠帶 */
-  :root[data-skin^="paper"] .stcard .peek .chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 12px 2px 6px; margin-top: 4px; }
+  :root[data-skin^="paper"] .stcard .peek .chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 12px 2px 6px; margin-top: 4px; }
   :root[data-skin^="paper"] .stcard .chip { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 15px 2px 9px;
     background: var(--pp-card); border: 0; border-radius: 3px; color: var(--pp-ink); font-family: var(--pp-serif); font-size: 11.5px; line-height: 1.3;
     box-shadow: 0 2px 6px rgba(80, 60, 30, .18); transition: transform .15s; }
@@ -660,17 +660,17 @@
   .im .tr { display: block; font-size: 12px; line-height: 1.5; color: var(--muted); margin-top: 3px; }
   .im-row.me .bub .tr { color: color-mix(in srgb, var(--bubble-me-ink) 72%, transparent); }
   :root[data-skin] .im { --accent-soft: color-mix(in srgb, var(--accent) 13%, transparent); --accent-line: color-mix(in srgb, var(--accent) 40%, transparent); }
-  :root[data-skin="paper"] .im { --case: #1d1b2a; --phone: #fbf6ec; --text: #2f2722; --muted: #8b7d70; --accent: #7a2f35; --panel: #ffffff; --panel-2: #f3ece0; --line: #e6dccb; --bubble-them: #efe6d6; --bubble-me: #7a2f35; --bubble-me-ink: #fff8f0; }
-  :root[data-skin="paper-coffee"] .im { --case: #4b2b1a; --phone: #efe4d6; --text: #36251b; --muted: #86695a; --accent: #74432b; --panel: #f8f1e7; --panel-2: #e4d4c3; --line: #d6c2ad; --bubble-them: #e4d4c3; --bubble-me: #74432b; --bubble-me-ink: #fff8ef; }
-  :root[data-skin="paper-lilac"] .im { --case: #4a3d55; --phone: #f0eaf3; --text: #3c3342; --muted: #84788d; --accent: #7a5e88; --panel: #faf7fb; --panel-2: #e5dde9; --line: #d6cbdc; --bubble-them: #e5dde9; --bubble-me: #7a5e88; --bubble-me-ink: #fbf7fd; }
-  :root[data-skin="paper-sage"] .im { --case: #3d4a3a; --phone: #eef1e3; --text: #34392c; --muted: #78806a; --accent: #55704a; --panel: #f7f8ef; --panel-2: #e2e7d2; --line: #cdd5bb; --bubble-them: #e2e7d2; --bubble-me: #55704a; --bubble-me-ink: #f8fbf2; }
+  :root[data-skin="paper"] :is(.im, .lv) { --case: #1d1b2a; --phone: #fbf6ec; --text: #2f2722; --muted: #8b7d70; --accent: #7a2f35; --panel: #ffffff; --panel-2: #f3ece0; --line: #e6dccb; --bubble-them: #efe6d6; --bubble-me: #7a2f35; --bubble-me-ink: #fff8f0; }
+  :root[data-skin="paper-coffee"] :is(.im, .lv) { --case: #4b2b1a; --phone: #efe4d6; --text: #36251b; --muted: #86695a; --accent: #74432b; --panel: #f8f1e7; --panel-2: #e4d4c3; --line: #d6c2ad; --bubble-them: #e4d4c3; --bubble-me: #74432b; --bubble-me-ink: #fff8ef; }
+  :root[data-skin="paper-lilac"] :is(.im, .lv) { --case: #4a3d55; --phone: #f0eaf3; --text: #3c3342; --muted: #84788d; --accent: #7a5e88; --panel: #faf7fb; --panel-2: #e5dde9; --line: #d6cbdc; --bubble-them: #e5dde9; --bubble-me: #7a5e88; --bubble-me-ink: #fbf7fd; }
+  :root[data-skin="paper-sage"] :is(.im, .lv) { --case: #3d4a3a; --phone: #eef1e3; --text: #34392c; --muted: #78806a; --accent: #55704a; --panel: #f7f8ef; --panel-2: #e2e7d2; --line: #cdd5bb; --bubble-them: #e2e7d2; --bubble-me: #55704a; --bubble-me-ink: #f8fbf2; }
   @media (prefers-color-scheme: dark) {
-    :root[data-skin="paper-coffee"]:not([data-theme="light"]) .im { --case: #120d09; --phone: #2a2219; --text: #f7eddc; --muted: #c9b498; --accent: #ebc38e; --panel: #33291f; --panel-2: #3d3226; --line: #5a4a3c; --bubble-them: #3d3226; --bubble-me: #8a5f3a; --bubble-me-ink: #fff6e8; }
-    :root[data-skin="paper-lilac"]:not([data-theme="light"]) .im { --case: #1f1a24; --phone: #3d3542; --text: #f6f1f7; --muted: #cbc0ce; --accent: #ebcdb9; --panel: #483f4d; --panel-2: #534858; --line: #66596c; --bubble-them: #534858; --bubble-me: #7a5e88; --bubble-me-ink: #fbf7fd; }
-    :root[data-skin="paper-sage"]:not([data-theme="light"]) .im { --case: #1a201c; --phone: #353e38; --text: #ebeee6; --muted: #acb5a8; --accent: #cdbb98; --panel: #3f4942; --panel-2: #49544c; --line: #58645c; --bubble-them: #49544c; --bubble-me: #55704a; --bubble-me-ink: #f8fbf2; } }
-  :root[data-skin="paper-coffee"][data-theme="dark"] .im { --case: #120d09; --phone: #2a2219; --text: #f7eddc; --muted: #c9b498; --accent: #ebc38e; --panel: #33291f; --panel-2: #3d3226; --line: #5a4a3c; --bubble-them: #3d3226; --bubble-me: #8a5f3a; --bubble-me-ink: #fff6e8; }
-  :root[data-skin="paper-lilac"][data-theme="dark"] .im { --case: #1f1a24; --phone: #3d3542; --text: #f6f1f7; --muted: #cbc0ce; --accent: #ebcdb9; --panel: #483f4d; --panel-2: #534858; --line: #66596c; --bubble-them: #534858; --bubble-me: #7a5e88; --bubble-me-ink: #fbf7fd; }
-  :root[data-skin="paper-sage"][data-theme="dark"] .im { --case: #1a201c; --phone: #353e38; --text: #ebeee6; --muted: #acb5a8; --accent: #cdbb98; --panel: #3f4942; --panel-2: #49544c; --line: #58645c; --bubble-them: #49544c; --bubble-me: #55704a; --bubble-me-ink: #f8fbf2; }
+    :root[data-skin="paper-coffee"]:not([data-theme="light"]) :is(.im, .lv) { --case: #120d09; --phone: #2a2219; --text: #f7eddc; --muted: #c9b498; --accent: #ebc38e; --panel: #33291f; --panel-2: #3d3226; --line: #5a4a3c; --bubble-them: #3d3226; --bubble-me: #8a5f3a; --bubble-me-ink: #fff6e8; }
+    :root[data-skin="paper-lilac"]:not([data-theme="light"]) :is(.im, .lv) { --case: #1f1a24; --phone: #3d3542; --text: #f6f1f7; --muted: #cbc0ce; --accent: #ebcdb9; --panel: #483f4d; --panel-2: #534858; --line: #66596c; --bubble-them: #534858; --bubble-me: #7a5e88; --bubble-me-ink: #fbf7fd; }
+    :root[data-skin="paper-sage"]:not([data-theme="light"]) :is(.im, .lv) { --case: #1a201c; --phone: #353e38; --text: #ebeee6; --muted: #acb5a8; --accent: #cdbb98; --panel: #3f4942; --panel-2: #49544c; --line: #58645c; --bubble-them: #49544c; --bubble-me: #55704a; --bubble-me-ink: #f8fbf2; } }
+  :root[data-skin="paper-coffee"][data-theme="dark"] :is(.im, .lv) { --case: #120d09; --phone: #2a2219; --text: #f7eddc; --muted: #c9b498; --accent: #ebc38e; --panel: #33291f; --panel-2: #3d3226; --line: #5a4a3c; --bubble-them: #3d3226; --bubble-me: #8a5f3a; --bubble-me-ink: #fff6e8; }
+  :root[data-skin="paper-lilac"][data-theme="dark"] :is(.im, .lv) { --case: #1f1a24; --phone: #3d3542; --text: #f6f1f7; --muted: #cbc0ce; --accent: #ebcdb9; --panel: #483f4d; --panel-2: #534858; --line: #66596c; --bubble-them: #534858; --bubble-me: #7a5e88; --bubble-me-ink: #fbf7fd; }
+  :root[data-skin="paper-sage"][data-theme="dark"] :is(.im, .lv) { --case: #1a201c; --phone: #353e38; --text: #ebeee6; --muted: #acb5a8; --accent: #cdbb98; --panel: #3f4942; --panel-2: #49544c; --line: #58645c; --bubble-them: #49544c; --bubble-me: #55704a; --bubble-me-ink: #f8fbf2; }
   .im { color: var(--text); }
 
   /* ===== 翻看・隨身紀錄：角色的手機畫面 ===== */
@@ -737,6 +737,64 @@
   .diary.pin .d-unsent { margin-right: 56px; }
   .diary.pin .d-seal { right: 6px; bottom: 6px; }
   .d-seal svg { filter: drop-shadow(1.5px 3px 2.5px rgba(50,15,10,.45)); }
+
+
+  /* ===== 翻看・心聲：造型便條紙＋貓 ===== */
+  .lv { color: var(--text); }
+  .os-board { position: relative; max-width: 23em; margin: 26px auto 30px; border-radius: 6px; padding: 64px 16px 48px; isolation: isolate;
+    background: color-mix(in srgb, var(--accent) 82%, var(--phone)); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 10px 22px rgba(0,0,0,.28); }
+  .os-board::before { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1; opacity: .55;
+    background: radial-gradient(circle at 12% 78%, var(--phone) 0 4px, transparent 4.5px), radial-gradient(circle at 88% 14%, var(--phone) 0 3px, transparent 3.5px),
+      radial-gradient(circle at 92% 62%, var(--phone) 0 5px, transparent 5.5px), radial-gradient(circle at 6% 30%, var(--phone) 0 3px, transparent 3.5px),
+      radial-gradient(circle at 70% 94%, var(--phone) 0 3.5px, transparent 4px), radial-gradient(circle at 40% 6%, var(--phone) 0 2.5px, transparent 3px); }
+  .os-tape { position: absolute; left: -12px; top: 14px; max-width: calc(100% - 10px); padding: 5px 18px 6px; transform: rotate(-4deg); transform-origin: left;
+    font-family: "Noto Serif TC", serif; font-weight: 900; font-size: 16.5px; letter-spacing: .05em; line-height: 1.45; color: var(--text);
+    background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--phone) 86%, transparent) 0 7px, color-mix(in srgb, var(--accent) 22%, var(--phone)) 7px 14px);
+    filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.18));
+    mask: conic-gradient(from 135deg at 6px 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 7px repeat-y, linear-gradient(#000, #000) 6px 0 / calc(100% - 12px) 100% no-repeat, conic-gradient(from -45deg at calc(100% - 6px) 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 7px repeat-y; }
+  .os-note { position: relative; padding: 38px 40px 42px; margin: 0 4px; isolation: isolate; }
+  .os-note > svg { position: absolute; left: 0; top: 0; overflow: visible; z-index: -1; filter: drop-shadow(0 8px 8px rgba(0,0,0,.22)); }
+  .os-f { margin: 0 0 12px; } .os-f:last-of-type { margin-bottom: 0; }
+  .os-s { display: flex; gap: 6px; align-items: baseline; font-size: 11.5px; color: #8b7d70; line-height: 1.5; }
+  .os-s .pg { flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 10px; border: 1px solid #e3d8c6; border-radius: 999px; padding: 0 5px; }
+  .os-o { font-family: "Noto Serif TC", serif; font-size: 15px; line-height: 1.65; color: #2f2722; margin-top: 2px; word-break: break-word; }
+  .os-cat { position: absolute; right: -16px; bottom: -34px; width: 150px; height: 78px; z-index: 2; pointer-events: none;
+    background: url(cat-tux.png) right bottom / contain no-repeat; filter: drop-shadow(0 3px 3px rgba(0,0,0,.18)); }
+  :root[data-skin="paper"] .os-cat { background-image: url(cat-paper.png); }
+  :root[data-skin="paper-coffee"] .os-cat { background-image: url(cat-coffee.png); }
+  :root[data-skin="paper-lilac"] .os-cat { background-image: url(cat-lilac.png); }
+  :root[data-skin="paper-sage"] .os-cat { background-image: url(cat-sage.png); }
+  .os-who { position: absolute; left: 16px; bottom: 12px; font-size: 10.5px; letter-spacing: .14em; color: var(--phone); opacity: .85; }
+
+  /* ===== 翻看・關於你：心葉毬蘭 ===== */
+  .ab-card { position: relative; max-width: 25em; margin: 22px auto 30px; border-radius: 18px; padding: 16px 10px 14px; background: var(--phone);
+    box-shadow: var(--shadow); background-image: radial-gradient(ellipse at 50% 70%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 62%); }
+  .ab-hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-family: "Noto Serif TC", serif; font-weight: 700; font-size: 15px; padding: 0 8px; }
+  .ab-hd span { font-size: 11px; font-weight: 400; color: var(--muted); font-family: "Noto Sans TC", sans-serif; white-space: nowrap; }
+  .ab-stage { position: relative; margin: 0 auto; }
+  .ab-stage > img { position: absolute; pointer-events: none; }
+  .ab-leaf { position: absolute; transform: translate(-50%, -50%); z-index: 2; }
+  .ab-leaf svg { position: absolute; inset: 0; overflow: visible; filter: drop-shadow(0 2px 2px rgba(20,40,15,.28)); }
+  .ab-leaf p { position: absolute; inset: 0; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    padding: 14% 13% 20%; font-size: var(--fs); line-height: 1.32; color: #1f2e18; font-weight: 500; overflow: hidden; word-break: break-word; }
+  .ab-leaf p b { font-size: .78em; font-weight: 700; opacity: .65; }
+  .ab-leaf p small { font-size: .78em; opacity: .65; font-weight: 400; }
+  .ab-leaf.said p { font-family: "Noto Serif TC", serif; }
+  .ab-note { position: absolute; left: 50%; transform: translateX(-50%) rotate(-3deg); width: 150px; padding: 16px 12px 12px; font-size: 12px; line-height: 1.55;
+    text-align: center; z-index: 3; color: #3a2a20; background: color-mix(in srgb, var(--accent) 10%, #fffbe8); box-shadow: 0 4px 8px rgba(0,0,0,.18); }
+  .ab-note::before { content: ""; position: absolute; left: 16px; top: -4px; width: 17px; height: 17px; border-radius: 50%;
+    background: radial-gradient(circle at 34% 30%, #fff 0 1.6px, rgba(255,255,255,.55) 2.4px, transparent 4.5px), radial-gradient(circle at 50% 55%, #e8463c 0 45%, #b51f1f 75%, #7e1212 100%);
+    box-shadow: 2px 4px 4px rgba(0,0,0,.35), inset -1px -2px 2px rgba(0,0,0,.25); }
+  .ab-note::after { content: ""; position: absolute; left: 30px; top: 12px; width: 9px; height: 2px; border-radius: 2px; background: rgba(0,0,0,.22); transform: rotate(35deg); filter: blur(.6px); }
+  .ab-note b { display: block; font-size: 10px; color: #b05a72; letter-spacing: .08em; }
+  .ab-note p { margin: 3px 0 0; } .ab-note p + p { border-top: 1px dashed rgba(120,90,50,.3); padding-top: 3px; }
+  .ab-tape { position: absolute; transform: translate(-50%, -50%) rotate(-4deg); z-index: 3; padding: 4px 18px 5px; white-space: nowrap;
+    font-family: "Noto Serif TC", serif; font-weight: 700; font-size: 13px; color: #3a2a20;
+    background: radial-gradient(color-mix(in srgb, var(--accent) 38%, #fff) 1.6px, transparent 2px) 0 0 / 9px 9px, color-mix(in srgb, #fffaf0 90%, transparent);
+    mask: conic-gradient(from 135deg at 6px 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 7px repeat-y, linear-gradient(#000, #000) 6px 0 / calc(100% - 12px) 100% no-repeat, conic-gradient(from -45deg at calc(100% - 6px) 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 7px repeat-y; }
+  .ab-tape small { font-family: "Noto Sans TC", sans-serif; font-weight: 500; font-size: 9.5px; color: #7a6b5e; margin-right: 5px; letter-spacing: .08em; }
+  .ab-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: center; font-size: 10.5px; color: var(--muted); margin-top: 6px; }
+  .ab-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50% 50% 0 50%; transform: rotate(45deg); margin-right: 4px; }
 
   /* ===== 翻看・論壇：匿名論壇 App ===== */
   .im.forum { max-width: 24em; }
@@ -2356,6 +2414,8 @@ function renderLoreBlock(block) {
     if (/^📒/.test(first)) { const el = renderDiary(secs); if (el) return el; }
     if (/^🗨|^💬/.test(first)) { const el = renderForum(secs); if (el) return el; }
     if (/^🗑/.test(first)) { const el = renderTrash(secs); if (el) return el; }
+    if (/^💭/.test(first)) { const el = renderInner(secs); if (el) return el; }
+    if (/^📝/.test(first)) { const el = renderAbout(secs); if (el) return el; }
   } catch {}
   return renderLoreCard(block);
 }
@@ -2490,6 +2550,186 @@ function renderDiary(secs) {
 
 
 // ---------- 翻看・論壇：匿名論壇 App（跟狀態卡換色）；版名是 PTT／BBS 時改成黑底 BBS ----------
+// ---------- 翻看・心聲（造型便條紙）／關於你（心葉毬蘭） ----------
+function seedRand(str) {
+  let x = [...String(str || "x")].reduce((a, c) => (a * 31 + c.codePointAt(0)) % 233280, 7) || 1;
+  return () => (x = (x * 9301 + 49297) % 233280) / 233280;
+}
+// 圓角框周長上取點，相鄰點之間畫向外的圓弧＝雲朵
+function cloudPath(w, h, rnd, mn, mx, inset) {
+  const S = [], N = 500, a = w / 2 - inset, b = h / 2 - inset, cx = w / 2, cy = h / 2;
+  for (let j = 0; j < N; j++) {
+    const t = (2 * Math.PI * j) / N, c = Math.cos(t), s = Math.sin(t);
+    S.push([cx + a * Math.sign(c) * Math.abs(c) ** 0.35, cy + b * Math.sign(s) * Math.abs(s) ** 0.35]);
+  }
+  const L = [0];
+  for (let j = 1; j <= N; j++) { const p = S[j % N], q = S[j - 1]; L.push(L[j - 1] + Math.hypot(p[0] - q[0], p[1] - q[1])); }
+  const P = L[N], pts = [];
+  let d = 0;
+  while (d < P - mn * 0.6) { pts.push(d); d += mn + rnd() * (mx - mn); }
+  const at = (v) => {
+    let j = Math.max(1, L.findIndex((x) => x >= v));
+    const r = (v - L[j - 1]) / (L[j] - L[j - 1] || 1), p = S[(j - 1) % N], q = S[j % N];
+    return [p[0] + (q[0] - p[0]) * r, p[1] + (q[1] - p[1]) * r];
+  };
+  const X = pts.map(at), f = (n) => n.toFixed(1);
+  let path = `M${f(X[0][0])} ${f(X[0][1])}`;
+  for (let j = 0; j < X.length; j++) {
+    const q = X[(j + 1) % X.length], ch = Math.hypot(q[0] - X[j][0], q[1] - X[j][1]), r = (0.55 + rnd() * 0.2) * ch;
+    path += ` A${f(r)} ${f(r)} 0 0 1 ${f(q[0])} ${f(q[1])}`;
+  }
+  return path + "Z";
+}
+// 元素放進畫面、量得到大小之後才畫（大小改變時重畫）
+function whenSized(el, fn) {
+  let last = "";
+  const run = () => {
+    const k = `${el.offsetWidth}x${el.offsetHeight}`;
+    if (!el.offsetWidth || k === last) return;
+    last = k;
+    fn();
+  };
+  if (window.ResizeObserver) new ResizeObserver(run).observe(el);
+  requestAnimationFrame(run);
+}
+
+function renderInner(secs) {
+  const head = secs[0][0].trim().replace(/^💭\s*[｜|]\s*/, "");
+  const tm = head.match(/(\d{1,2}[:：]\d{2})\s*$/);
+  const title = (tm ? head.slice(0, tm.index) : head).trim();
+  const lines = secs.slice(1).flat().map((l) => l.trim());
+  const frags = [];
+  let heart = "";
+  for (const t of lines) {
+    if (/^▸/.test(t)) {
+      const m = t.replace(/^▸\s*/, "").match(/^(page\.?\s*\d+|p\.?\s*\d+)\s*[｜|]\s*(.*)$/i);
+      frags.push({ pg: m ? m[1].replace(/^page\.?\s*/i, "p.").replace(/^p\.?\s*/i, "p.") : "", said: m ? m[2] : t.replace(/^▸\s*/, ""), inner: "" });
+    } else if (/^└/.test(t) && frags.length) {
+      const f = frags[frags.length - 1];
+      f.inner += (f.inner ? "\n" : "") + loreItem(t);
+    } else if (/^🫀/.test(t)) heart = t.replace(/^🫀\s*[｜|]\s*/, "");
+  }
+  if (!frags.length) return null;
+  const board = document.createElement("div");
+  board.className = "lv os-board";
+  board.innerHTML = `<div class="os-tape">${inline(heart || title)}</div>`;
+  const note = document.createElement("div");
+  note.className = "os-note";
+  note.innerHTML = frags.map((f) => `<div class="os-f"><div class="os-s">${f.pg ? `<span class="pg">${esc(f.pg)}</span>` : ""}<span>${inline(f.said)}</span></div>${f.inner ? `<div class="os-o">${inline(f.inner).replace(/\n/g, "<br>")}</div>` : ""}</div>`).join("") + '<span class="os-cat"></span>';
+  board.append(note);
+  const who = document.createElement("div");
+  who.className = "os-who";
+  who.textContent = `💭 ${title}${tm ? "・" + tm[1] : ""}`;
+  board.append(who);
+  whenSized(note, () => {
+    const w = note.offsetWidth, h = note.offsetHeight, d = cloudPath(w, h, seedRand(title + frags.length), 36, 60, 12);
+    const old = note.querySelector(":scope > svg");
+    if (old) old.remove();
+    const layers = [6, 4.5, 3, 1.5].map((y, k) => `<path d="${d}" transform="translate(0 ${y})" fill="${["#d9cfbf", "#e4dbcd", "#ece4d8", "#f3ede3"][k]}"/>`).join("");
+    note.insertAdjacentHTML("afterbegin", `<svg width="${w}" height="${h}" aria-hidden="true">${layers}<path d="${d}" fill="#fffdf8"/><path d="${d}" fill="none" stroke="rgba(120,90,50,.12)" stroke-width="1"/></svg>`);
+  });
+  return board;
+}
+
+// 心葉毬蘭底圖 hoya.png（768×1280，實際畫面在 53,231～723,1200；藤圈圓心 384,631、半徑 301）
+const HOYA = { W: 768, H: 1280, x0: 53, y0: 231, w: 670, h: 969, cx: 384, cy: 631, r: 301, potX: 384, potY: 1090 };
+// 葉子可長的位置：[角度, 1＝圈外／-1＝圈內]，避開五顆花球（130／34／169／-29／-124 度），依序填
+const HOYA_SLOTS = [[82, 1], [150, -1], [8, -1], [-62, -1], [205, -1], [108, -1], [58, 1], [-90, -1], [235, -1], [185, -1], [-10, 1], [125, 1]];
+const LEAF_COL = { like: ["#d3ebb9", "#9fcd85", "#5f8f4b"], avoid: ["#ece4ab", "#c8b86a", "#8f8139"], said: ["#c8e8d7", "#89c2a4", "#467f63"] };
+const HEART_D = "M50 92 C33 78 3 58 3 32 C3 14 17 3 31 3 C40 3 47 9 50 17 C53 9 60 3 69 3 C83 3 97 14 97 32 C97 58 67 78 50 92 Z";
+
+function renderAbout(secs) {
+  const head = secs[0][0].trim().replace(/^📝\s*[｜|]\s*/, "");
+  const tm = head.match(/(\d{1,2}[:：]\d{2})\s*$/);
+  const title = (tm ? head.slice(0, tm.index) : head).trim();
+  const leaves = [], qs = [];
+  let kind = "like", label = "";
+  for (const raw of secs.slice(1).flat()) {
+    const t = raw.trim();
+    const h = loreHead(t);
+    if (h) {
+      label = h.label;
+      kind = /❓|❔/.test(h.icon) ? "q" : /⚠|🚫|❌/.test(h.icon) ? "avoid" : /🗝|🔑|💬/.test(h.icon) || /說過/.test(h.label) ? "said" : "like";
+      continue;
+    }
+    if (!/^└/.test(t)) continue;
+    const [txt, note] = splitDash(loreItem(t));
+    if (kind === "q") qs.push(txt + (note ? `（${note}）` : ""));
+    else leaves.push({ kind, label, txt, note });
+  }
+  if (!leaves.length && !qs.length) return null;
+  const shown = leaves.slice(0, HOYA_SLOTS.length);
+  const card = document.createElement("div");
+  card.className = "lv ab-card";
+  card.innerHTML = `<div class="ab-hd">📝 ${inline(title)}<span>${tm ? esc(tm[1]) : ""}</span></div>`;
+  const stage = document.createElement("div");
+  stage.className = "ab-stage";
+  const img = document.createElement("img");
+  img.src = "hoya.png";
+  img.alt = "";
+  stage.append(img);
+  const user = playerName() || "玩家";
+  const tape = document.createElement("div");
+  tape.className = "ab-tape";
+  tape.innerHTML = `<small>ABOUT</small>${esc(user)}`;
+  stage.append(tape);
+  const leafEls = shown.map((it, i) => {
+    const el = document.createElement("div");
+    el.className = `ab-leaf ${it.kind}`;
+    const c = LEAF_COL[it.kind];
+    el.innerHTML = `<svg viewBox="0 0 100 95" aria-hidden="true"><path d="${HEART_D}" fill="${c[1]}" stroke="${c[2]}" stroke-width="1.2"/><path d="${HEART_D}" fill="url(#abg-${it.kind})"/><path d="M50 18 Q48 55 50 88" stroke="rgba(255,255,255,.4)" stroke-width="1.6" fill="none"/></svg><p><b>${esc(it.label)}</b>${inline(it.txt)}${it.note ? `<small>${inline(it.note)}</small>` : ""}</p>`;
+    stage.append(el);
+    return el;
+  });
+  if (qs.length) {
+    const n = document.createElement("div");
+    n.className = "ab-note";
+    n.innerHTML = `<b>❓ 還沒確認</b>${qs.map((q) => `<p>${inline(q)}</p>`).join("")}`;
+    stage.append(n);
+  }
+  card.append(stage);
+  const kinds = new Set(shown.map((x) => x.kind));
+  const lg = document.createElement("div");
+  lg.className = "ab-legend";
+  lg.innerHTML = [["like", "喜歡"], ["avoid", "避開"], ["said", "說過的話"]].filter(([k]) => kinds.has(k)).map(([k, n]) => `<span><i style="background:${LEAF_COL[k][1]}"></i>${n}</span>`).join("") + (qs.length ? "<span>📌 便利貼＝還沒確認</span>" : "");
+  card.append(lg);
+  // 漸層只要定義一次
+  if (!document.getElementById("abg-like")) {
+    document.body.insertAdjacentHTML("beforeend", `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${Object.entries(LEAF_COL).map(([k, c]) => `<linearGradient id="abg-${k}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c[0]}"/><stop offset="1" stop-color="${c[1]}" stop-opacity="0"/></linearGradient>`).join("")}</defs></svg>`);
+  }
+  const rnd0 = title + shown.length;
+  whenSized(card, () => {
+    const W = Math.min(card.clientWidth - 20, 400), s = W / HOYA.w, padT = 40;
+    stage.style.width = W + "px";
+    stage.style.height = HOYA.h * s + padT + "px";
+    Object.assign(img.style, { width: HOYA.W * s + "px", left: -HOYA.x0 * s + "px", top: -HOYA.y0 * s + padT + "px" });
+    const CX = (HOYA.cx - HOYA.x0) * s, CY = (HOYA.cy - HOYA.y0) * s + padT, R = HOYA.r * s;
+    tape.style.left = (HOYA.potX - HOYA.x0) * s + "px";
+    tape.style.top = (HOYA.potY - HOYA.y0) * s + padT + "px";
+    const note = stage.querySelector(".ab-note");
+    if (note) note.style.top = CY - 30 + "px";
+    const n = shown.length, base = Math.round((n <= 6 ? 100 : n <= 8 ? 92 : 84) * Math.min(1, W / 400)), fs0 = n <= 6 ? 12 : 11.5;
+    const rnd = seedRand(rnd0);
+    leafEls.forEach((el, i) => {
+      const [deg, side] = HOYA_SLOTS[i], a = (deg * Math.PI) / 180, d = [Math.cos(a), -Math.sin(a)];
+      const rot = (Math.atan2(d[1] * side, d[0] * side) * 180) / Math.PI - 90 + (rnd() - 0.5) * 90;
+      el.querySelector("svg").style.transform = `rotate(${rot}deg)`;
+      const p = el.querySelector("p");
+      // 字放不下：葉子先長大（最多 1.35 倍），還是放不下再縮字
+      let sz = base, fs = fs0;
+      const place = () => {
+        const off = side * sz * 0.4;
+        Object.assign(el.style, { width: sz + "px", height: sz * 0.95 + "px", left: CX + (R + off) * d[0] + "px", top: CY + (R + off) * d[1] + "px" });
+        el.style.setProperty("--fs", fs + "px");
+      };
+      place();
+      while (p.scrollHeight > p.clientHeight + 1 && sz < base * 1.35) { sz += 6; place(); }
+      while (p.scrollHeight > p.clientHeight + 1 && fs > 9.5) { fs -= 0.5; place(); }
+    });
+  });
+  return card;
+}
+
 function parseForum(secs) {
   const head = secs[0].map((l) => l.trim());
   const pick = (re) => (head.find((l) => re.test(l)) || "").replace(/^\S{1,3}\s*[｜|]\s*/, "").trim();
