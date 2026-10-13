@@ -1226,6 +1226,13 @@
       <option value="paper-sage">綠・舊帳本</option>
     </select>
 
+    <label for="away">角色主動傳訊息</label>
+    <select id="away">
+      <option value="off">關閉</option>
+      <option value="on">打開</option>
+    </select>
+    <p class="note" style="margin:6px 0 0">打開後，你離開超過 8 小時再回來，角色可能會先傳訊息給你。<br>觸發時那一則回覆會稍微長一點，多用一些 token。</p>
+
     <label for="invite">邀請碼</label>
     <input id="invite" autocomplete="off">
 
@@ -1692,10 +1699,20 @@ function render() {
       : "先到右上角 ☰ →「設定」填好邀請碼、API key，載入模型與角色。";
     chatEl.append(d);
   }
-  history.forEach((m, i) => addBubble(m.role, m.text, false, m.usage, i === history.length - 1, m.page));
+  history.forEach((m, i) => {
+    if (m.role === "user" && m.away) addAwayMark(m.away);
+    addBubble(m.role, m.text, false, m.usage, i === history.length - 1, m.page);
+  });
   renderSaveMarks();
   $("pasteCard").hidden = !currentCard();
   scrollDown();
+}
+
+function addAwayMark(n) {
+  const d = document.createElement("div");
+  d.className = "marker";
+  d.textContent = `你離開了 ${n} 小時`;
+  chatEl.append(d);
 }
 
 function addBubble(role, text, scroll = true, usage = null, latest = true, page = 0) {
@@ -3821,6 +3838,8 @@ async function callWithRetry(path, payload) {
   }
 }
 
+const AWAY_HOURS = 8;
+
 function ready() {
   if (!settings.invite || !settings.key || !settings.model || !settings.character) {
     openSettings("請先完成設定");
@@ -3836,10 +3855,20 @@ async function send(text, { addUser = true } = {}) {
   if (!message) return;
 
   const prior = history.slice();
+  // 離開多久：距離上一則角色回覆超過 AWAY_HOURS 小時，而且設定有打開
+  let away = 0;
   if (addUser) {
-    history.push({ role: "user", text: message });
+    const lastAt = ([...prior].reverse().find((m) => m.role === "model") || {}).at;
+    const hrs = lastAt ? Math.floor((Date.now() - lastAt) / 3600000) : 0;
+    if (store.get("rp_away", "off") === "on" && hrs >= AWAY_HOURS && message !== NEW_GAME && !isOldGame(message) && !loreOf(message)) away = hrs;
+    history.push(away ? { role: "user", text: message, away } : { role: "user", text: message });
     saveHistory();
+    if (away) addAwayMark(away);
     addBubble("user", message);
+  } else {
+    // 重來最後一則：沿用那一句當時的離開時數
+    const u = [...history].reverse().find((m) => m.role === "user");
+    away = (u && u.away) || 0;
   }
 
   // 玩家在聊天中送出角色卡 → 自動存成這個存檔的卡
@@ -3882,6 +3911,7 @@ async function send(text, { addUser = true } = {}) {
       recall,
       history: prior.slice(-HISTORY_LIMIT), // 只送最近 40 則（Worker 本來就只用這些），不再每輪上傳整個存檔
       message,
+      away,
     });
     if (data.fields && typeof data.fields === "object" && JSON.stringify(statusFieldMap[settings.character] || {}) !== JSON.stringify(data.fields)) {
       statusFieldMap[settings.character] = data.fields;
@@ -3891,7 +3921,7 @@ async function send(text, { addUser = true } = {}) {
       tailMarks[settings.character] = data.tail;
       store.set("rp_tail", tailMarks);
     }
-    history.push({ role: "model", text: data.text, usage: data.usage });
+    history.push({ role: "model", text: data.text, usage: data.usage, at: Date.now() });
     saveHistory(); // 這一步會把頁首 page.X 校正成程式計數
     setBusy(false);
     renderTitle();
@@ -3980,6 +4010,7 @@ $("retry").onclick = () => {
   if (!lastUser) return;
   history.push(lastUser);
   saveHistory();
+  if (lastUser.away) addAwayMark(lastUser.away);
   addBubble("user", lastUser.text);
   send(lastUser.text, { addUser: false });
 };
@@ -4754,7 +4785,10 @@ function applyTheme(t) {
 const SKINS = ["paper", "paper-coffee", "paper-lilac", "paper-sage"];
 function applySkin(k) { document.documentElement.dataset.skin = SKINS.includes(k) ? k : "paper"; }
 $("skin").value = SKINS.includes(store.get("rp_skin", "paper")) ? store.get("rp_skin", "paper") : "paper";
-$("skin").addEventListener("change", () => { store.set("rp_skin", $("skin").value); applySkin($("skin").value); });
+$("skin").addEventListener("change", () => { store.set("rp_skin", $("skin").value); applySkin($("skin").value);
+// 角色主動傳訊息：離開 AWAY_HOURS 小時以上再回來，第一句話附上彩蛋（存在這支手機，預設關閉）
+$("away").value = store.get("rp_away", "off") === "on" ? "on" : "off";
+$("away").addEventListener("change", () => store.set("rp_away", $("away").value)); });
 applySkin($("skin").value);
 $("theme").value = store.get("rp_theme", "auto");
 $("theme").addEventListener("change", () => {
