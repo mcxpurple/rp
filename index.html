@@ -649,6 +649,9 @@
   :root[data-skin^="paper"] .stcard .chip:nth-child(4n+2)::before { background: rgba(196, 150, 60, .45); transform: translateX(-50%) rotate(3deg); }
   :root[data-skin^="paper"] .stcard .chip:nth-child(4n+3)::before { background: rgba(110, 140, 100, .45); }
   :root[data-skin^="paper"] .stcard .chip:nth-child(4n+4)::before { background: rgba(100, 125, 160, .42); transform: translateX(-50%) rotate(5deg); }
+  /* 第 5、6 張：紫、粉，6 張都不同色 */
+  :root[data-skin^="paper"] .stcard .chip:nth-child(5)::before { background: rgba(140, 110, 165, .45); transform: translateX(-50%) rotate(-3deg); }
+  :root[data-skin^="paper"] .stcard .chip:nth-child(6)::before { background: rgba(210, 135, 170, .45); transform: translateX(-50%) rotate(2deg); }
   :root[data-skin^="paper"] .stcard .chip::after { content: none; }
 
   /* ===== 手機畫面：跟著狀態卡樣式換色（黃＝米白信箋、棕、紫、綠；棕紫綠深色模式另有夜版） ===== */
@@ -769,30 +772,47 @@
   /* ===== 翻看・關於你：心葉毬蘭 ===== */
   .ab-card { position: relative; max-width: 25em; margin: 22px auto 30px; border-radius: 18px; padding: 16px 10px 14px; background: var(--phone);
     box-shadow: var(--shadow); background-image: radial-gradient(ellipse at 50% 70%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 62%); }
-  .ab-hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-family: "Noto Serif TC", serif; font-weight: 700; font-size: 15px; padding: 0 8px; }
+  .ab-hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; line-height: 1.4; font-family: "Noto Serif TC", serif; font-weight: 700; font-size: 15px; padding: 0 8px; }
   .ab-hd span { font-size: 11px; font-weight: 400; color: var(--muted); font-family: "Noto Sans TC", sans-serif; white-space: nowrap; }
   .ab-stage { position: relative; margin: 0 auto; }
   .ab-stage > img { position: absolute; pointer-events: none; }
   .ab-leaf { position: absolute; transform: translate(-50%, -50%); z-index: 2; }
   .ab-leaf svg { position: absolute; inset: 0; overflow: visible; filter: drop-shadow(0 2px 2px rgba(20,40,15,.28)); }
-  .ab-leaf p { position: absolute; inset: 0; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-    padding: 14% 13% 20%; font-size: var(--fs); line-height: 1.32; color: #1f2e18; font-weight: 500; overflow: hidden; word-break: break-word; }
+  .ab-leaf p { position: absolute; left: 20%; right: 20%; top: 22%; bottom: 30%; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    font-size: var(--fs); line-height: 1.3; color: #1f2e18; font-weight: 500; overflow: hidden; word-break: break-word; }
+  .ab-leaf p .t { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+  .ab-leaf.on svg { filter: drop-shadow(0 0 0 #fff) drop-shadow(0 0 3px rgba(255,255,255,.9)) drop-shadow(0 2px 2px rgba(20,40,15,.28)); }
+  .ab-detail { margin: 8px 10px 2px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 8%, var(--phone)); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); font-size: 13.5px; line-height: 1.7; }
+  .ab-detail b { display: block; font-size: 11px; color: var(--muted); letter-spacing: .06em; }
+  .ab-detail small { display: block; font-size: 12px; color: var(--muted); }
+  .ab-hint { text-align: center; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
   .ab-leaf p b { font-size: .78em; font-weight: 700; opacity: .65; }
   .ab-leaf p small { font-size: .78em; opacity: .65; font-weight: 400; }
   .ab-leaf.said p { font-family: "Noto Serif TC", serif; }
-  .ab-note { position: absolute; left: 50%; transform: translateX(-50%) rotate(-3deg); width: 150px; padding: 16px 12px 12px; font-size: 12px; line-height: 1.55;
+  .ab-note { position: absolute; left: 50%; transform: translate(-50%, -50%) rotate(-3deg); width: 46%; max-width: 160px; padding: 16px 12px 12px; font-size: 11.5px; line-height: 1.5;
     text-align: center; z-index: 3; color: #3a2a20; background: color-mix(in srgb, var(--accent) 10%, #fffbe8); box-shadow: 0 4px 8px rgba(0,0,0,.18); }
   .ab-note::before { content: ""; position: absolute; left: 16px; top: -4px; width: 17px; height: 17px; border-radius: 50%;
     background: radial-gradient(circle at 34% 30%, #fff 0 1.6px, rgba(255,255,255,.55) 2.4px, transparent 4.5px), radial-gradient(circle at 50% 55%, #e8463c 0 45%, #b51f1f 75%, #7e1212 100%);
     box-shadow: 2px 4px 4px rgba(0,0,0,.35), inset -1px -2px 2px rgba(0,0,0,.25); }
   .ab-note::after { content: ""; position: absolute; left: 30px; top: 12px; width: 9px; height: 2px; border-radius: 2px; background: rgba(0,0,0,.22); transform: rotate(35deg); filter: blur(.6px); }
   .ab-note b { display: block; font-size: 10px; color: #b05a72; letter-spacing: .08em; }
-  .ab-note p { margin: 3px 0 0; } .ab-note p + p { border-top: 1px dashed rgba(120,90,50,.3); padding-top: 3px; }
+  .ab-note p { margin: 3px 0 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; cursor: pointer; } .ab-note p.open { -webkit-line-clamp: unset; } .ab-note p + p { border-top: 1px dashed rgba(120,90,50,.3); padding-top: 3px; }
   .ab-tape { position: absolute; transform: translate(-50%, -50%) rotate(-4deg); z-index: 3; padding: 4px 18px 5px; white-space: nowrap;
     font-family: "Noto Serif TC", serif; font-weight: 700; font-size: 13px; color: #3a2a20;
     background: radial-gradient(color-mix(in srgb, var(--accent) 38%, #fff) 1.6px, transparent 2px) 0 0 / 9px 9px, color-mix(in srgb, #fffaf0 90%, transparent);
     mask: conic-gradient(from 135deg at 6px 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 7px repeat-y, linear-gradient(#000, #000) 6px 0 / calc(100% - 12px) 100% no-repeat, conic-gradient(from -45deg at calc(100% - 6px) 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 7px repeat-y; }
   .ab-tape small { font-family: "Noto Sans TC", sans-serif; font-weight: 500; font-size: 9.5px; color: #7a6b5e; margin-right: 5px; letter-spacing: .08em; }
+  .ab-list { padding: 4px 6px 4px; }
+  .ab-grp { font-size: 11px; color: var(--muted); letter-spacing: .1em; margin: 12px 0 6px 2px; display: flex; align-items: center; gap: 6px; }
+  .ab-grp i { display: inline-block; width: 9px; height: 9px; border-radius: 50% 50% 0 50%; transform: rotate(45deg); }
+  .ab-tapes { display: flex; flex-direction: column; }
+  .ab-tp { position: relative; margin: 0 0 8px; padding: 7px 16px 8px; font-size: 13px; line-height: 1.6; color: #2b2a22; transform: rotate(var(--r)); width: fit-content; max-width: 100%;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 2px, transparent 2px 6px), var(--c); filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.15)); word-break: break-word;
+    mask: conic-gradient(from 135deg at 6px 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 7px repeat-y, linear-gradient(#000, #000) 6px 0 / calc(100% - 12px) 100% no-repeat, conic-gradient(from -45deg at calc(100% - 6px) 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 7px repeat-y; }
+  .ab-tp:nth-child(odd) { margin-left: auto; }
+  .ab-tp b { display: block; font-weight: 700; }
+  .ab-tp small { display: block; font-size: 11.5px; opacity: .72; }
+  .ab-tp.like { --c: color-mix(in srgb, #b7dc9c 85%, #fff); } .ab-tp.avoid { --c: color-mix(in srgb, #ddd08a 85%, #fff); } .ab-tp.said { --c: color-mix(in srgb, #a8d6be 85%, #fff); font-family: "Noto Serif TC", serif; }
   .ab-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: center; font-size: 10.5px; color: var(--muted); margin-top: 6px; }
   .ab-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50% 50% 0 50%; transform: rotate(45deg); margin-right: 4px; }
 
@@ -2634,14 +2654,22 @@ function renderInner(secs) {
 // 心葉毬蘭底圖 hoya.png（768×1280，實際畫面在 53,231～723,1200；藤圈圓心 384,631、半徑 301）
 const HOYA = { W: 768, H: 1280, x0: 53, y0: 231, w: 670, h: 969, cx: 384, cy: 631, r: 301, potX: 384, potY: 1090 };
 // 葉子可長的位置：[角度, 1＝圈外／-1＝圈內]，避開五顆花球（130／34／169／-29／-124 度），依序填
-const HOYA_SLOTS = [[82, 1], [150, -1], [8, -1], [-62, -1], [205, -1], [108, -1], [58, 1], [-90, -1], [235, -1], [185, -1], [-10, 1], [125, 1]];
+const HOYA_SLOTS = [[82, 1], [150, -1], [8, -1], [-62, -1], [205, -1], [108, -1], [58, 1], [-112, -1], [235, -1], [185, -1], [-10, 1], [125, 1]];
 const LEAF_COL = { like: ["#d3ebb9", "#9fcd85", "#5f8f4b"], avoid: ["#ece4ab", "#c8b86a", "#8f8139"], said: ["#c8e8d7", "#89c2a4", "#467f63"] };
 const HEART_D = "M50 92 C33 78 3 58 3 32 C3 14 17 3 31 3 C40 3 47 9 50 17 C53 9 60 3 69 3 C83 3 97 14 97 32 C97 58 67 78 50 92 Z";
 
+// 葉子上只放短字：去掉括號說明、取第一個句讀前，最多 14 字
+function leafShort(t) {
+  let s = String(t).replace(/^【[^】]*】\s*/, "").replace(/[（(][^）)]*[）)]/g, "").trim();
+  const m = s.match(/^「[^」]{1,14}」/);
+  if (m) return m[0];
+  s = s.split(/[，。；：、,;:]/)[0] || s;
+  return [...s].length > 14 ? [...s].slice(0, 13).join("") + "…" : s;
+}
 function renderAbout(secs) {
   const head = secs[0][0].trim().replace(/^📝\s*[｜|]\s*/, "");
   const tm = head.match(/(\d{1,2}[:：]\d{2})\s*$/);
-  const title = (tm ? head.slice(0, tm.index) : head).trim();
+  const title = (tm ? head.slice(0, tm.index) : head).replace(/\s*\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2}\s*$/, "").trim();
   const leaves = [], qs = [];
   let kind = "like", label = "";
   for (const raw of secs.slice(1).flat()) {
@@ -2677,7 +2705,7 @@ function renderAbout(secs) {
     const el = document.createElement("div");
     el.className = `ab-leaf ${it.kind}`;
     const c = LEAF_COL[it.kind];
-    el.innerHTML = `<svg viewBox="0 0 100 95" aria-hidden="true"><path d="${HEART_D}" fill="${c[1]}" stroke="${c[2]}" stroke-width="1.2"/><path d="${HEART_D}" fill="url(#abg-${it.kind})"/><path d="M50 18 Q48 55 50 88" stroke="rgba(255,255,255,.4)" stroke-width="1.6" fill="none"/></svg><p><b>${esc(it.label)}</b>${inline(it.txt)}${it.note ? `<small>${inline(it.note)}</small>` : ""}</p>`;
+    el.innerHTML = `<svg viewBox="0 0 100 95" aria-hidden="true"><path d="${HEART_D}" fill="${c[1]}" stroke="${c[2]}" stroke-width="1.2"/><path d="${HEART_D}" fill="url(#abg-${it.kind})"/><path d="M50 18 Q48 55 50 88" stroke="rgba(255,255,255,.4)" stroke-width="1.6" fill="none"/></svg><p><span class="t">${inline(leafShort(it.txt))}</span></p>`;
     stage.append(el);
     return el;
   });
@@ -2685,14 +2713,25 @@ function renderAbout(secs) {
     const n = document.createElement("div");
     n.className = "ab-note";
     n.innerHTML = `<b>❓ 還沒確認</b>${qs.map((q) => `<p>${inline(q)}</p>`).join("")}`;
+    n.querySelectorAll("p").forEach((x) => (x.onclick = () => x.classList.toggle("open")));
     stage.append(n);
   }
   card.append(stage);
-  const kinds = new Set(shown.map((x) => x.kind));
-  const lg = document.createElement("div");
-  lg.className = "ab-legend";
-  lg.innerHTML = [["like", "喜歡"], ["avoid", "避開"], ["said", "說過的話"]].filter(([k]) => kinds.has(k)).map(([k, n]) => `<span><i style="background:${LEAF_COL[k][1]}"></i>${n}</span>`).join("") + (qs.length ? "<span>📌 便利貼＝還沒確認</span>" : "");
-  card.append(lg);
+  // 盆栽下方：一條一條紙膠帶，依類別分組
+  const list = document.createElement("div");
+  list.className = "ab-list";
+  let k = 0;
+  const tilt = [-1.2, 0.8, -0.6, 1.1, -0.9, 0.5, -1.4];
+  for (const [kd, nm] of [["like", "喜歡"], ["avoid", "避開"], ["said", "說過的話"]]) {
+    const its = leaves.filter((x) => x.kind === kd);
+    if (!its.length) continue;
+    list.insertAdjacentHTML("beforeend", `<div class="ab-grp"><i style="background:${LEAF_COL[kd][1]}"></i>${nm}</div>`);
+    const box = document.createElement("div");
+    box.className = "ab-tapes";
+    box.innerHTML = its.map((it) => `<div class="ab-tp ${kd}" style="--r:${tilt[k++ % tilt.length]}deg"><b>${inline(it.txt)}</b>${it.note ? `<small>${inline(it.note)}</small>` : ""}</div>`).join("");
+    list.append(box);
+  }
+  card.append(list);
   // 漸層只要定義一次
   if (!document.getElementById("abg-like")) {
     document.body.insertAdjacentHTML("beforeend", `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${Object.entries(LEAF_COL).map(([k, c]) => `<linearGradient id="abg-${k}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c[0]}"/><stop offset="1" stop-color="${c[1]}" stop-opacity="0"/></linearGradient>`).join("")}</defs></svg>`);
@@ -2707,7 +2746,7 @@ function renderAbout(secs) {
     tape.style.left = (HOYA.potX - HOYA.x0) * s + "px";
     tape.style.top = (HOYA.potY - HOYA.y0) * s + padT + "px";
     const note = stage.querySelector(".ab-note");
-    if (note) note.style.top = CY - 30 + "px";
+    if (note) note.style.top = CY - 6 + "px";
     const n = shown.length, base = Math.round((n <= 6 ? 100 : n <= 8 ? 92 : 84) * Math.min(1, W / 400)), fs0 = n <= 6 ? 12 : 11.5;
     const rnd = seedRand(rnd0);
     leafEls.forEach((el, i) => {
@@ -2723,8 +2762,9 @@ function renderAbout(secs) {
         el.style.setProperty("--fs", fs + "px");
       };
       place();
-      while (p.scrollHeight > p.clientHeight + 1 && sz < base * 1.35) { sz += 6; place(); }
-      while (p.scrollHeight > p.clientHeight + 1 && fs > 9.5) { fs -= 0.5; place(); }
+      const t = p.querySelector(".t");
+      while (t.scrollHeight > p.clientHeight + 1 && sz < base * 1.2) { sz += 6; place(); }
+      while (t.scrollHeight > p.clientHeight + 1 && fs > 10) { fs -= 0.5; place(); }
     });
   });
   return card;
