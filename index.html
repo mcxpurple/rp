@@ -799,9 +799,9 @@
   .ab-note p { margin: 3px 0 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; cursor: pointer; } .ab-note p.open { -webkit-line-clamp: unset; } .ab-note p + p { border-top: 1px dashed rgba(120,90,50,.3); padding-top: 3px; }
   .ab-tape { position: absolute; transform: translate(-50%, -50%) rotate(-4deg); z-index: 3; padding: 4px 18px 5px; white-space: nowrap;
     font-family: "Noto Serif TC", serif; font-weight: 700; font-size: 13px; color: #3a2a20;
-    background: radial-gradient(color-mix(in srgb, var(--accent) 38%, #fff) 1.6px, transparent 2px) 0 0 / 9px 9px, color-mix(in srgb, #fffaf0 90%, transparent);
+    background: radial-gradient(color-mix(in srgb, var(--accent) 30%, #c4ad98) 1.6px, transparent 2px) 0 0 / 9px 9px, color-mix(in srgb, var(--accent) 10%, #f6efe2); filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.18));
     mask: conic-gradient(from 135deg at 6px 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 7px repeat-y, linear-gradient(#000, #000) 6px 0 / calc(100% - 12px) 100% no-repeat, conic-gradient(from -45deg at calc(100% - 6px) 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 7px repeat-y; }
-  .ab-tape small { font-family: "Noto Sans TC", sans-serif; font-weight: 500; font-size: 9.5px; color: #7a6b5e; margin-right: 5px; letter-spacing: .08em; }
+  .ab-tape small { font-family: "Noto Serif TC", serif; font-style: italic; font-weight: 400; font-size: 12px; color: #7a6b5e; margin-right: 6px; letter-spacing: .02em; }
   .ab-list { padding: 4px 6px 4px; }
   .ab-grp { font-size: 11px; color: var(--muted); letter-spacing: .1em; margin: 12px 0 6px 2px; display: flex; align-items: center; gap: 6px; }
   .ab-grp i { display: inline-block; width: 9px; height: 9px; border-radius: 50% 50% 0 50%; transform: rotate(45deg); }
@@ -813,6 +813,10 @@
   .ab-tp b { display: block; font-weight: 700; }
   .ab-tp small { display: block; font-size: 11.5px; opacity: .72; }
   .ab-tp.like { --c: color-mix(in srgb, #b7dc9c 85%, #fff); } .ab-tp.avoid { --c: color-mix(in srgb, #ddd08a 85%, #fff); } .ab-tp.said { --c: color-mix(in srgb, #a8d6be 85%, #fff); font-family: "Noto Serif TC", serif; }
+  .ab-list .ab-note { position: relative; left: auto; transform: rotate(-1.5deg); width: auto; max-width: none; margin: 22px 8px 6px; text-align: left; padding: 18px 16px 12px; font-size: 13px; }
+  .ab-list .ab-note p { -webkit-line-clamp: unset; }
+  .ab-list .ab-note b { text-align: center; }
+  .ab-tape { font-size: 15px; padding: 6px 20px 7px; }
   .ab-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: center; font-size: 10.5px; color: var(--muted); margin-top: 6px; }
   .ab-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50% 50% 0 50%; transform: rotate(45deg); margin-right: 4px; }
 
@@ -2654,7 +2658,7 @@ function renderInner(secs) {
 // 心葉毬蘭底圖 hoya.png（768×1280，實際畫面在 53,231～723,1200；藤圈圓心 384,631、半徑 301）
 const HOYA = { W: 768, H: 1280, x0: 53, y0: 231, w: 670, h: 969, cx: 384, cy: 631, r: 301, potX: 384, potY: 1090 };
 // 葉子可長的位置：[角度, 1＝圈外／-1＝圈內]，避開五顆花球（130／34／169／-29／-124 度），依序填
-const HOYA_SLOTS = [[82, 1], [150, -1], [8, -1], [-62, -1], [205, -1], [108, -1], [58, 1], [-112, -1], [235, -1], [185, -1], [-10, 1], [125, 1]];
+const HOYA_SLOTS = [[82, 1], [150, -1], [8, -1], [-62, -1], [205, -1], [108, -1], [58, 1], [-112, -1], [-87, 1], [185, -1], [-10, 1], [125, 1]];
 const LEAF_COL = { like: ["#d3ebb9", "#9fcd85", "#5f8f4b"], avoid: ["#ece4ab", "#c8b86a", "#8f8139"], said: ["#c8e8d7", "#89c2a4", "#467f63"] };
 const HEART_D = "M50 92 C33 78 3 58 3 32 C3 14 17 3 31 3 C40 3 47 9 50 17 C53 9 60 3 69 3 C83 3 97 14 97 32 C97 58 67 78 50 92 Z";
 
@@ -2687,6 +2691,7 @@ function renderAbout(secs) {
   }
   if (!leaves.length && !qs.length) return null;
   const shown = leaves.slice(0, HOYA_SLOTS.length);
+  let noteEl = null;
   const card = document.createElement("div");
   card.className = "lv ab-card";
   card.innerHTML = `<div class="ab-hd">📝 ${inline(title)}<span>${tm ? esc(tm[1]) : ""}</span></div>`;
@@ -2699,7 +2704,7 @@ function renderAbout(secs) {
   const user = playerName() || "玩家";
   const tape = document.createElement("div");
   tape.className = "ab-tape";
-  tape.innerHTML = `<small>ABOUT</small>${esc(user)}`;
+  tape.innerHTML = `<small>about</small>${esc(user)}`;
   stage.append(tape);
   const leafEls = shown.map((it, i) => {
     const el = document.createElement("div");
@@ -2714,7 +2719,7 @@ function renderAbout(secs) {
     n.className = "ab-note";
     n.innerHTML = `<b>❓ 還沒確認</b>${qs.map((q) => `<p>${inline(q)}</p>`).join("")}`;
     n.querySelectorAll("p").forEach((x) => (x.onclick = () => x.classList.toggle("open")));
-    stage.append(n);
+    noteEl = n;
   }
   card.append(stage);
   // 盆栽下方：一條一條紙膠帶，依類別分組
@@ -2732,6 +2737,7 @@ function renderAbout(secs) {
     list.append(box);
   }
   card.append(list);
+  if (noteEl) list.append(noteEl);
   // 漸層只要定義一次
   if (!document.getElementById("abg-like")) {
     document.body.insertAdjacentHTML("beforeend", `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${Object.entries(LEAF_COL).map(([k, c]) => `<linearGradient id="abg-${k}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c[0]}"/><stop offset="1" stop-color="${c[1]}" stop-opacity="0"/></linearGradient>`).join("")}</defs></svg>`);
@@ -2743,10 +2749,9 @@ function renderAbout(secs) {
     stage.style.height = HOYA.h * s + padT + "px";
     Object.assign(img.style, { width: HOYA.W * s + "px", left: -HOYA.x0 * s + "px", top: -HOYA.y0 * s + padT + "px" });
     const CX = (HOYA.cx - HOYA.x0) * s, CY = (HOYA.cy - HOYA.y0) * s + padT, R = HOYA.r * s;
-    tape.style.left = (HOYA.potX - HOYA.x0) * s + "px";
-    tape.style.top = (HOYA.potY - HOYA.y0) * s + padT + "px";
-    const note = stage.querySelector(".ab-note");
-    if (note) note.style.top = CY - 6 + "px";
+    tape.style.left = CX + "px";
+    tape.style.top = CY - 6 + "px";
+
     const n = shown.length, base = Math.round((n <= 6 ? 100 : n <= 8 ? 92 : 84) * Math.min(1, W / 400)), fs0 = n <= 6 ? 12 : 11.5;
     const rnd = seedRand(rnd0);
     leafEls.forEach((el, i) => {
