@@ -426,6 +426,39 @@
   #slotNew { margin-top: 14px; }
   #slotNew[hidden] { display: none; }
 
+  /* ===== 選角畫面：黃色資料夾（固定在上方）＋墨藍紙膠帶關閉鈕 ===== */
+  #charPicker { --fd: #7a6230; --fd-line: #a8873f; --fd-tab2: #4a3d22; --fd-tab2-line: #6b5830; --fd-ink: #fbf3df; --fd-ink2: #c9b489;
+    --fd-field: #4a3d22; --fd-pick: #7fa3b8; --fd-pick-ink: #10232e; --fd-tag-ink: #f2e3be; --tape: #7fa3b8; --tape-ink: #10232e; --tape-dash: #f2d58c; }
+  :root[data-theme="light"] #charPicker { --fd: #e6c77e; --fd-line: #ba7517; --fd-tab2: #f2e3be; --fd-tab2-line: #d8b66a; --fd-ink: #412402; --fd-ink2: #854f0b;
+    --fd-field: #fbf3df; --fd-pick: #3e5c6e; --fd-pick-ink: #e6f1fb; --fd-tag-ink: #633806; --tape: #3e5c6e; --tape-ink: #fbf3df; --tape-dash: #e6c77e; }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]):not([data-theme="light"]) #charPicker { --fd: #e6c77e; --fd-line: #ba7517; --fd-tab2: #f2e3be; --fd-tab2-line: #d8b66a; --fd-ink: #412402; --fd-ink2: #854f0b;
+    --fd-field: #fbf3df; --fd-pick: #3e5c6e; --fd-pick-ink: #e6f1fb; --fd-tag-ink: #633806; --tape: #3e5c6e; --tape-ink: #fbf3df; --tape-dash: #e6c77e; } }
+  .picker-sheet { padding-top: 0; }
+  .fd-head { position: sticky; top: 0; z-index: 3; margin: 0 -18px 12px; padding: 18px 18px 12px; background: var(--page); }
+  .fd-tabs { display: flex; align-items: flex-end; gap: 4px; padding-right: 96px; }
+  .fd-tabs button { border: .5px solid var(--fd-tab2-line); border-bottom: 0; border-radius: 10px 10px 0 0; background: var(--fd-tab2); color: var(--fd-ink2);
+    padding: 5px 18px; font-size: 14px; }
+  .fd-tabs button.on, #backChars { position: relative; z-index: 1; margin-bottom: -1px; padding: 7px 18px; background: var(--fd); border-color: var(--fd-line);
+    color: var(--fd-ink); font-weight: 700; }
+  .fd-tabs button:first-child.on, #backChars { border-radius: 12px 10px 0 0; }
+  .fd-tabs button[hidden] { display: none; }
+  .fd-body { background: var(--fd); border: .5px solid var(--fd-line); border-radius: 0 14px 14px 14px; padding: 12px 14px 12px; color: var(--fd-ink); }
+  .fd-body h2 { color: var(--fd-ink); font-size: 18px; margin: 0 0 2px; }
+  .fd-body .note { color: var(--fd-ink2); font-size: 12px; margin: 0 0 10px; line-height: 1.6; }
+  .fd-body .pick-search { background: var(--fd-field); border-color: var(--fd-line); border-radius: 8px; }
+  .fd-body .pick-search input { color: var(--fd-ink); padding: 8px 0; }
+  .fd-body .pick-search input::placeholder { color: var(--fd-ink2); }
+  .fd-body .pick-search:focus-within { border-color: var(--fd-pick); }
+  .fd-body .pick-tags { margin: 10px -14px 0; padding: 0 14px 2px; }
+  .fd-body .pick-tags button { border: 0; border-radius: 6px; background: var(--fd-field); color: var(--fd-tag-ink); font-size: 12.5px; padding: 4px 11px; }
+  .fd-body .pick-tags button.on { background: var(--fd-pick); color: var(--fd-pick-ink); font-weight: 700; }
+  .fd-tape { position: absolute; top: 14px; right: 20px; transform: rotate(4deg); border: 0; border-radius: 0; padding: 7px 14px; font-size: 13px; font-weight: 700;
+    color: var(--tape-ink); background-color: var(--tape); letter-spacing: .04em;
+    background-image: repeating-linear-gradient(90deg, var(--tape-dash) 0 4px, transparent 4px 7px), repeating-linear-gradient(90deg, var(--tape-dash) 0 4px, transparent 4px 7px);
+    background-size: 100% 1.5px, 100% 1.5px; background-position: 0 3px, 0 calc(100% - 3px); background-repeat: no-repeat;
+    clip-path: polygon(3% 0, 97% 4%, 100% 50%, 97% 100%, 2% 96%, 0 50%); }
+  .fd-tape:active { transform: rotate(4deg) scale(.95); }
+
   /* ☰ 選單 */
   #menuBtn { font-size: 22px; line-height: 1; padding: 6px 10px; }
   .menu-wrap { position: fixed; inset: 0; z-index: 20; display: none; }
@@ -1137,16 +1170,23 @@
 </footer>
 
 <div id="charPicker" class="overlay">
-  <div class="sheet">
-    <h2 id="pickTitle">切換角色</h2>
-    <p class="note" id="pickNote">每個角色可以開多個存檔，每個存檔有自己的玩家角色卡與對話。</p>
-    <div id="pickTools">
-      <label class="pick-search" for="pickSearch" style="margin:0"><span aria-hidden="true">🔍</span><input id="pickSearch" type="search" autocomplete="off" placeholder="搜尋角色名稱、簡介或分類"></label>
-      <div class="pick-tabs" role="tablist">
-        <button type="button" id="tabSolo" role="tab">🩷 單人</button>
-        <button type="button" id="tabMulti" role="tab">💜 多人</button>
+  <div class="sheet picker-sheet">
+    <!-- 黃色資料夾：整塊固定在上方，只有下面的角色清單捲動 -->
+    <div class="fd-head">
+      <div class="fd-tabs" role="tablist">
+        <button type="button" id="tabSolo" role="tab">單人</button>
+        <button type="button" id="tabMulti" role="tab">多人</button>
+        <button type="button" id="backChars" hidden>‹ 角色列表</button>
       </div>
-      <div class="pick-tags" id="pickTags"></div>
+      <button type="button" id="closeChars" class="fd-tape" aria-label="關閉">✕ 關閉</button>
+      <div class="fd-body">
+        <h2 id="pickTitle">切換角色</h2>
+        <p class="note" id="pickNote">每個角色可以開多個存檔，每個存檔有自己的玩家角色卡與對話。</p>
+        <div id="pickTools">
+          <label class="pick-search" for="pickSearch" style="margin:0"><span aria-hidden="true">🔍</span><input id="pickSearch" type="search" autocomplete="off" placeholder="搜尋角色名稱、簡介或分類"></label>
+          <div class="pick-tags" id="pickTags"></div>
+        </div>
+      </div>
     </div>
     <div id="charList" class="charlist"></div>
     <div id="slotNew" class="row" hidden>
@@ -1154,10 +1194,6 @@
       <button class="primary" id="addSlot" type="button">＋ 新增</button>
     </div>
     <div class="status" id="charStatus"></div>
-    <div class="actions">
-      <button id="backChars" type="button" hidden>← 角色列表</button>
-      <button id="closeChars" type="button">關閉</button>
-    </div>
   </div>
 </div>
 
@@ -4392,6 +4428,7 @@ async function openChars() {
   if (busy) return;
   if (!settings.invite) { openSettings("請先填寫邀請碼"); return; }
   $("charPicker").classList.add("open");
+  pickerPush();
   $("pickSearch").value = "";
   pickTag = ALL_TAG;
   showCharStep();
@@ -4440,6 +4477,8 @@ function showCharStep() {
   $("pickNote").textContent = "每個角色可以開多個存檔，每個存檔有自己的玩家角色卡與對話。";
   $("slotNew").hidden = true;
   $("backChars").hidden = true;
+  $("tabSolo").hidden = false;
+  $("tabMulti").hidden = false;
   $("pickTools").hidden = false;
   renderCharList();
 }
@@ -4561,6 +4600,8 @@ function showSlotStep(c) {
   $("pickTitle").textContent = cname;
   $("pickNote").textContent = "選一個存檔繼續，或新增一個存檔，用另一張玩家角色卡開始新的故事線。";
   $("pickTools").hidden = true;
+  $("tabSolo").hidden = true;
+  $("tabMulti").hidden = true;
   $("slotNew").hidden = false;
   $("backChars").hidden = false;
   $("slotName").value = "";
@@ -4636,7 +4677,7 @@ function enterSlot(c, sid) {
   saveSlots();
   loadHistory();
   render();
-  $("charPicker").classList.remove("open");
+  closePicker();
 }
 
 $("backChars").onclick = showCharStep;
@@ -4644,7 +4685,26 @@ $("slotName").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.pr
 
 $("openChars").onclick = openChars;
 $("title").onclick = openChars;
-$("closeChars").onclick = () => $("charPicker").classList.remove("open");
+$("closeChars").onclick = () => closePicker();
+// 點資料夾外面的暗色區域也能關
+$("charPicker").addEventListener("click", (e) => { if (e.target === $("charPicker")) closePicker(); });
+// 手機返回鍵／返回手勢：存檔頁 → 回角色列表；角色列表 → 關閉選角畫面（不會離開網頁）
+let pickerPushed = false;
+function pickerPush() {
+  if (pickerPushed) return;
+  try { window.history.pushState({ picker: 1 }, ""); pickerPushed = true; } catch {}
+}
+function closePicker() {
+  $("charPicker").classList.remove("open");
+  if (pickerPushed) { pickerPushed = false; try { window.history.back(); } catch {} }
+}
+window.addEventListener("popstate", () => {
+  if (!pickerPushed) return;
+  pickerPushed = false;
+  if (!$("charPicker").classList.contains("open")) return;
+  if ($("pickTools").hidden) { showCharStep(); pickerPush(); }
+  else $("charPicker").classList.remove("open");
+});
 $("closeSettings").onclick = () => $("settings").classList.remove("open");
 
 $("toggleKey").onclick = () => {
