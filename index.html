@@ -3775,7 +3775,8 @@ function usageText(u) {
   if (u.cachedContentTokenCount) parts.push(`其中快取 ${fmt(u.cachedContentTokenCount)}`);
   parts.push(`輸出 ${fmt(u.candidatesTokenCount)}`);
   if (u.thoughtsTokenCount) parts.push(`思考 ${fmt(u.thoughtsTokenCount)}`);
-  return parts.join("・") + " token";
+  // 實際回答的模型版本（例：選 Pro Latest 時，Google 實際用的是哪一版）
+  return (u.modelVersion ? `${u.modelVersion}・` : "") + parts.join("・") + " token";
 }
 
 function scrollDown() { chatEl.scrollTop = chatEl.scrollHeight; }
