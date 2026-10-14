@@ -3071,6 +3071,9 @@ function renderInner(secs) {
   who.textContent = `💭 ${title}${tm ? "・" + tm[1] : ""}`;
   board.append(who);
   whenSized(note, () => {
+    // 標題膠帶太長（換成兩三行）時，雲朵便條往下讓，不被膠帶蓋住
+    const tp = board.querySelector(".os-tape");
+    if (tp) board.style.paddingTop = Math.max(64, tp.offsetTop + tp.offsetHeight + 22) + "px";
     const w = note.offsetWidth, h = note.offsetHeight, d = cloudPath(w, h, seedRand(title + frags.length), 36, 60, 12);
     const old = note.querySelector(":scope > svg");
     if (old) old.remove();
