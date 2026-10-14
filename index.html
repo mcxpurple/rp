@@ -450,7 +450,16 @@
   .fd-body .pick-search input { color: var(--fd-ink); padding: 8px 0; }
   .fd-body .pick-search input::placeholder { color: var(--fd-ink2); }
   .fd-body .pick-search:focus-within { border-color: var(--fd-pick); }
-  .fd-body .pick-tags { margin: 10px -14px 0; padding: 0 14px 2px; }
+  .fd-body .pick-tags { margin: 0; padding: 0 0 2px; flex: 1; min-width: 0; scroll-behavior: smooth; }
+  .tag-row { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+  .tag-row:has(.pick-tags:empty) { display: none; }
+  .pick-tags.fade-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }
+  .pick-tags.fade-l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px); mask-image: linear-gradient(90deg, transparent, #000 40px); }
+  .pick-tags.fade-l.fade-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 40px), transparent); }
+  .tag-arrow { width: 28px; height: 28px; flex-shrink: 0; padding: 0; border: 0; border-radius: 50%; background: #fbf3df; color: #412402; font-size: 17px; font-weight: 700;
+    line-height: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 0 rgba(0,0,0,.3); }
+  .tag-arrow:active { transform: translateY(2px); box-shadow: none; }
+  .tag-arrow[hidden] { display: none; }
   .fd-body .pick-tags button { border: 0; border-radius: 6px; background: var(--fd-field); color: var(--fd-tag-ink); font-size: 12.5px; padding: 4px 11px; }
   .fd-body .pick-tags button.on { background: var(--fd-pick); color: var(--fd-pick-ink); font-weight: 700; }
   .fd-tape { position: absolute; top: 14px; right: 20px; transform: rotate(4deg); border: 0; border-radius: 0; padding: 7px 14px; font-size: 13px; font-weight: 700;
@@ -1274,7 +1283,7 @@
         <p class="note" id="pickNote">每個角色可以開多個存檔，每個存檔有自己的玩家角色卡與對話。</p>
         <div id="pickTools">
           <label class="pick-search" for="pickSearch" style="margin:0"><span aria-hidden="true">🔍</span><input id="pickSearch" type="search" autocomplete="off" placeholder="搜尋角色名稱、簡介或分類"></label>
-          <div class="pick-tags" id="pickTags"></div>
+          <div class="tag-row"><button type="button" class="tag-arrow" id="tagPrev" aria-label="往左看分類" hidden>‹</button><div class="pick-tags" id="pickTags"></div><button type="button" class="tag-arrow" id="tagNext" aria-label="還有更多分類" hidden>›</button></div>
         </div>
       </div>
     </div>
@@ -4666,6 +4675,7 @@ function renderCharList() {
   for (const c of inTab) for (const t of charTags(c)) if (!tags.includes(t)) tags.push(t);
   if (pickTag !== ALL_TAG && !tags.includes(pickTag)) pickTag = ALL_TAG;
   const tagBox = $("pickTags");
+  const keepX = tagBox.scrollLeft;
   tagBox.innerHTML = "";
   if (tags.length) {
     for (const t of [ALL_TAG, ...tags]) {
@@ -4677,6 +4687,11 @@ function renderCharList() {
       tagBox.append(b);
     }
   }
+  // 重畫後停在原本捲到的位置（點右邊的標籤不會跳回最左邊）
+  tagBox.style.scrollBehavior = "auto";
+  tagBox.scrollLeft = keepX;
+  tagBox.style.scrollBehavior = "";
+  requestAnimationFrame(tagArrows);
 
   const q = $("pickSearch").value.trim().toLowerCase();
   const shown = inTab.filter((c) => {
@@ -4762,6 +4777,26 @@ function charCard(c) {
   return b;
 }
 
+// 分類標籤的左右箭頭：後面還有標籤時出現 ›、捲過頭了出現 ‹；電腦上滾滑鼠滾輪也會左右捲
+function tagArrows() {
+  const t = $("pickTags");
+  const max = t.scrollWidth - t.clientWidth;
+  const l = t.scrollLeft > 2, r = t.scrollLeft < max - 2;
+  $("tagPrev").hidden = !l;
+  $("tagNext").hidden = !r;
+  t.classList.toggle("fade-l", l);
+  t.classList.toggle("fade-r", r);
+}
+$("pickTags").addEventListener("scroll", tagArrows, { passive: true });
+window.addEventListener("resize", tagArrows);
+$("tagNext").onclick = () => { const t = $("pickTags"); t.scrollLeft += t.clientWidth * 0.7; };
+$("tagPrev").onclick = () => { const t = $("pickTags"); t.scrollLeft -= t.clientWidth * 0.7; };
+$("pickTags").addEventListener("wheel", (e) => {
+  const t = $("pickTags");
+  if (t.scrollWidth <= t.clientWidth || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+  e.preventDefault();
+  t.scrollLeft += e.deltaY;
+}, { passive: false });
 $("tabSolo").onclick = () => setPickTab("solo");
 $("tabMulti").onclick = () => setPickTab("multi");
 $("pickSearch").addEventListener("input", renderCharList);
