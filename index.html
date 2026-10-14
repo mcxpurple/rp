@@ -1489,8 +1489,8 @@
     </div>
 
     <div id="ioMain" class="io-list">
-      <button type="button" id="ioExportMem"><span class="pc"><span class="wax" style="--c:#c2a15a"><i>📜</i></span><span><b>匯出記憶庫</b><small>匯出我們之間發生過的事件與接續指引，不含對話紀錄</small><small class="slotinfo" id="ioExportSub"></small><span class="tap">點我</span></span><span class="stamp" aria-hidden="true">📜</span><span class="pmk" style="--k:#b08a3e" aria-hidden="true">寄出</span></span></button>
-      <button type="button" id="ioImport"><span class="pc"><span class="wax" style="--c:#55704a"><i>⬆️</i></span><span><b>匯入記憶庫</b><small>用匯出的記憶庫檔案開一個新存檔接著玩，不會覆蓋現有的故事</small><span class="tap">點我</span></span><span class="stamp" aria-hidden="true">📬</span><span class="pmk" style="--k:#55704a" aria-hidden="true">拆信</span></span></button>
+      <button type="button" id="ioExportMem"><span class="pc"><span class="wax" style="--c:#c2a15a"><i>⬆️</i></span><span><b>匯出記憶庫</b><small>匯出我們之間發生過的事件與接續指引，不含對話紀錄</small><small class="slotinfo" id="ioExportSub"></small><span class="tap">點我</span></span><span class="stamp" aria-hidden="true">📜</span><span class="pmk" style="--k:#b08a3e" aria-hidden="true">寄出</span></span></button>
+      <button type="button" id="ioImport"><span class="pc"><span class="wax" style="--c:#55704a"><i>⬇️</i></span><span><b>匯入記憶庫</b><small>用匯出的記憶庫檔案開一個新存檔接著玩，不會覆蓋現有的故事</small><span class="tap">點我</span></span><span class="stamp" aria-hidden="true">📬</span><span class="pmk" style="--k:#55704a" aria-hidden="true">拆信</span></span></button>
       <button type="button" id="ioContinue"><span class="pc"><span class="wax" style="--c:#4a5670"><i>🔁</i></span><span><b>從其他平台接續</b><small>帶著 Gemini／ChatGPT 的記憶，在這裡接著玩</small><span class="tap">點我</span></span><span class="stamp" aria-hidden="true">✈️</span><span class="pmk" style="--k:#6d84b0" aria-hidden="true">轉寄</span></span></button>
       <input type="file" id="ioFile" accept=".json,application/json" hidden>
     </div>
@@ -4791,11 +4791,11 @@ $("ioFile").onchange = async () => {
   let data;
   try { data = JSON.parse(await f.text()); } catch { data = null; }
   if (data && data.format === OLD_SAVE_FORMAT) {
-    ioStatus("這是舊版的存檔檔案，現在只能匯入記憶庫。請改用「📜 匯出記憶庫」下載的檔案", true);
+    ioStatus("這是舊版的存檔檔案，現在只能匯入記憶庫。請改用「⬆️ 匯出記憶庫」下載的檔案", true);
     return;
   }
   if (!data || data.format !== MEM_FORMAT || !data.character || !data.memory || !Array.isArray(data.memory.frags)) {
-    ioStatus("這不是記憶庫檔案。請選擇用「📜 匯出記憶庫」下載的 .json 檔", true);
+    ioStatus("這不是記憶庫檔案。請選擇用「⬆️ 匯出記憶庫」下載的 .json 檔", true);
     return;
   }
   const frags = data.memory.frags
