@@ -784,6 +784,21 @@
   .mem-block summary .arw { color: #b08a3e; font-size: 12px; transition: transform .15s; }
   .mem-block[open] summary .arw { transform: rotate(90deg); }
   .mem-block summary .copy { margin-left: auto; font-size: 12px; padding: 4px 11px; border-radius: 6px; background: #fbf3df; border: 1px solid #b08a3e; color: #6e5236; }
+  .mem-block summary .tools { margin-left: auto; display: flex; gap: 5px; flex-shrink: 0; }
+  .mem-block summary .tools .copy { margin-left: 0; }
+  .mem-block .edst { flex-shrink: 0; font-family: "Noto Serif TC", serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #9b2a2a;
+    border: 2px solid #9b2a2a; border-radius: 4px; padding: 0 5px; transform: rotate(-8deg); opacity: .85; }
+  .mem-text[hidden] { display: none; }
+  .mem-edit { margin: 0 12px 12px; padding-top: 9px; border-top: 1px dashed #c2a15a; }
+  .mem-hint { font-size: 12px; line-height: 1.65; color: #7a2f35; background: #fbeee6; border-left: 3px solid #c0705a; padding: 6px 10px; margin-bottom: 8px; }
+  .mem-hint ul { margin: 2px 0 2px 18px; padding: 0; }
+  .mem-edit textarea { width: 100%; height: clamp(140px, calc(100vh - 560px), 380px); height: clamp(140px, calc(100dvh - 560px), 380px); font-size: 13.5px; line-height: 26px; padding: 6px 10px; color: #2f2722; border: 1px solid #d8c49a; border-radius: 4px; resize: vertical;
+    background: repeating-linear-gradient(transparent 0 25px, rgba(120,90,50,.22) 25px 26px) 0 6px / 100% 26px local, #fffaf0; box-shadow: inset 0 1px 2px rgba(90,60,20,.15); }
+  .mem-acts { display: flex; align-items: flex-end; justify-content: flex-end; gap: 16px; margin-top: 12px; }
+  .mem-acts .wbtn small { color: #6e5236; font-size: 11px; }
+  .mem-acts .wbtn.rv small { color: #7a2f35; }
+  .mem-acts .wbtn.ok small { display: flex; align-items: center; gap: 4px; }
+  .mem-acts .wbtn.ok b { color: #3d5a33; font-size: 12px; }
   .mem-text { margin: 0 12px 12px; padding-top: 9px; border-top: 1px dashed #c2a15a; font-size: 13.5px; color: #3a2f27;
     line-height: 1.85; white-space: pre-wrap; word-break: break-word; }
   .mem-head { display: flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: .12em; color: var(--muted); margin: 22px 2px 0; }
@@ -1820,11 +1835,20 @@ function slotPages(cid, s) {
 }
 
 // ---------- 記憶庫：每個存檔各自保存記憶片段 ----------
-// rp_memory_{角色id}__{存檔id} = { saved: 已寫入到第幾頁, epoch: 開新遊戲就 +1, frags: [{ from, to, date, text, at }] }
+// rp_memory_{角色id}__{存檔id} = { saved: 已寫入到第幾頁, epoch: 開新遊戲就 +1, frags: [{ from, to, date, text, at, orig? }], main?: { text, upto } }
+// 玩家改過片段：orig 存 AI 原版；改過常駐記憶檔：main 存玩家版本（upto＝改的時候寫到第幾頁，之後的新片段接在後面）
 function memKey(cid, sid) { return `rp_memory_${cid}__${sid}`; }
 function loadMem(cid = settings.character, sid = (curSlot() || {}).id) {
   const m = store.get(memKey(cid, sid), null);
-  return m && Array.isArray(m.frags) ? m : { saved: 0, epoch: 0, frags: [] };
+  if (!m || !Array.isArray(m.frags)) return { saved: 0, epoch: 0, frags: [] };
+  for (const f of m.frags) if (!f.imported) f.text = cleanFragText(f.text);
+  return m;
+}
+// AI 寫記憶時偶爾把【整理指令】一起抄進來：切掉第一個「【Page…記憶片段】」標題前面的東西
+function cleanFragText(t) {
+  t = String(t || "");
+  const m = t.match(/^[ \t]*【\s*Page[^\n]*記憶片段[^\n]*】/m);
+  return m && m.index > 0 ? t.slice(m.index) : t;
 }
 function saveMem(cid, sid, m) { store.set(memKey(cid, sid), m); }
 
@@ -1851,6 +1875,24 @@ function nextEvt(mem) {
 // 常駐記憶檔由程式組裝：事件總目錄逐份累加＋最新片段的「當前狀態總結」到結尾
 function buildMemory(mem, slotName = (curSlot() || {}).name || "") {
   if (!mem.frags.length) return "";
+  if (mem.main && mem.main.text) {
+    const newer = mem.frags.filter((f) => f.to > (mem.main.upto || 0));
+    if (!newer.length) return mem.main.text;
+    // 玩家版本保留到「情感層／當前狀態總結」之前，接上新片段的事件，再換成最新的情感層與狀態總結
+    const ls = mem.main.text.split("\n");
+    const cut = ls.findIndex((l) => /^\s*━.*情感/.test(l) || /當前狀態總結/.test(l));
+    const out = [(cut >= 0 ? ls.slice(0, cut) : ls).join("\n").trimEnd()];
+    for (const f of newer) {
+      out.push(fragLabel(f) + `｜${f.date || ""}`);
+      for (const [, t] of fragEvts(f.text)) out.push(t);
+    }
+    const last = mem.frags[mem.frags.length - 1].text;
+    const emo = emotionLayer(last);
+    if (emo) out.push(emo);
+    const i = last.indexOf("當前狀態總結");
+    out.push(i >= 0 ? last.slice(i).trim() : last.trim());
+    return out.join("\n");
+  }
   const char = settings.characterName || "角色";
   const user = playerName() || "玩家";
   const out = [
@@ -3511,7 +3553,7 @@ async function runSave(manual = false) {
     // 寫入期間若開了新遊戲或回捲，這份結果就作廢
     const now = loadMem(cid, sid);
     if ((now.epoch || 0) !== job.epoch || now.saved !== from - 1) return false;
-    now.frags.push({ from, to, date: today(), story: storyDates(transcript), text: data.text, at: Date.now() });
+    now.frags.push({ from, to, date: today(), story: storyDates(transcript), text: cleanFragText(data.text), at: Date.now() });
     now.saved = to;
     saveMem(cid, sid, now);
     if (sameSlot(job)) {
@@ -4329,6 +4371,7 @@ function takeBackLast() {
     if (dropped <= mem.saved) {
       mem.frags = mem.frags.filter((f) => f.to < dropped);
       mem.saved = mem.frags.length ? mem.frags[mem.frags.length - 1].to : 0;
+      if (mem.main && (mem.main.upto || 0) >= dropped) delete mem.main;
       mem.epoch = (mem.epoch || 0) + 1;
       saveMem(settings.character, s.id, mem);
     }
@@ -4423,7 +4466,7 @@ async function copyText(text) {
   toast("已複製 ✧");
 }
 
-function memBlock(title, sub, text, { open = false, main = false } = {}) {
+function memBlock(title, sub, text, { open = false, main = false, edited = false, hint = "", onSave = null, onRevert = null } = {}) {
   const det = document.createElement("details");
   det.className = "mem-block" + (main ? " main" : "");
   det.open = open;
@@ -4436,22 +4479,81 @@ function memBlock(title, sub, text, { open = false, main = false } = {}) {
     s.textContent = sub;
     nm.append(s);
   }
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "copy";
-  btn.textContent = "複製";
-  btn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); copyText(text); };
-  sum.append(btn);
+  if (edited) {
+    const st = document.createElement("span");
+    st.className = "edst";
+    st.textContent = "已修改";
+    sum.append(st);
+  }
+  const tools = document.createElement("span");
+  tools.className = "tools";
+  const mk = (label, fn) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "copy";
+    b.textContent = label;
+    b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); fn(); };
+    tools.append(b);
+    return b;
+  };
   const body = document.createElement("div");
   body.className = "mem-text";
   body.textContent = text;
+  if (onSave) mk("✎ 修改", () => startEdit());
+  mk("複製", () => copyText(text));
+  sum.append(tools);
   det.append(sum, body);
+
+  // 修改：橫線信紙＋置頂提醒＋三顆封蠟（換回原版／取消／存好了）
+  function startEdit() {
+    det.open = true;
+    det.classList.add("editing");
+    const ed = document.createElement("div");
+    ed.className = "mem-edit";
+    ed.innerHTML = `<div class="mem-hint">✎ 內容可以隨意改，但請保留：<ul><li>[EVT.03｜A] 這種開頭</li><li>「當前狀態總結」這一行</li></ul>${hint}改壞了按「換回原版」就能救回來</div>
+      <textarea spellcheck="false"></textarea>
+      <div class="mem-acts">
+        ${onRevert ? `<button type="button" class="wbtn rv"><span class="wax s2" style="--c:#7a2f35;--s:38px"><i>↺</i></span><small>換回原版</small></button>` : ""}
+        <button type="button" class="wbtn no"><span class="wax s3" style="--c:#9a958b;--s:38px"><i>✕</i></span><small>取消</small></button>
+        <button type="button" class="wbtn ok"><span class="wax s1" style="--c:#55704a;--s:48px"><i>✓</i></span><small><b>存好了</b><span class="tap">點我</span></small></button>
+      </div>`;
+    const ta = ed.querySelector("textarea");
+    ta.value = text;
+    body.hidden = true;
+    det.append(ed);
+    // 捲到提醒剛好在資料夾下面，提醒和信紙一起留在畫面裡（信紙自己捲）
+    const sheet = det.closest(".sheet"), head = sheet && sheet.querySelector(".fd-head");
+    if (sheet) sheet.scrollTop += ed.getBoundingClientRect().top - (head ? head.getBoundingClientRect().bottom : 0) - 10;
+    ta.focus({ preventScroll: true });
+    const stop = () => { ed.remove(); body.hidden = false; det.classList.remove("editing"); };
+    ed.querySelector(".no").onclick = stop;
+    ed.querySelector(".ok").onclick = () => {
+      const v = ta.value.replace(/\s+$/, "");
+      if (!v.trim()) { toast("內容不能是空的"); return; }
+      if (v === text) { stop(); return; }
+      onSave(v);
+    };
+    const rv = ed.querySelector(".rv");
+    if (rv) rv.onclick = async () => {
+      if (!(await askDialog({ tab: "↺ 換回原版", title: "換回 AI 寫的原版？", sub: "你改過的內容會被拿掉", ok: "換回去", kind: "danger" }))) return;
+      onRevert();
+    };
+  }
   return det;
 }
 
 function openMemory() {
   const s = curSlot();
   if (!s) { openSettings("請先完成設定"); return; }
+  renderMemory();
+  renderTicket();
+  openPanel("memoryPanel");
+}
+// openKey：重畫後要展開的那一塊（"main" 或片段的 at）
+function renderMemory(openKey = "main") {
+  const s = curSlot();
+  if (!s) return;
+  const cid = settings.character;
   const mem = loadMem();
   $("memTitle").textContent = `${s.name}的記憶庫`;
   const parts = [`已寫入到 page.${mem.saved}`, `共 ${mem.frags.length} 份片段`];
@@ -4459,25 +4561,44 @@ function openMemory() {
   $("memNote").textContent = parts.join("・");
 
   const body = $("memBody");
+  const keepY = body.closest(".sheet") ? body.closest(".sheet").scrollTop : 0;
   body.innerHTML = "";
+  const commit = (fn, key, msg) => {
+    const m = loadMem(cid, s.id);
+    fn(m);
+    saveMem(cid, s.id, m);
+    renderMemory(key);
+    const sh = body.closest(".sheet");
+    if (sh) sh.scrollTop = keepY;
+    toast(msg);
+  };
   if (!mem.frags.length) {
     const d = document.createElement("div");
     d.className = "mem-empty";
     d.textContent = `記憶庫還是空的。\n滿 ${SAVE_EVERY} 頁會自動寫入，也可以從 ☰ 按「💾 立即寫入記憶庫」。`;
     d.style.whiteSpace = "pre-line";
     body.append(d);
-  } else {
-    body.append(memBlock("常駐記憶檔", "每輪帶給角色", buildMemory(mem, s.name), { open: true, main: true }));
-    const h = document.createElement("div");
-    h.className = "mem-head";
-    h.textContent = "記憶片段";
-    body.append(h);
-    for (const f of mem.frags.slice().reverse()) {
-      body.append(memBlock(fragLabel(f), f.date || "", f.text));
-    }
+    return;
   }
-  renderTicket();
-  openPanel("memoryPanel");
+  body.append(memBlock("常駐記憶檔", mem.main ? "每輪帶給角色・新片段會接在後面" : "每輪帶給角色・由片段自動整理", buildMemory(mem, s.name), {
+    open: openKey === "main", main: true, edited: !!mem.main,
+    hint: "改過之後，下面的片段再改不會影響這份。<br>",
+    onSave: (v) => commit((m) => { m.main = { text: v, upto: m.saved }; }, "main", "已修改常駐記憶檔 ✧"),
+    onRevert: mem.main ? () => commit((m) => { delete m.main; }, "main", "已換回自動整理的版本 ✧") : null,
+  }));
+  const h = document.createElement("div");
+  h.className = "mem-head";
+  h.textContent = "記憶片段";
+  body.append(h);
+  for (let idx = mem.frags.length - 1; idx >= 0; idx--) {
+    const f = mem.frags[idx];
+    const key = String(f.at || idx);
+    body.append(memBlock(fragLabel(f), f.date || "", f.text, {
+      open: openKey === key, edited: f.orig !== undefined,
+      onSave: (v) => commit((m) => { const g = m.frags[idx]; if (g.orig === undefined) g.orig = g.text; g.text = v; }, key, `已修改 ${fragLabel(f)} ✧`),
+      onRevert: f.orig !== undefined ? () => commit((m) => { const g = m.frags[idx]; g.text = g.orig; delete g.orig; }, key, "已換回 AI 寫的原版 ✧") : null,
+    }));
+  }
 }
 $("openMemory").onclick = openMemory;
 
@@ -4604,7 +4725,7 @@ $("ioExportMem").onclick = async () => {
     exportedAt: new Date().toISOString(),
     character: { id: settings.character, name: settings.characterName },
     slot: { name: s.name, card: s.card || "", pages: mem.saved },
-    memory: { saved: mem.saved, frags: mem.frags },
+    memory: { saved: mem.saved, frags: mem.frags, ...(mem.main ? { main: mem.main } : {}) },
   };
   download(`${safeName(settings.characterName)}_${safeName(s.name)}_記憶庫_page${mem.saved}_${today()}.json`, JSON.stringify(data, null, 1), "application/json");
   ioStatus("已匯出記憶庫 ✧ 檔案在手機的「下載」資料夾");
@@ -4659,7 +4780,8 @@ $("ioFile").onchange = async () => {
   const s = newSlot(c.id, `${String(slotData.name || "存檔").slice(0, 24)}（接續）`);
   s.card = String(slotData.card || "");
   s.base = base;
-  if (!writeNewSlot(c.id, s, [], { saved: base, epoch: 0, frags })) { ioStatus("手機瀏覽器的空間不夠，匯入失敗。可以先刪掉不玩的存檔再試", true); return; }
+  const main = data.memory.main && typeof data.memory.main.text === "string" ? { text: data.memory.main.text, upto: parseInt(data.memory.main.upto, 10) || 0 } : null;
+  if (!writeNewSlot(c.id, s, [], { saved: base, epoch: 0, frags, ...(main ? { main } : {}) })) { ioStatus("手機瀏覽器的空間不夠，匯入失敗。可以先刪掉不玩的存檔再試", true); return; }
   saveSlots();
   enterSlot(c, s.id);
   closePanel("ioPanel");
@@ -4694,7 +4816,7 @@ async function newWindow() {
   ns.base = s.pages || 0;
   ns.win = n;
   ns.ticket = pickTicket(s.ticket);
-  const copy = { saved: ns.base, epoch: 0, frags: JSON.parse(JSON.stringify(mem.frags)) };
+  const copy = { saved: ns.base, epoch: 0, frags: JSON.parse(JSON.stringify(mem.frags)), ...(mem.main ? { main: { ...mem.main } } : {}) };
   if (!writeNewSlot(cid, ns, [], copy)) { toast("手機瀏覽器的空間不夠，可以先匯出記憶庫備份，再刪掉不玩的存檔"); return; }
   saveSlots();
   closePanel("memoryPanel");
