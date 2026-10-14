@@ -424,9 +424,13 @@
   .charlist > button.ccard.current > .in { border-color: #7a2f35; box-shadow: inset 4px 0 0 #7a2f35; }
   .charlist .pol { flex: none; width: 50px; height: 58px; padding: 4px 4px 12px; background: #fdfaf3; box-shadow: 0 2px 3px rgba(0,0,0,.3); transform: rotate(-3deg); }
   .charlist > button.ccard:nth-of-type(even) .pol { transform: rotate(2.5deg); }
-  .charlist .pol > span { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; overflow: hidden;
+  .charlist .pol > span:not(.seal) { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; overflow: hidden;
     background: linear-gradient(160deg, #e9dcc0, #d8c49a); color: #6e5236; font-family: "Noto Serif TC", serif; font-size: 19px; font-weight: 700; }
   .charlist .pol > span.pic { align-items: flex-start; background: linear-gradient(160deg, #e6d6ee, #cdb9d9); }
+  .charlist .pol { position: relative; }
+  .charlist .pol > span.def img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .charlist .pol > .seal { --s: 24px; position: absolute; right: -7px; bottom: -6px; font-family: "Noto Serif TC", serif; font-weight: 700; }
+  .charlist .pol > .seal > i { font-size: 11.5px; }
   .charlist .pol > span.pic img { flex: none; width: 170%; height: auto; margin-top: -3px; display: block; }
   /* 存檔頁：資料夾右邊的半身立繪（下半身被資料夾底部切掉） */
   .fd-body.has-fig { position: relative; overflow: hidden; padding-right: 128px; }
@@ -4814,14 +4818,28 @@ function setPickTab(tab) {
 }
 
 // 角色立繪：GitHub 上 avatars/角色ID.png（3:5 去背直式圖）。找不到就記下來，這次開網頁不再重找
+// 沒有專屬圖時，列表改用 avatars/_default.png（通用圖，正方形也可），右下角蓋名字第一個字的封蠟
 const avMiss = new Set();
-function loadAvatar(c, onok) {
-  if (!c || !c.id || avMiss.has(c.id)) return;
+let avDefault = "";            // "" 還沒找、"ok" 有、"miss" 沒有
+const avDefaultWait = [];
+function loadDefaultAvatar(onok) {
+  if (avDefault === "miss") return;
+  const make = () => { const im = new Image(); im.alt = ""; im.src = "avatars/_default.png"; return im; };
+  if (avDefault === "ok") { onok(make()); return; }
+  avDefaultWait.push(onok);
+  if (avDefaultWait.length > 1) return;
+  const probe = make();
+  probe.onload = () => { avDefault = "ok"; avDefaultWait.splice(0).forEach((f) => f(make())); };
+  probe.onerror = () => { avDefault = "miss"; avDefaultWait.length = 0; };
+}
+function loadAvatar(c, onok, ondefault) {
+  if (!c || !c.id) return;
+  if (avMiss.has(c.id)) { if (ondefault) loadDefaultAvatar(ondefault); return; }
   const im = new Image();
   im.alt = "";
   im.decoding = "async";
   im.onload = () => onok(im);
-  im.onerror = () => avMiss.add(c.id);
+  im.onerror = () => { avMiss.add(c.id); if (ondefault) loadDefaultAvatar(ondefault); };
   im.src = c.avatar || `avatars/${encodeURIComponent(c.id)}.png`;
 }
 function clearPickFig() {
@@ -4959,8 +4977,20 @@ function charCard(c) {
   const pol = document.createElement("span");
   pol.className = "pol";
   const ph = document.createElement("span");
-  ph.textContent = [...String(c.name || c.id || "?")][0];
-  loadAvatar(c, (im) => { ph.textContent = ""; ph.classList.add("pic"); ph.append(im); });
+  const first = [...String(c.name || c.id || "?")][0];
+  ph.textContent = first;
+  loadAvatar(c, (im) => { ph.textContent = ""; ph.classList.add("pic"); ph.append(im); },
+    (im) => {
+      ph.textContent = "";
+      ph.classList.add("def");
+      ph.append(im);
+      const seal = document.createElement("span");
+      seal.className = "wax seal s2";
+      seal.style.setProperty("--c", "#6a2a30");
+      seal.innerHTML = "<i></i>";
+      seal.firstChild.textContent = first;
+      pol.append(seal);
+    });
   pol.append(ph);
   const inn = document.createElement("span");
   inn.className = "in";
