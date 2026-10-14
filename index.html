@@ -4307,6 +4307,11 @@ $("openMemory").onclick = openMemory;
 
 // 換窗車票：巴士／渡輪／登機證，每一窗第一次打開時隨機抽一張，之後同一窗固定
 const TICKETS = ["bus", "ferry", "flight"];
+// 抽一張票；有給上一窗的票時，一定抽到不一樣的
+function pickTicket(except) {
+  const pool = TICKETS.filter((t) => t !== except);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 function ticketBand(kind) {
   const G = "#b08a3e";
   if (kind === "ferry") return '<div class="sea"></div>';
@@ -4326,7 +4331,7 @@ function renderTicket() {
   const s = curSlot();
   const btn = $("memWindow");
   if (!s) { btn.innerHTML = ""; return; }
-  if (!TICKETS.includes(s.ticket)) { s.ticket = TICKETS[Math.floor(Math.random() * TICKETS.length)]; saveSlots(); }
+  if (!TICKETS.includes(s.ticket)) { s.ticket = pickTicket(); saveSlots(); }
   const kind = s.ticket;
   const n = s.win || 1;
   const name = s.name.replace(/・第\s*\d+\s*窗$/, "");
@@ -4512,6 +4517,7 @@ async function newWindow() {
   ns.card = s.card || "";
   ns.base = s.pages || 0;
   ns.win = n;
+  ns.ticket = pickTicket(s.ticket);
   const copy = { saved: ns.base, epoch: 0, frags: JSON.parse(JSON.stringify(mem.frags)) };
   if (!writeNewSlot(cid, ns, [], copy)) { toast("手機瀏覽器的空間不夠，可以先匯出記憶庫備份，再刪掉不玩的存檔"); return; }
   saveSlots();
