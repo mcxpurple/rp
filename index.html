@@ -435,6 +435,9 @@
   /* 存檔頁：資料夾右邊的半身立繪（下半身被資料夾底部切掉） */
   .fd-body.has-fig { position: relative; overflow: hidden; padding-right: 128px; }
   .fd-body > .fig { position: absolute; right: 2px; top: 4px; width: 130px; height: auto; pointer-events: none; filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
+  .fd-body > .fig.photo { width: 96px; top: auto; bottom: 14px; right: 16px; padding: 5px 5px 16px; background: #fdfaf3; transform: rotate(3deg);
+    box-shadow: 0 3px 5px rgba(0,0,0,.35); filter: none; }
+  .fd-body > .fig.photo img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
   .fd-tape { z-index: 5; }
   .charlist .cb { flex: 1; min-width: 0; }
   .charlist > button.ccard .top { font-family: "Noto Serif TC", serif; font-size: 16.5px; font-weight: 700; color: #2f2722; }
@@ -4842,6 +4845,8 @@ function loadAvatar(c, onok, ondefault) {
   im.onerror = () => { avMiss.add(c.id); if (ondefault) loadDefaultAvatar(ondefault); };
   im.src = c.avatar || `avatars/${encodeURIComponent(c.id)}.png`;
 }
+// 3:5 這種直式去背圖＝立繪（裁頭、放半身）；接近正方形的圖＝照片（整張塞滿、存檔頁貼成拍立得）
+function isTallPic(im) { return im.naturalHeight > im.naturalWidth * 1.3; }
 function clearPickFig() {
   const body = $("pickTitle").closest(".fd-body");
   body.classList.remove("has-fig");
@@ -4979,7 +4984,7 @@ function charCard(c) {
   const ph = document.createElement("span");
   const first = [...String(c.name || c.id || "?")][0];
   ph.textContent = first;
-  loadAvatar(c, (im) => { ph.textContent = ""; ph.classList.add("pic"); ph.append(im); },
+  loadAvatar(c, (im) => { ph.textContent = ""; ph.classList.add(isTallPic(im) ? "pic" : "def"); ph.append(im); },
     (im) => {
       ph.textContent = "";
       ph.classList.add("def");
@@ -5032,9 +5037,14 @@ function showSlotStep(c) {
   loadAvatar(c, (im) => {
     if ($("pickTitle").textContent !== cname || $("backChars").hidden) return;
     const body = $("pickTitle").closest(".fd-body");
-    im.className = "fig";
-    im.setAttribute("aria-hidden", "true");
-    body.append(im);
+    let fig = im;
+    if (!isTallPic(im)) {
+      fig = document.createElement("span");
+      fig.append(im);
+    } else im.className = "";
+    fig.className = isTallPic(im) ? "fig" : "fig photo";
+    fig.setAttribute("aria-hidden", "true");
+    body.append(fig);
     body.classList.add("has-fig");
   });
   $("pickNote").textContent = "選一個存檔繼續，或新增一個存檔，用另一張玩家角色卡開始新的故事線。";
