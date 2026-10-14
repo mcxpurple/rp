@@ -714,15 +714,28 @@
   @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 
   /* 📦 匯出／匯入 */
-  .io-list { display: flex; flex-direction: column; gap: 10px; }
-  .io-list button { display: flex; align-items: center; gap: 14px; text-align: left; padding: 14px 16px;
-    background: var(--panel); border-radius: 16px; transition: transform .15s ease; }
-  .io-list button:active { transform: scale(.98); }
-  .io-list .ico { font-size: 22px; width: 1.4em; text-align: center; flex-shrink: 0; }
-  .io-list b { display: block; font-weight: 600; font-size: 15.5px; }
-  .io-list small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; line-height: 1.6; }
-  .io-list small.slotinfo { color: var(--accent); }
+  .io-list { display: flex; flex-direction: column; gap: 12px; }
+  .io-list > button { display: block; width: 100%; text-align: left; padding: 3px; border: 1px solid #b08a3e; border-radius: 6px; color: #2f2722; font: inherit;
+    box-shadow: 0 3px 0 rgba(0,0,0,.35); transition: transform .15s ease;
+    background: radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(120,80,30,.14) 100%), repeating-linear-gradient(0deg, rgba(255,255,255,.35) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(60,50,40,.07) 0 1px, transparent 1px 3px), #f1e4c8; }
+  .io-list > button:nth-of-type(1) { transform: rotate(-.35deg); } .io-list > button:nth-of-type(2) { transform: rotate(.3deg); } .io-list > button:nth-of-type(3) { transform: rotate(-.2deg); }
+  .io-list > button:active { transform: scale(.98); }
+  .io-list .pc { position: relative; display: flex; align-items: center; gap: 12px; min-height: 84px; padding: 11px 86px 11px 12px; border: 1px solid #b08a3e; border-radius: 4px; }
+  .io-list .pc::after { content: ""; position: absolute; right: 74px; top: 12px; bottom: 12px; border-left: 1px dashed #c2a15a; }
+  .io-list .wax { --s: 42px; }
+  .io-list b { display: block; font-family: "Noto Serif TC", serif; font-weight: 700; font-size: 15.5px; color: #2f2722; }
+  .io-list small { display: block; color: #6b5d50; font-size: 12px; margin-top: 2px; line-height: 1.55; }
+  .io-list small.slotinfo { color: #7a2f35; }
   .io-list small.slotinfo:empty { display: none; }
+  .io-list .tap { margin-top: 5px; }
+  .io-list .stamp { position: absolute; right: 12px; top: 10px; width: 40px; height: 46px; background: #fbf6ec; border: 2px dotted #c9b48a; outline: 2px solid #fbf6ec;
+    display: flex; align-items: center; justify-content: center; font-size: 19px; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .io-list .pmk { position: absolute; right: 22px; top: 38px; width: 42px; height: 42px; border-radius: 50%; border: 1.5px solid var(--k); color: var(--k);
+    font-family: "Noto Serif TC", serif; font-size: 11.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; transform: rotate(-12deg);
+    background: rgba(241,228,200,.45); }
+  .io-list .pmk::after { content: ""; position: absolute; left: -13px; top: 15px; width: 12px; height: 9px; border-top: 1px solid var(--k); border-bottom: 1px solid var(--k); }
+  #ioForm.scard { counter-reset: sf; margin-top: 4px; transform: none; }
   #ioCard { min-height: 96px; }
   #ioMem { min-height: 150px; }
   #ioForm[hidden], #ioMain[hidden] { display: none; }
@@ -1401,13 +1414,14 @@
     </div>
 
     <div id="ioMain" class="io-list">
-      <button type="button" id="ioExportMem"><span class="ico">📜</span><span><b>匯出記憶庫</b><small>匯出我們之間發生過的事件與接續指引，不含對話紀錄</small><small class="slotinfo" id="ioExportSub"></small></span></button>
-      <button type="button" id="ioImport"><span class="ico">⬆️</span><span><b>匯入記憶庫</b><small>用匯出的記憶庫檔案開一個新存檔接著玩，不會覆蓋現有的故事</small></span></button>
-      <button type="button" id="ioContinue"><span class="ico">🔁</span><span><b>從其他平台接續</b><small>帶著 Gemini／ChatGPT 的記憶，在這裡接著玩</small></span></button>
+      <button type="button" id="ioExportMem"><span class="pc"><span class="wax" style="--c:#c2a15a"><i>📜</i></span><span><b>匯出記憶庫</b><small>匯出我們之間發生過的事件與接續指引，不含對話紀錄</small><small class="slotinfo" id="ioExportSub"></small><span class="tap">點我</span></span><span class="stamp" aria-hidden="true">📜</span><span class="pmk" style="--k:#b08a3e" aria-hidden="true">寄出</span></span></button>
+      <button type="button" id="ioImport"><span class="pc"><span class="wax" style="--c:#55704a"><i>⬆️</i></span><span><b>匯入記憶庫</b><small>用匯出的記憶庫檔案開一個新存檔接著玩，不會覆蓋現有的故事</small><span class="tap">點我</span></span><span class="stamp" aria-hidden="true">📬</span><span class="pmk" style="--k:#55704a" aria-hidden="true">拆信</span></span></button>
+      <button type="button" id="ioContinue"><span class="pc"><span class="wax" style="--c:#4a5670"><i>🔁</i></span><span><b>從其他平台接續</b><small>帶著 Gemini／ChatGPT 的記憶，在這裡接著玩</small><span class="tap">點我</span></span><span class="stamp" aria-hidden="true">✈️</span><span class="pmk" style="--k:#6d84b0" aria-hidden="true">轉寄</span></span></button>
       <input type="file" id="ioFile" accept=".json,application/json" hidden>
     </div>
 
-    <div id="ioForm" hidden>
+    <div id="ioForm" class="scard" hidden><div class="in">
+      <div class="hd"><span class="wax" style="--c:#4a5670;--s:34px"><i>✈️</i></span><span><b>轉寄單</b><small>✦ FORWARD ✦</small></span></div>
       <label for="ioChar">角色</label>
       <select id="ioChar"><option value="">載入中…</option></select>
       <label for="ioName">新存檔名稱</label>
@@ -1417,7 +1431,7 @@
       <label for="ioMem">常駐記憶檔或最近一份記憶片段</label>
       <textarea id="ioMem" placeholder="貼上原平台存下的記憶。有 Page.53-76 這類頁碼的話，會從下一頁接著算"></textarea>
       <div class="status" id="ioHint"></div>
-    </div>
+    </div>    </div>
 
     <div class="status" id="ioStatus"></div>
   </div>
