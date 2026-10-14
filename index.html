@@ -2444,6 +2444,26 @@ const ST_OPEN = /^[╓┏╔┌╭]/;
 const ST_CLOSE = /^[╙┗╚└╰]/;
 const ST_DIAMOND = /^[◆◇]/;
 const ST_OPTION = /[①②③④⑤❶❷❸❹❺]/;
+// 沒框線的選項行：開頭幾個符號（可含 1️⃣ 這種數字鍵帽）後接 ①②③；或直接以 1️⃣2️⃣3️⃣ 鍵帽開頭
+const ST_LOOSE_OPT = /^(?:(?:[0-9#*]\uFE0F?\u20E3|[^\p{L}\p{N}]){0,8}[①②③④⑤❶❷❸❹❺]|[1-5]\uFE0F?\u20E3)/u;
+// 花邊框線：⊱·✦ ── ✨ 𝓛𝓤𝓜𝓘 ✨ ── ✦·⊰ 這種（有兩個以上的橫線、開頭不是字）；中間有字＝小幫手開頭，沒字＝分隔
+// 判斷框線：開頭不是字，且（有一段橫線 ─━┈═—，或頭尾是同一個／成對的裝飾符號，例：♱…♱、ꕥ…ꕥ、⊱…⊰、❀…❀）
+const ST_WORD = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}A-Za-z0-9]/u;
+const ST_PAIR = { "⊱": "⊰", "«": "»", "◂": "▸", "⟨": "⟩", "【": "】", "《": "》", "『": "』", "〔": "〕" };
+const isDeco = (t) => {
+  const a = [...t.replace(/\uFE0F/g, "")];
+  if (!a.length || a.length > 64 || ST_WORD.test(a[0])) return false;
+  const dash = /[─━┈┄═—]{2,}|[─━┈┄═]/.test(t);
+  if (t.includes("｜") && !/[─━┈═]{3,}/.test(t)) return false;
+  const last = a[a.length - 1];
+  const mirror = !ST_WORD.test(last) && (a[0] === last || ST_PAIR[a[0]] === last);
+  return dash || mirror;
+};
+// 框線上的名字：只留中日韓英文字（花體字 𝓛𝓤𝓜𝓘、𝕸𝖔𝖎𝖗𝖊 先轉回一般字母）
+const decoTitle = (t) => [...t.normalize("NFKC")].map((ch) => (/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Latin}0-9'’\s]/u.test(ch) ? ch : " ")).join("").replace(/\s+/g, " ").trim();
+// 行程：時間區段（09:00-11:00），或單一時間開頭（21:30｜…）
+const ST_TIME1 = /^\s*\d{1,2}[:：]\d{2}\s*[｜|]/;
+const isSched = (u) => ST_TIME.test(u) || ST_TIME1.test(u);
 const isIcon = (x) => !!x && [...x].length <= 4 && !/[\p{L}\p{N}]/u.test(x.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, ""));
 function stTitle(l) {
   return l.replace(/^[\s╓╖╙╜┏┓┗┛╔╗╚╝┌┐└┘╭╮╰╯─━═◈◆◇·•‧₊˚⋆✦✧◦]+|[\s╓╖╙╜┏┓┗┛╔╗╚╝┌┐└┘╭╮╰╯─━═◈◆◇·•‧₊˚⋆✦✧◦]+$/g, "").trim();
@@ -2476,21 +2496,23 @@ function parseStatus(lines) {
     return p;
   };
   const list = lines.map((l) => l.replace(/\r/g, ""));
+  // seg：上一個分界（空行、分隔線、人物行、行程…）之後，還沒分類的行；遇到沒框線的 ①②③ 時整段收成小幫手
+  let seg = [];
   for (let i = 0; i < list.length; i++) {
     const raw = list[i];
     const t = raw.trim();
-    if (!t || isRuleLine(t)) continue;
+    if (!t || isRuleLine(t)) { seg = []; continue; }
     // 系統小幫手：框線區塊
-    if (ST_OPEN.test(t) || ST_DIAMOND.test(t)) {
-      const diamond = ST_DIAMOND.test(t);
-      const h = { title: stTitle(t), lines: [], options: [] };
+    const frame = ST_OPEN.test(t) || ST_DIAMOND.test(t) || isDeco(t);
+    if (frame && (ST_OPEN.test(t) || ST_DIAMOND.test(t) || decoTitle(t))) {
+      const h = { title: decoTitle(t), lines: [], options: [] };
       let j = i + 1;
       for (; j < list.length; j++) {
         const u = list[j].trim();
-        if (diamond ? ST_DIAMOND.test(u) : ST_CLOSE.test(u)) break;
+        if (u && (ST_CLOSE.test(u) || ST_DIAMOND.test(u) || isDeco(u))) break;
         if (!u) continue;
-        if (ST_TIME.test(u)) { addSched(u); continue; }
-        if (ST_OPTION.test(u)) {
+        if (isSched(u)) { addSched(u); continue; }
+        if (ST_OPTION.test(u) || ST_LOOSE_OPT.test(u)) {
           // 選項前那句引言（例：知煙為你擺開三條路）跟著選項走
           if (!h.options.length && h.lines.length && !h.lines[h.lines.length - 1].includes("｜")) h.optLabel = h.lines.pop();
           h.options.push(u);
@@ -2498,36 +2520,64 @@ function parseStatus(lines) {
         }
         // 行程前的小標題（例：㊙️ 駱懷鎮 機密行程雷達）移到行程區
         const nx = (list.slice(j + 1).find((x) => x.trim()) || "").trim();
-        if (!u.includes("｜") && [...u].length <= 24 && ST_TIME.test(nx)) { newGroup(u); continue; }
+        if (!u.includes("｜") && [...u].length <= 30 && isSched(nx)) { newGroup(u); continue; }
         h.lines.push(u);
       }
       // 結尾框線上若有文字（例：◆‧₊ 小幫手名 ◆）也當標題
-      if (!h.title && j < list.length) h.title = stTitle(list[j]);
+      if (!h.title && j < list.length) h.title = decoTitle(list[j]);
       out.helpers.push(h);
+      seg = [];
       i = j;
       continue;
     }
-    if (!/[\p{L}\p{N}]/u.test(t)) continue; // 純裝飾分隔線
-    if (ST_TIME.test(t)) { addSched(t); continue; }
+    if (frame) { seg = []; for (const x of out.helpers) x.open = false; continue; } // 沒有名字的花邊線＝分隔
+    if (!/[\p{L}\p{N}]/u.test(t)) { seg = []; continue; } // 純裝飾分隔線
+    // 沒有框線的選項（例：💛 ①【軟爛撒嬌】…）：同一段裡前面還沒分類的行（吐槽、引言、標題）一起收成小幫手
+    if (ST_LOOSE_OPT.test(t)) {
+      let h = out.helpers.find((x) => x.loose && x.open);
+      if (!h) {
+        h = { title: "", lines: [], options: [], loose: true, open: true };
+        for (const it of seg) { const k = it.arr.indexOf(it.item); if (k >= 0) it.arr.splice(k, 1); }
+        const got = seg.map((it) => it.raw);
+        // 第一行短、沒有｜：當標題（例：✧ 知煙 ✧）
+        if (got.length > 1 && !got[0].includes("｜") && [...stTitle(got[0])].length <= 16) h.title = stTitle(got.shift());
+        // 緊接選項的那行沒有｜：當引言（例：梓璃寶貝 ㊙️ 行動星圖指向）
+        if (got.length && !got[got.length - 1].includes("｜")) h.optLabel = got.pop();
+        h.lines = got;
+        out.helpers.push(h);
+        seg = [];
+      }
+      h.options.push(t);
+      continue;
+    }
+    let tailH = out.helpers.find((x) => x.loose && x.open);
+    if (tailH && t.includes("｜")) { tailH.open = false; tailH = null; }
+    if (ST_TIME.test(t) || ST_TIME1.test(t)) { if (tailH) tailH.open = false; addSched(t); seg = []; continue; }
     const c = stCells(t);
     if (c.length >= 3 && isIcon(c[0]) && c[1] && [...c[1]].length <= 12) {
       const row = { icon: c[0], text: c.slice(2).join("｜"), kind: fieldOf(c[0]) };
       if (me && imSame(c[1], me)) out.player.push(row);
       else person(c[1]).rows.push(row);
+      seg = [];
       continue;
     }
     if (c.length === 2 && isIcon(c[0])) {
       const kind = fieldOf(c[0]);
       const row = { icon: c[0], text: c[1], kind };
-      if (kind === "player") out.player.push(row);
-      else if (kind === "outfit" || kind === "body" || kind === "rel") person(charShort()).rows.push(row);
-      else out.nodes.push(row);
+      if (kind === "player") { out.player.push(row); seg = []; }
+      else if (kind === "outfit" || kind === "body" || kind === "rel") { person(charShort()).rows.push(row); seg = []; }
+      else if (kind) { out.nodes.push(row); seg = []; } // 後台範本認得的劇情欄位：不會是小幫手
+      else { out.nodes.push(row); seg.push({ arr: out.nodes, item: row, raw: t }); }
       continue;
     }
     // 行程前的小標題（例：🥏 樊翼祁 星盤行運追蹤）
     const next = (list.slice(i + 1).find((x) => x.trim()) || "").trim();
-    if (!t.includes("｜") && [...t].length <= 24 && ST_TIME.test(next)) { newGroup(t); continue; }
+    if (!t.includes("｜") && [...t].length <= 24 && ST_TIME.test(next)) { newGroup(t); seg = []; continue; }
+    // 選項之後緊接的說明（例：🧨 溫馨提示…）也收進同一個小幫手
+    if (tailH && !t.includes("｜")) { tailH.lines.push(t); continue; }
+    if (tailH) tailH.open = false;
     out.misc.push(t);
+    seg.push({ arr: out.misc, item: t, raw: t });
   }
   // 行程內容裡出現人物名字的格子，標成小標籤（多人行程看得出是誰的）
   const names = out.people.map((p) => p.name).concat(me ? [me] : []);
@@ -2541,7 +2591,7 @@ function parseStatus(lines) {
 
 function stSched(l) {
   const c = stCells(l);
-  const ti = c.findIndex((x) => ST_TIME.test(x));
+  const ti = c.findIndex((x) => ST_TIME.test(x) || /^\d{1,2}[:：]\d{2}$/.test(x));
   const item = { time: c[ti] || "", place: "", text: [], note: "" };
   c.forEach((x, k) => {
     if (k === ti || !x) return;
@@ -2723,8 +2773,8 @@ function renderStatus(lines, latest, head = {}) {
     for (const o of h.options) {
       const b = document.createElement("button");
       b.type = "button";
-      b.innerHTML = `<span class="tx">${inline(o)}</span><span class="go">點我填入 ↵</span>`;
-      b.onclick = () => fillInput(o.replace(/^[^①②③④⑤❶❷❸❹❺]*[①②③④⑤❶❷❸❹❺]\s*/, ""));
+      b.innerHTML = `<span class="tx">${inline(o.replace(/^((?:[0-9#*]\uFE0F?\u20E3|[^\p{L}\p{N}]){1,4}?)\s*[｜|]\s*/u, "$1 "))}</span><span class="go">點我填入 ↵</span>`;
+      b.onclick = () => fillInput(o.replace(/^(?:[^①②③④⑤❶❷❸❹❺]*[①②③④⑤❶❷❸❹❺]|[^\p{L}\p{N}]*[1-5]\uFE0F?\u20E3[\s｜|:：.]*)\s*/u, ""));
       ops.append(b);
     }
     box.append(ops);
