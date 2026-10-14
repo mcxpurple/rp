@@ -413,7 +413,26 @@
   .pick-tags:empty { display: none; }
   .pick-tags button { flex-shrink: 0; font-size: 12.5px; padding: 5px 12px; border-radius: 999px; color: var(--muted); background: var(--panel); white-space: nowrap; }
   .pick-tags button.on { color: var(--accent); border-color: var(--accent-line); background: var(--accent-soft); font-weight: 600; }
-  .charlist .grp { font-size: 12px; color: var(--muted); margin: 8px 2px 0; letter-spacing: .08em; }
+  .charlist .grp { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin: 10px 2px 2px; letter-spacing: .12em; }
+  .charlist .grp::after { content: ""; flex: 1; border-top: 1px dashed var(--accent-line); }
+  .charlist > button.ccard { display: block; width: 100%; padding: 3px; border: 1px solid #b08a3e; border-radius: 6px; color: #2f2722; box-shadow: 0 3px 0 rgba(0,0,0,.35);
+    background: radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(120,80,30,.14) 100%), repeating-linear-gradient(0deg, rgba(255,255,255,.35) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(60,50,40,.07) 0 1px, transparent 1px 3px), #f1e4c8; transition: transform .15s; }
+  .charlist > button.ccard:active { transform: scale(.98); }
+  .charlist > button.ccard > .in { display: flex; gap: 13px; align-items: center; padding: 11px 12px; border: 1px solid #b08a3e; border-radius: 4px; }
+  .charlist > button.ccard.current { border-color: #7a2f35; background-color: #fbf3df; }
+  .charlist > button.ccard.current > .in { border-color: #7a2f35; box-shadow: inset 4px 0 0 #7a2f35; }
+  .charlist .pol { flex: none; width: 50px; height: 58px; padding: 4px 4px 12px; background: #fdfaf3; box-shadow: 0 2px 3px rgba(0,0,0,.3); transform: rotate(-3deg); }
+  .charlist > button.ccard:nth-of-type(even) .pol { transform: rotate(2.5deg); }
+  .charlist .pol > span { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; overflow: hidden;
+    background: linear-gradient(160deg, #e9dcc0, #d8c49a); color: #6e5236; font-family: "Noto Serif TC", serif; font-size: 19px; font-weight: 700; }
+  .charlist .pol img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .charlist .cb { flex: 1; min-width: 0; }
+  .charlist > button.ccard .top { font-family: "Noto Serif TC", serif; font-size: 16.5px; font-weight: 700; color: #2f2722; }
+  .charlist > button.ccard small { color: #7a5e48; }
+  .charlist > button.ccard small.intro { color: #4a3d33; opacity: 1; font-size: 12.5px; margin-top: 3px; }
+  .charlist > button.ccard .mini-tags i { background: #e2d2b0; color: #6e5236; }
+  .charlist > button.ccard small b { color: #7a2f35; }
   .charlist button .top { display: flex; align-items: baseline; gap: 8px; }
   .charlist button .kind { font-family: "Noto Sans TC", sans-serif; font-size: 10.5px; color: var(--accent); border: 1px solid var(--accent-line); border-radius: 4px; padding: 0 5px; }
   .charlist button .mini-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
@@ -741,26 +760,31 @@
   #ioForm[hidden], #ioMain[hidden] { display: none; }
 
   /* 📖 記憶庫面板 */
-  .mem-block { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; margin-top: 10px; }
-  .mem-block.main { border: 1.5px dashed var(--accent-line); }
-  .mem-block summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;
-    padding: 12px 14px; font-size: 14.5px; font-weight: 600; user-select: none; }
+  .mem-block { position: relative; margin-top: 12px; padding: 4px; border: 1px solid #b08a3e; border-radius: 6px; color: #2f2722;
+    box-shadow: inset 0 0 0 3px #f1e4c8, inset 0 0 0 4px #b08a3e, 0 3px 0 rgba(0,0,0,.35);
+    background: radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(120,80,30,.14) 100%), repeating-linear-gradient(0deg, rgba(255,255,255,.35) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(60,50,40,.07) 0 1px, transparent 1px 3px), #f1e4c8; }
+  .mem-block summary { display: flex; align-items: center; gap: 9px; cursor: pointer; list-style: none; padding: 9px 11px; user-select: none; }
   .mem-block summary::-webkit-details-marker { display: none; }
-  .mem-block summary::before { content: "▸"; color: var(--muted); font-weight: 400; }
-  .mem-block[open] summary::before { content: "▾"; }
-  .mem-block summary .sub { font-size: 12px; font-weight: 400; color: var(--muted); }
-  .mem-block summary .copy { margin-left: auto; font-size: 12.5px; font-weight: 400; padding: 4px 12px;
-    border-radius: 999px; background: var(--accent-soft); border-color: var(--accent-line); }
-  .mem-text { margin: 0 14px 14px; padding-top: 10px; border-top: 1px dotted var(--accent-line); font-size: 13.5px;
+  .mem-block summary .wax { --s: 30px; }
+  .mem-block summary .nm { font-family: "Noto Serif TC", serif; font-size: 15px; font-weight: 700; line-height: 1.25; }
+  .mem-block summary .nm small { display: block; font-family: "Noto Sans TC", sans-serif; font-size: 11.5px; font-weight: 400; color: #7a5e48; }
+  .mem-block summary .arw { color: #b08a3e; font-size: 12px; transition: transform .15s; }
+  .mem-block[open] summary .arw { transform: rotate(90deg); }
+  .mem-block summary .copy { margin-left: auto; font-size: 12px; padding: 4px 11px; border-radius: 6px; background: #fbf3df; border: 1px solid #b08a3e; color: #6e5236; }
+  .mem-text { margin: 0 12px 12px; padding-top: 9px; border-top: 1px dashed #c2a15a; font-size: 13.5px; color: #3a2f27;
     line-height: 1.85; white-space: pre-wrap; word-break: break-word; }
-  .mem-head { font-size: 13px; color: var(--muted); margin: 18px 2px 0; }
+  .mem-head { display: flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: .12em; color: var(--muted); margin: 22px 2px 0; }
+  .mem-head::after { content: ""; flex: 1; border-top: 1px dashed var(--accent-line); }
   .mem-empty { text-align: center; color: var(--muted); font-size: 14px; line-height: 2; padding: 22px 8px; }
 
-  .toast { position: fixed; left: 50%; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 120px); z-index: 30;
-    transform: translate(-50%, 10px); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
-    background: var(--page); color: var(--text); border: 1px solid var(--accent-line); border-radius: 999px;
-    padding: 9px 18px; font-size: 13.5px; box-shadow: var(--shadow); width: max-content; max-width: calc(100vw - 32px); text-align: center; }
-  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast { position: fixed; left: 50%; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 150px); z-index: 30;
+    transform: translate(-50%, 10px) rotate(-1.2deg); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+    background: rgba(85,112,74,.92); color: #fbf3df; padding: 7px 18px; font-size: 13.5px; line-height: 1.5; letter-spacing: .03em;
+    box-shadow: 0 2px 4px rgba(0,0,0,.3); width: max-content; max-width: calc(100vw - 48px); text-align: center;
+    clip-path: polygon(1.5% 0, 98% 6%, 100% 50%, 98.5% 100%, 1% 94%, 0 50%); }
+  .toast.warn { background: rgba(106,42,48,.92); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0) rotate(-1.2deg); }
 
   @media (prefers-reduced-motion: reduce) {
     .chip, .toast, .win-hint { transition: none; }
@@ -3433,6 +3457,7 @@ let toastTimer;
 function toast(msg) {
   const t = $("toast");
   t.textContent = msg;
+  t.classList.toggle("warn", /失敗|⚠|不夠|不能|還沒有|不需要|稍等|寫完再|請先/.test(msg));
   t.classList.add("show");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
@@ -4119,7 +4144,7 @@ async function callWithRetry(path, payload) {
     } catch (e) {
       if (!RETRY_STATUS.includes(e.status)) throw e;
       if (n >= RETRY_WAIT.length) {
-        e.message = `${name} 那邊目前太忙，已經自動重送 ${n} 次還是沒成功。沒有成功的這幾次都不會扣錢，可以等一下再按「重來最後一則」，或到設定換一個模型試試。`;
+        e.message = `${name} 那邊目前太忙，已經自動重送 ${n} 次還是沒成功。沒有成功的這幾次都不會扣錢，可以等一下再按「讓角色重寫」，或到設定換一個模型試試。`;
         throw e;
       }
       for (let w = RETRY_WAIT[n]; w > 0; w--) {
@@ -4316,7 +4341,7 @@ $("editLast").onclick = () => {
   if (busy) return;
   const last = [...history].reverse().find((m) => m.role === "user");
   if (!last) { toast("還沒有可以修改的句子"); return; }
-  if (last.text === NEW_GAME || isOldGame(last.text)) { toast("開場那一句不能修改，可以用「重來最後一則」"); return; }
+  if (last.text === NEW_GAME || isOldGame(last.text)) { toast("開場那一句不能修改，可以用「讓角色重寫」"); return; }
   const lastUser = takeBackLast();
   if (!lastUser) return;
   // 改的是角色卡那一則：先清掉舊卡，送出後重新存
@@ -4391,14 +4416,13 @@ function memBlock(title, sub, text, { open = false, main = false } = {}) {
   det.className = "mem-block" + (main ? " main" : "");
   det.open = open;
   const sum = document.createElement("summary");
-  const t = document.createElement("span");
-  t.textContent = title;
-  sum.append(t);
+  sum.innerHTML = `<span class="arw">▶</span><span class="wax ${main ? "s1" : "s3"}" style="--c:${main ? "#7a5e88" : "#b08a3e"}"><i>${main ? "📖" : "✦"}</i></span><span class="nm"></span>`;
+  const nm = sum.querySelector(".nm");
+  nm.textContent = title;
   if (sub) {
-    const s = document.createElement("span");
-    s.className = "sub";
+    const s = document.createElement("small");
     s.textContent = sub;
-    sum.append(s);
+    nm.append(s);
   }
   const btn = document.createElement("button");
   btn.type = "button";
@@ -4905,6 +4929,22 @@ function charCard(c) {
   }
   note.append([n ? `${n} 個存檔` : "尚未開始", t ? `最後遊玩 ${fmtTime(t)}` : ""].filter(Boolean).join("・"));
   b.append(note);
+  // 金框名片＋拍立得：有圖用圖（avatar／image），沒圖放名字第一個字
+  const cb = document.createElement("span");
+  cb.className = "cb";
+  cb.append(...b.childNodes);
+  const pol = document.createElement("span");
+  pol.className = "pol";
+  const ph = document.createElement("span");
+  const pic = c.avatar || c.image;
+  if (pic) { const im = document.createElement("img"); im.src = pic; im.alt = ""; im.loading = "lazy"; ph.append(im); }
+  else ph.textContent = [...String(c.name || c.id || "?")][0];
+  pol.append(ph);
+  const inn = document.createElement("span");
+  inn.className = "in";
+  inn.append(pol, cb);
+  b.append(inn);
+  b.classList.add("ccard");
   b.onclick = () => showSlotStep(c);
   return b;
 }
