@@ -427,21 +427,22 @@
   #slotNew[hidden] { display: none; }
 
   /* ===== 選角畫面：黃色資料夾（固定在上方）＋墨藍紙膠帶關閉鈕 ===== */
-  #charPicker { --fd: #7a6230; --fd-line: #a8873f; --fd-tab2: #4a3d22; --fd-tab2-line: #6b5830; --fd-ink: #fbf3df; --fd-ink2: #c9b489;
+  .overlay { --fd: #7a6230; --fd-line: #a8873f; --fd-tab2: #4a3d22; --fd-tab2-line: #6b5830; --fd-ink: #fbf3df; --fd-ink2: #c9b489;
     --fd-field: #4a3d22; --fd-pick: #7fa3b8; --fd-pick-ink: #10232e; --fd-tag-ink: #f2e3be; --tape: #7fa3b8; --tape-ink: #10232e; --tape-dash: #f2d58c; }
-  :root[data-theme="light"] #charPicker { --fd: #e6c77e; --fd-line: #ba7517; --fd-tab2: #f2e3be; --fd-tab2-line: #d8b66a; --fd-ink: #412402; --fd-ink2: #854f0b;
+  :root[data-theme="light"] .overlay { --fd: #e6c77e; --fd-line: #ba7517; --fd-tab2: #f2e3be; --fd-tab2-line: #d8b66a; --fd-ink: #412402; --fd-ink2: #854f0b;
     --fd-field: #fbf3df; --fd-pick: #3e5c6e; --fd-pick-ink: #e6f1fb; --fd-tag-ink: #633806; --tape: #3e5c6e; --tape-ink: #fbf3df; --tape-dash: #e6c77e; }
-  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]):not([data-theme="light"]) #charPicker { --fd: #e6c77e; --fd-line: #ba7517; --fd-tab2: #f2e3be; --fd-tab2-line: #d8b66a; --fd-ink: #412402; --fd-ink2: #854f0b;
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]):not([data-theme="light"]) .overlay { --fd: #e6c77e; --fd-line: #ba7517; --fd-tab2: #f2e3be; --fd-tab2-line: #d8b66a; --fd-ink: #412402; --fd-ink2: #854f0b;
     --fd-field: #fbf3df; --fd-pick: #3e5c6e; --fd-pick-ink: #e6f1fb; --fd-tag-ink: #633806; --tape: #3e5c6e; --tape-ink: #fbf3df; --tape-dash: #e6c77e; } }
   .picker-sheet { padding-top: 0; }
   .fd-head { position: sticky; top: 0; z-index: 3; margin: 0 -18px 12px; padding: 18px 18px 12px; background: var(--page); }
   .fd-tabs { display: flex; align-items: flex-end; gap: 4px; padding-right: 96px; }
-  .fd-tabs button { border: .5px solid var(--fd-tab2-line); border-bottom: 0; border-radius: 10px 10px 0 0; background: var(--fd-tab2); color: var(--fd-ink2);
+  .fd-tabs > * { border: .5px solid var(--fd-tab2-line); border-bottom: 0; border-radius: 10px 10px 0 0; background: var(--fd-tab2); color: var(--fd-ink2);
     padding: 5px 18px; font-size: 14px; }
-  .fd-tabs button.on, #backChars { position: relative; z-index: 1; margin-bottom: -1px; padding: 7px 18px; background: var(--fd); border-color: var(--fd-line);
+  .fd-tabs > .on, .fd-tabs > .back { position: relative; z-index: 1; margin-bottom: -1px; padding: 7px 18px; background: var(--fd); border-color: var(--fd-line);
     color: var(--fd-ink); font-weight: 700; }
-  .fd-tabs button:first-child.on, #backChars { border-radius: 12px 10px 0 0; }
-  .fd-tabs button[hidden] { display: none; }
+  .fd-tabs > :first-child.on, .fd-tabs > .back { border-radius: 12px 10px 0 0; }
+  .fd-tabs > [hidden] { display: none; }
+  .fd-tabs > span { cursor: default; }
   .fd-body { background: var(--fd); border: .5px solid var(--fd-line); border-radius: 0 14px 14px 14px; padding: 12px 14px 12px; color: var(--fd-ink); }
   .fd-body h2 { color: var(--fd-ink); font-size: 18px; margin: 0 0 2px; }
   .fd-body .note { color: var(--fd-ink2); font-size: 12px; margin: 0 0 10px; line-height: 1.6; }
@@ -458,6 +459,53 @@
     background-size: 100% 1.5px, 100% 1.5px; background-position: 0 3px, 0 calc(100% - 3px); background-repeat: no-repeat;
     clip-path: polygon(3% 0, 97% 4%, 100% 50%, 97% 100%, 2% 96%, 0 50%); }
   .fd-tape:active { transform: rotate(4deg) scale(.95); }
+  .fd-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .fd-row > div { min-width: 0; }
+  .fd-go { margin-top: 10px; border: 0; border-radius: 8px; background: var(--fd-pick); color: var(--fd-pick-ink); font-weight: 700; padding: 9px 16px; }
+  .fd-go[hidden] { display: none; }
+  .picker-sheet > .note { margin-top: 0; }
+  /* 設定的儲存：磁片 */
+  .floppy { position: relative; width: 62px; height: 62px; flex-shrink: 0; padding: 0; border: 0; border-radius: 4px 12px 4px 4px; background: var(--tape);
+    transform: rotate(-4deg); box-shadow: 0 3px 0 rgba(0,0,0,.28); transition: transform .1s, box-shadow .1s; }
+  .floppy:active { transform: rotate(-4deg) translateY(3px); box-shadow: 0 0 0 rgba(0,0,0,.28); }
+  .floppy .sh { position: absolute; top: 0; left: 16px; width: 30px; height: 20px; border-radius: 0 0 3px 3px; background: #c9ccd1; }
+  .floppy .sh i { position: absolute; top: 4px; right: 6px; width: 6px; height: 11px; background: #7d838a; border-radius: 1px; }
+  .floppy .lab { position: absolute; left: 7px; right: 7px; bottom: 6px; height: 28px; border-radius: 2px; display: flex; align-items: center; justify-content: center;
+    font-size: 12.5px; font-weight: 700; color: #2f2722; background: #fbf6ec; background-image: repeating-linear-gradient(transparent 0 8px, rgba(120,90,50,.18) 8px 9px); }
+  /* 換窗接續：車票（巴士／渡輪／登機證，每一窗隨機一張） */
+  .tkt { display: block; width: 100%; margin: 12px 0 4px; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; font: inherit; }
+  .tkt:active .tk { transform: rotate(-1.5deg) translateY(2px); }
+  .tkt .tk { position: relative; display: flex; transform: rotate(-1.5deg); filter: drop-shadow(0 3px 0 rgba(16,35,46,.55)); transition: transform .1s; }
+  .tkt .face { flex: 1; min-width: 0; position: relative; overflow: hidden; padding: 10px 12px; color: var(--ink);
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.35) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(60,50,40,.07) 0 1px, transparent 1px 3px), var(--paper); }
+  .tkt .frame { border: 1px solid #b08a3e; outline: 1px solid #b08a3e; outline-offset: 2px; padding: 4px 8px 0; overflow: hidden; }
+  .tkt .hd { display: flex; justify-content: space-between; gap: 6px; font-family: ui-monospace, "Courier New", monospace; font-size: 9px; letter-spacing: .2em; color: #7a5e2a; white-space: nowrap; }
+  .tkt .rt { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 3px; padding-right: 22px; }
+  .tkt .rt b { font-family: "Noto Serif TC", serif; font-size: 19px; font-weight: 600; white-space: nowrap; }
+  .tkt .rt b.to { color: var(--to); }
+  .tkt .rt .ic { position: relative; font-size: 15px; }
+  .tkt .rt .ic .st { position: absolute; right: -9px; top: -6px; font-size: 9px; color: #b08a3e; }
+  .tkt .ft { display: flex; justify-content: space-between; gap: 6px; font-family: ui-monospace, "Courier New", monospace; font-size: 9.5px; margin-top: 2px; padding-right: 22px; white-space: nowrap; }
+  .tkt .ft span:first-child { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .tkt svg.band { display: block; width: calc(100% + 16px); margin: 3px -8px 0; }
+  .tkt .stub { width: 52px; flex-shrink: 0; border-left: 2px dashed #fbf3df; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    background: var(--stub); color: var(--stub-ink); }
+  .tkt .stub b { font-size: 12px; font-weight: 700; line-height: 1.25; text-align: center; }
+  .tkt .stub span { font-size: 16px; }
+  .tkt .seal { position: absolute; right: 28px; top: 50%; width: 50px; height: 50px; margin-top: -25px; border-radius: 50%; border: 2px solid #7a2f35; color: #7a2f35;
+    transform: rotate(-14deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; mix-blend-mode: multiply; opacity: .82; pointer-events: none; }
+  .tkt .seal::before { content: ""; position: absolute; inset: 3px; border-radius: 50%; border: 1px dashed #7a2f35; }
+  .tkt .seal b { font-size: 11px; font-weight: 700; letter-spacing: .05em; } .tkt .seal small { font-size: 7px; letter-spacing: .08em; }
+  .tkt.bus { --paper: #f1e4c8; --ink: #3a2a18; --to: #7a5e2a; --stub: #d9b65a; --stub-ink: #3a2a18; }
+  .tkt.bus .face { mask: radial-gradient(circle 4px at 4px 50%, #0000 98%, #000) -4px 0 / 8px 10px repeat-y, linear-gradient(#000, #000) 4px 0 / calc(100% - 8px) 100% no-repeat; }
+  .tkt.ferry { --paper: #dce7ec; --ink: #10232e; --to: #3e5c6e; --stub: #7fa3b8; --stub-ink: #10232e; }
+  .tkt.ferry .face, .tkt.ferry .stub { mask: radial-gradient(circle 5px at 50% 0, #0000 97%, #000) 0 0 / 12px 51% repeat-x, radial-gradient(circle 5px at 50% 100%, #0000 97%, #000) 0 100% / 12px 51% repeat-x; }
+  .tkt.ferry .sea { height: 20px; margin: 4px -8px 0;
+    background: radial-gradient(circle at 50% 100%, transparent 0 3px, #b08a3e 3px 4px, transparent 4px 6.5px, #b08a3e 6.5px 7.5px, transparent 7.5px 10px, #b08a3e 10px 11px, #dce7ec 11px) 0 0 / 20px 10px repeat-x,
+      radial-gradient(circle at 50% 100%, transparent 0 3px, #b08a3e 3px 4px, transparent 4px 6.5px, #b08a3e 6.5px 7.5px, transparent 7.5px 10px, #b08a3e 10px 11px, #dce7ec 11px) 10px 10px / 20px 10px repeat-x; }
+  .tkt.flight { --paper: #e6dfec; --ink: #2e2638; --to: #5b4378; --stub: #9c8bb3; --stub-ink: #1f1726; }
+  .tkt.flight .face { border-radius: 8px 0 0 8px; mask: radial-gradient(circle 6px at 0 50%, #0000 97%, #000); }
+  .tkt.flight .stub { border-radius: 0 8px 8px 0; }
 
   /* ☰ 選單 */
   #menuBtn { font-size: 22px; line-height: 1; padding: 6px 10px; }
@@ -1176,7 +1224,7 @@
       <div class="fd-tabs" role="tablist">
         <button type="button" id="tabSolo" role="tab">單人</button>
         <button type="button" id="tabMulti" role="tab">多人</button>
-        <button type="button" id="backChars" hidden>‹ 角色列表</button>
+        <button type="button" id="backChars" class="back" hidden>‹ 角色列表</button>
       </div>
       <button type="button" id="closeChars" class="fd-tape" aria-label="關閉">✕ 關閉</button>
       <div class="fd-body">
@@ -1198,9 +1246,19 @@
 </div>
 
 <div id="ioPanel" class="overlay">
-  <div class="sheet">
-    <h2 id="ioTitle">匯出／匯入</h2>
-    <p class="note" id="ioNote">存檔只存在這支手機的瀏覽器裡。換手機、換瀏覽器或清除資料前，先匯出記憶庫備份（對話紀錄不會匯出）。</p>
+  <div class="sheet picker-sheet">
+    <div class="fd-head">
+      <div class="fd-tabs">
+        <span class="on" id="ioTab">📦 匯出／匯入</span>
+        <button type="button" id="ioBack" class="back" hidden>‹ 返回</button>
+      </div>
+      <button type="button" id="closeIO" class="fd-tape" aria-label="關閉">✕ 關閉</button>
+      <div class="fd-body">
+        <h2 id="ioTitle">匯出／匯入</h2>
+        <p class="note" id="ioNote">存檔只存在這支手機的瀏覽器裡。換手機、換瀏覽器或清除資料前，先匯出記憶庫備份（對話紀錄不會匯出）。</p>
+        <button class="fd-go" id="ioStart" type="button" hidden>開始接續 →</button>
+      </div>
+    </div>
 
     <div id="ioMain" class="io-list">
       <button type="button" id="ioExportMem"><span class="ico">📜</span><span><b>匯出記憶庫</b><small>匯出我們之間發生過的事件與接續指引，不含對話紀錄</small><small class="slotinfo" id="ioExportSub"></small></span></button>
@@ -1222,29 +1280,34 @@
     </div>
 
     <div class="status" id="ioStatus"></div>
-    <div class="actions">
-      <button id="ioBack" type="button" hidden>← 返回</button>
-      <button id="closeIO" type="button">關閉</button>
-      <button class="primary" id="ioStart" type="button" hidden>開始接續</button>
-    </div>
   </div>
 </div>
 
 <div id="memoryPanel" class="overlay">
-  <div class="sheet">
-    <h2 id="memTitle">記憶庫</h2>
-    <p class="note" id="memNote"></p>
-    <div id="memBody"></div>
-    <div class="actions">
-      <button id="closeMemory" type="button">關閉</button>
-      <button class="primary" id="memWindow" type="button">🪟 換窗接續</button>
+  <div class="sheet picker-sheet">
+    <div class="fd-head">
+      <div class="fd-tabs"><span class="on">📖 記憶庫</span></div>
+      <button type="button" id="closeMemory" class="fd-tape" aria-label="關閉">✕ 關閉</button>
+      <div class="fd-body">
+        <h2 id="memTitle">記憶庫</h2>
+        <p class="note" id="memNote" style="margin:0"></p>
+        <button type="button" id="memWindow" class="tkt" aria-label="換窗接續"></button>
+      </div>
     </div>
+    <div id="memBody"></div>
   </div>
 </div>
 
 <div id="settings" class="overlay">
-  <div class="sheet">
-    <h2>遊玩設定</h2>
+  <div class="sheet picker-sheet">
+    <div class="fd-head">
+      <div class="fd-tabs"><span class="on">⚙︎ 設定</span></div>
+      <button type="button" id="closeSettings" class="fd-tape" aria-label="取消">✕ 取消</button>
+      <div class="fd-body fd-row">
+        <div><h2>遊玩設定</h2><p class="note" style="margin:0">改完按右邊的磁片存起來</p></div>
+        <button type="button" id="saveSettings" class="floppy" aria-label="儲存"><span class="sh"><i></i></span><span class="lab">儲存</span></button>
+      </div>
+    </div>
     <p class="note">API key 只存在這支手機的瀏覽器裡，每次對話經轉送後即丟棄，作者端不會留存。<br>網頁版沒有放任何越獄內容，對話規範依照你所用平台的使用政策。角色以三大平台（Gemini、Claude、ChatGPT）的高階模型為主，其他平台與較小的模型演繹效果無法保證。</p>
 
     <label for="theme">外觀</label>
@@ -1305,11 +1368,6 @@
     <textarea id="card" placeholder="開始新遊戲後，角色會給你這部作品的角色卡範本；在聊天中填好送出，會自動存在這裡。"></textarea>
 
     <div class="status" id="status"></div>
-
-    <div class="actions">
-      <button id="closeSettings" type="button">取消</button>
-      <button class="primary" id="saveSettings" type="button">儲存</button>
-    </div>
   </div>
 </div>
 
@@ -4083,7 +4141,7 @@ function openSettings(msg = "") {
   fillSelect($("model"), settings.model ? [{ id: settings.model, name: settings.model }] : [], settings.model, "先按「載入」");
   fillSelect($("character"), settings.character ? [{ id: settings.character, name: settings.characterName }] : [], settings.character, "先按「載入」");
   status(msg);
-  $("settings").classList.add("open");
+  openPanel("settings");
 }
 
 function fillSelect(sel, items, current, placeholder) {
@@ -4181,10 +4239,54 @@ function openMemory() {
       body.append(memBlock(fragLabel(f), f.date || "", f.text));
     }
   }
-  $("memoryPanel").classList.add("open");
+  renderTicket();
+  openPanel("memoryPanel");
 }
 $("openMemory").onclick = openMemory;
-$("closeMemory").onclick = () => $("memoryPanel").classList.remove("open");
+
+// 換窗車票：巴士／渡輪／登機證，每一窗第一次打開時隨機抽一張，之後同一窗固定
+const TICKETS = ["bus", "ferry", "flight"];
+function ticketBand(kind) {
+  const G = "#b08a3e";
+  if (kind === "ferry") return '<div class="sea"></div>';
+  if (kind === "flight") {
+    const win = (x, cy) => `<g transform="translate(${x} 2)"><rect x="0" y="0" width="22" height="26" rx="10"/><rect x="3" y="3" width="16" height="20" rx="7"/><path d="M6 ${cy} a3 3 0 0 1 3-4 a4 4 0 0 1 7 0 a2.5 2.5 0 0 1 0 4 Z"/></g>`;
+    return `<svg class="band" viewBox="0 0 260 30" preserveAspectRatio="xMidYMid meet" style="height:30px" aria-hidden="true" fill="none" stroke="${G}" stroke-width="1">${win(55, 17)}${win(119, 13)}${win(183, 19)}</svg>`;
+  }
+  // 巴士：路邊小山丘路燈，中間灌木叢與松樹交錯（叢・樹・叢・樹・叢・樹・叢）
+  const bush = (x) => `<path d="M${x - 9} 22 a4 4 0 0 1 5-5 a5 5 0 0 1 9-1 a4 4 0 0 1 4 6Z" fill="${G}"/>`;
+  const pine = (x) => `<line x1="${x}" y1="22" x2="${x}" y2="18" stroke="${G}" stroke-width="1.5"/><path d="M${x - 7} 18 L${x} 9 L${x + 7} 18Z M${x - 5} 12 L${x} 3 L${x + 5} 12Z" fill="${G}"/>`;
+  let d = "";
+  for (let x = 11; x < 300; x += 22) if (x < 74 || x > 226) d += `<path d="M${x - 3} 22 a3 3 0 0 1 6 0Z" fill="${G}"/>`;
+  for (let i = 0; i < 7; i++) d += (i % 2 ? pine : bush)(90 + i * 20);
+  return `<svg class="band" viewBox="0 0 300 40" preserveAspectRatio="none" style="height:34px" aria-hidden="true">${d}<line x1="0" y1="22" x2="300" y2="22" stroke="${G}"/><line x1="0" y1="38" x2="300" y2="38" stroke="${G}"/><line x1="0" y1="30" x2="300" y2="30" stroke="${G}" stroke-width="1.5" stroke-dasharray="8 6"/></svg>`;
+}
+function renderTicket() {
+  const s = curSlot();
+  const btn = $("memWindow");
+  if (!s) { btn.innerHTML = ""; return; }
+  if (!TICKETS.includes(s.ticket)) { s.ticket = TICKETS[Math.floor(Math.random() * TICKETS.length)]; saveSlots(); }
+  const kind = s.ticket;
+  const n = s.win || 1;
+  const name = s.name.replace(/・第\s*\d+\s*窗$/, "");
+  const page = (s.pages || 0) + 1;
+  const date = today();
+  const K = {
+    bus: { title: "CITY BUS", no: "B", ic: "🚌", go: "發車", stub: "🎫", seal: "已剪票", en: "BUS" },
+    ferry: { title: "FERRY PASS", no: "F", ic: "⛴", go: "啟航", stub: "⚓", seal: "已登船", en: "FERRY" },
+    flight: { title: "BOARDING PASS", no: "A", ic: "✈", go: "起飛", stub: "🧳", seal: "已登機", en: "FLIGHT" },
+  }[kind];
+  btn.className = `tkt ${kind}`;
+  btn.innerHTML =
+    `<span class="tk"><span class="face"><span class="frame" style="display:block">` +
+    `<span class="hd"><span>✦ ${K.title} ✦</span><span>No.${K.no}${String(page).padStart(4, "0")}</span></span>` +
+    `<span class="rt"><b>第${n}窗</b><span class="ic">${K.ic}${kind === "flight" ? '<span class="st">✦</span>' : ""}</span><b class="to">第${n + 1}窗</b></span>` +
+    `<span class="ft"><span>${esc(name)}</span><span>p.${page} ${K.go}</span><span>${date}</span></span>` +
+    ticketBand(kind) + `</span></span>` +
+    `<span class="stub"><span>${K.stub}</span><b>換<br>窗<br>接<br>續</b></span>` +
+    `<span class="seal"><small>✦ ${date.slice(5)} ✦</small><b>${K.seal}</b><small>${K.en}</small></span></span>`;
+}
+$("closeMemory").onclick = () => closePanel("memoryPanel");
 
 // ---------- 📦 匯出／匯入 ----------
 // 記憶庫檔案：只有記憶片段與玩家角色卡，不含對話紀錄、API key、邀請碼
@@ -4203,6 +4305,7 @@ function ioShow(form) {
   $("ioStart").hidden = !form;
   $("ioNote").hidden = form;
   $("ioTitle").textContent = form ? "從其他平台接續" : "匯出／匯入";
+  $("ioTab").hidden = form;
   ioStatus("");
 }
 function ioSlotInfo() {
@@ -4217,10 +4320,10 @@ function ioSlotInfo() {
 function openIO() {
   ioShow(false);
   $("ioExportSub").textContent = ioSlotInfo();
-  $("ioPanel").classList.add("open");
+  openPanel("ioPanel");
 }
 $("openIO").onclick = openIO;
-$("closeIO").onclick = () => $("ioPanel").classList.remove("open");
+$("closeIO").onclick = () => closePanel("ioPanel");
 $("ioBack").onclick = () => ioShow(false);
 
 function safeName(x) { return String(x || "").replace(/[\\/:*?"<>|\s]+/g, "_").slice(0, 30); }
@@ -4315,7 +4418,7 @@ $("ioFile").onchange = async () => {
   if (!writeNewSlot(c.id, s, [], { saved: base, epoch: 0, frags })) { ioStatus("手機瀏覽器的空間不夠，匯入失敗。可以先刪掉不玩的存檔再試", true); return; }
   saveSlots();
   enterSlot(c, s.id);
-  $("ioPanel").classList.remove("open");
+  closePanel("ioPanel");
   toast(`已匯入「${s.name}」，從 page.${base + 1} 接續 ✧`);
   send(`${OLD_GAME}\n${OLD_NOTE}`);
 };
@@ -4349,7 +4452,7 @@ async function newWindow() {
   const copy = { saved: ns.base, epoch: 0, frags: JSON.parse(JSON.stringify(mem.frags)) };
   if (!writeNewSlot(cid, ns, [], copy)) { toast("手機瀏覽器的空間不夠，可以先匯出記憶庫備份，再刪掉不玩的存檔"); return; }
   saveSlots();
-  $("memoryPanel").classList.remove("open");
+  closePanel("memoryPanel");
   enterSlot({ id: cid, name: settings.characterName }, ns.id);
   toast(`已換到「${ns.name}」，從 page.${ns.base + 1} 接續 ✧`);
   send(`${OLD_GAME}\n${OLD_NOTE}`);
@@ -4407,7 +4510,7 @@ $("ioStart").onclick = () => {
   if (!writeNewSlot(cid, s, [], mem)) { ioStatus("手機瀏覽器的空間不夠。可以先刪掉不玩的存檔再試", true); return; }
   saveSlots();
   enterSlot(c, s.id);
-  $("ioPanel").classList.remove("open");
+  closePanel("ioPanel");
   send(`${OLD_GAME}\n${OLD_NOTE}`);
 };
 
@@ -4427,8 +4530,7 @@ function fmtTime(t) {
 async function openChars() {
   if (busy) return;
   if (!settings.invite) { openSettings("請先填寫邀請碼"); return; }
-  $("charPicker").classList.add("open");
-  pickerPush();
+  openPanel("charPicker");
   $("pickSearch").value = "";
   pickTag = ALL_TAG;
   showCharStep();
@@ -4677,7 +4779,7 @@ function enterSlot(c, sid) {
   saveSlots();
   loadHistory();
   render();
-  closePicker();
+  closePanel("charPicker");
 }
 
 $("backChars").onclick = showCharStep;
@@ -4685,27 +4787,38 @@ $("slotName").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.pr
 
 $("openChars").onclick = openChars;
 $("title").onclick = openChars;
-$("closeChars").onclick = () => closePicker();
-// 點資料夾外面的暗色區域也能關
-$("charPicker").addEventListener("click", (e) => { if (e.target === $("charPicker")) closePicker(); });
-// 手機返回鍵／返回手勢：存檔頁 → 回角色列表；角色列表 → 關閉選角畫面（不會離開網頁）
-let pickerPushed = false;
-function pickerPush() {
-  if (pickerPushed) return;
-  try { window.history.pushState({ picker: 1 }, ""); pickerPushed = true; } catch {}
+// ---------- 面板開關：關閉鈕在上面；點外面的暗色區域、手機返回鍵也能關 ----------
+// 返回鍵：選角的存檔頁 → 回角色列表；接續表單 → 回匯出／匯入；其他 → 關閉（設定＝取消，不存）
+const NAV = [];
+let navSkip = 0;
+function openPanel(id) {
+  $(id).classList.add("open");
+  if (NAV.includes(id)) return;
+  NAV.push(id);
+  try { window.history.pushState({ panel: id }, ""); } catch {}
 }
-function closePicker() {
-  $("charPicker").classList.remove("open");
-  if (pickerPushed) { pickerPushed = false; try { window.history.back(); } catch {} }
+function closePanel(id) {
+  $(id).classList.remove("open");
+  const i = NAV.lastIndexOf(id);
+  if (i < 0) return;
+  NAV.splice(i, 1);
+  navSkip++;
+  try { window.history.back(); } catch { navSkip--; }
 }
 window.addEventListener("popstate", () => {
-  if (!pickerPushed) return;
-  pickerPushed = false;
-  if (!$("charPicker").classList.contains("open")) return;
-  if ($("pickTools").hidden) { showCharStep(); pickerPush(); }
-  else $("charPicker").classList.remove("open");
+  if (navSkip > 0) { navSkip--; return; }
+  const id = NAV.pop();
+  if (!id || !$(id).classList.contains("open")) return;
+  const stay = () => { NAV.push(id); try { window.history.pushState({ panel: id }, ""); } catch {} };
+  if (id === "charPicker" && $("pickTools").hidden) { showCharStep(); stay(); return; }
+  if (id === "ioPanel" && !$("ioForm").hidden) { ioShow(false); stay(); return; }
+  $(id).classList.remove("open");
 });
-$("closeSettings").onclick = () => $("settings").classList.remove("open");
+for (const id of ["charPicker", "ioPanel", "memoryPanel", "settings"]) {
+  $(id).addEventListener("click", (e) => { if (e.target === $(id)) closePanel(id); });
+}
+$("closeChars").onclick = () => closePanel("charPicker");
+$("closeSettings").onclick = () => closePanel("settings");
 
 $("toggleKey").onclick = () => {
   const i = $("apikey");
@@ -4831,7 +4944,8 @@ $("saveSettings").onclick = () => {
   ensureSlot(settings.character);
   setCard($("card").value.trim());
   if (settings.character !== prevChar) loadHistory();
-  $("settings").classList.remove("open");
+  closePanel("settings");
+  toast("已儲存 ✧");
   render();
 };
 
