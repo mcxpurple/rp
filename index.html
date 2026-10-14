@@ -353,6 +353,30 @@
   .stcard .peek summary::before { content: "▸ "; }
   .stcard .peek[open] summary::before { content: "▾ "; }
   .notice { font-size: 13.5px; text-align: center; color: var(--danger); }
+  .notice.slip { position: relative; align-self: center; width: min(320px, 92%) !important; text-align: left; margin: 10px auto 18px !important; padding: 14px 16px 12px;
+    background: #f1e4c8; color: #2f2722; border-radius: 3px; border-top: 3px solid #9b2a2a; box-shadow: 0 3px 0 rgba(0,0,0,.35);
+    font-family: "Noto Sans TC", sans-serif; font-size: 13px; line-height: 1.75; letter-spacing: 0; }
+  .notice.slip .st { position: absolute; right: 10px; top: -12px; font-size: 12px; font-weight: 700; letter-spacing: 3px; color: #9b2a2a; border: 2px solid #9b2a2a;
+    border-radius: 4px; padding: 0 7px; background: #f1e4c8; transform: rotate(8deg); }
+  .notice.slip b { display: block; font-family: "Noto Serif TC", serif; font-size: 14.5px; margin-bottom: 3px; }
+  .notice.slip .msg { display: block; word-break: break-word; }
+  .notice.slip .tip { display: block; margin-top: 7px; padding-top: 7px; border-top: 1px dashed #c2a15a; color: #7a5e48; font-size: 12px; }
+  .notice.slip .mo { display: inline-flex; align-items: center; background: #4a5670; color: #dfe5ee; border-radius: 999px; padding: 0 8px; font-size: 11.5px; white-space: nowrap; }
+  .empty.pcard { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: none !important; width: 100%; }
+  .empty.pcard.up { flex-direction: column-reverse; }
+  .empty.pcard .pc { position: relative; width: min(300px, 88vw); text-align: left; padding: 20px 80px 20px 20px; background: #f6eedd; color: #2f2722; border-radius: 3px;
+    box-shadow: inset 0 0 0 4px #f6eedd, inset 0 0 0 5px #b08a3e, inset 0 0 0 8px #f6eedd, inset 0 0 0 9px #b08a3e, 0 3px 0 rgba(0,0,0,.35); font-family: "Noto Sans TC", sans-serif; font-size: 13px; line-height: 1.8; transform: rotate(-.6deg);
+    background-image: radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(120,80,30,.12) 100%); }
+  .empty.pcard .pc::after { content: ""; position: absolute; right: 68px; top: 18px; bottom: 18px; border-left: 1px dashed #c2a15a; }
+  .empty.pcard .pc b { display: block; font-family: "Noto Serif TC", serif; font-size: 16px; margin-bottom: 4px; }
+  .empty.pcard .pc .wax { position: absolute; right: 13px; top: 18px; }
+  .empty.pcard .sun { display: inline-flex; align-items: center; background: #c0705a; color: #fbeee6; border-radius: 999px; padding: 0 8px; font-size: 12px; white-space: nowrap; }
+  /* 指路紙膠帶：跟明信片分開，輕輕跳 */
+  .empty.pcard .arrow { font-family: "Noto Sans TC", sans-serif; font-size: 12.5px; letter-spacing: .05em; color: #fbf3df; background: rgba(192,112,90,.9); padding: 4px 16px;
+    clip-path: polygon(2% 0, 98% 6%, 100% 50%, 98.5% 100%, 1% 94%, 0 50%); animation: tapebob 1.4s ease-in-out infinite; --r: -2deg; }
+  .empty.pcard.up .arrow { background: rgba(74,86,112,.85); --r: 2deg; }
+  @keyframes tapebob { 0%, 100% { transform: translateY(0) rotate(var(--r)); } 50% { transform: translateY(-3px) rotate(var(--r)); } }
+  @media (prefers-reduced-motion: reduce) { .empty.pcard .arrow { animation: none; transform: rotate(var(--r)); } }
   .marker { font-size: 12.5px; text-align: center; color: var(--muted); letter-spacing: .1em; }
   .typing { font-size: 13.5px; color: var(--muted); font-style: italic; }
   .usage { font-size: 11.5px; color: var(--muted); text-align: right; margin-top: -14px !important; opacity: .8; }
@@ -1593,7 +1617,7 @@
     </div>
 
     <label for="card">目前存檔的玩家角色卡</label>
-    <textarea id="card" placeholder="開始新遊戲後，角色會給你這部作品的角色卡範本；在聊天中填好送出，會自動存在這裡。"></textarea>
+    <textarea id="card" placeholder="按「新的故事」後，角色會給你這部作品的角色卡範本；在聊天中填好送出，會自動存在這裡。"></textarea>
     </div></div>
 
     <div class="status" id="status"></div>
@@ -2042,11 +2066,16 @@ function render() {
   renderTitle();
   chatEl.innerHTML = "";
   if (!history.length) {
+    // 空白頁：明信片＋封蠟，指向下一步
     const d = document.createElement("div");
-    d.className = "empty";
-    d.textContent = settings.character
-      ? `「${(curSlot() || {}).name || "存檔"}」還沒開始。按「開始新遊戲」，角色會先登場，接著請你填寫玩家角色卡。`
-      : "先到右上角 ☰ →「設定」填好邀請碼、API key，載入模型與角色。";
+    d.className = "empty pcard";
+    const ready = !!settings.character;
+    d.innerHTML = `<div class="pc"><b></b><span class="tx"></span><span class="wax s4" style="--c:${ready ? "#c0705a" : "#6a2a30"};--ink:#fbeee6;--s:44px"><i>${ready ? "☀" : "⚙"}</i></span></div><span class="arrow">${ready ? "▼ 在下面" : "▲ 右上角 ☰"}</span>`;
+    d.querySelector("b").textContent = ready ? `「${(curSlot() || {}).name || "存檔"}」還沒開始` : "歡迎來到紫梓家";
+    d.querySelector(".tx").innerHTML = ready
+      ? '按下方 <span class="sun">☀ 新的故事</span>，角色會先登場，接著請你填寫玩家角色卡。'
+      : '先到右上角 ☰ →「設定」填好邀請碼、API key，再載入模型與角色。';
+    if (!ready) d.classList.add("up");
     chatEl.append(d);
   }
   history.forEach((m, i) => {
@@ -2123,9 +2152,13 @@ function addBubble(role, text, scroll = true, usage = null, latest = true, page 
     d.className = "aside";
     d.textContent = text;
   } else {
+    // 出錯：退件單＋未送達章，告訴玩家下一步
+    const full = /空間不夠/.test(text);
     d = document.createElement("div");
-    d.className = "notice";
-    d.textContent = text;
+    d.className = "notice slip";
+    d.innerHTML = `<span class="st">${full ? "未存檔" : "未送達"}</span><b>${full ? "最新的對話沒有存進去" : "這一句沒有送出去"}</b><span class="msg"></span>`
+      + (full ? "" : `<span class="tip">修好後按 <span class="mo">🌙 讓角色重寫</span> 再送一次</span>`);
+    d.querySelector(".msg").textContent = text.replace(/^⚠︎\s*/, "");
   }
   chatEl.append(d);
 
