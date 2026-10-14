@@ -1070,6 +1070,9 @@
   .os-s { display: flex; gap: 6px; align-items: baseline; font-size: 11.5px; color: #8b7d70; line-height: 1.5; }
   .os-s .pg { flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 10px; border: 1px solid #e3d8c6; border-radius: 999px; padding: 0 5px; }
   .os-o { font-family: "Noto Serif TC", serif; font-size: 15px; line-height: 1.65; color: #2f2722; margin-top: 2px; word-break: break-word; }
+  .os-tr { display: block; margin-top: 3px; padding-left: 9px; border-left: 2px solid #e3d8c6; font-family: "Noto Sans TC", sans-serif; font-size: 12.5px; line-height: 1.65; color: #8b7d70; }
+  .os-str { display: block; margin-top: 1px; color: #a29483; font-size: 11px; }
+  .os-ttr { display: block; margin-top: 4px; font-size: 12.5px; font-weight: 700; letter-spacing: .02em; opacity: .78; }
   .os-cat { position: absolute; right: -16px; bottom: -34px; width: 150px; height: 78px; z-index: 2; pointer-events: none;
     background: url(cat-tux.png) right bottom / contain no-repeat; filter: drop-shadow(0 3px 3px rgba(0,0,0,.18)); }
   :root[data-skin="paper"] .os-cat { background-image: url(cat-paper.png); }
@@ -3061,10 +3064,16 @@ function renderInner(secs) {
   if (!frags.length) return null;
   const board = document.createElement("div");
   board.className = "lv os-board";
-  board.innerHTML = `<div class="os-tape">${inline(heart || title)}</div>`;
+  // 外語附（中文翻譯）時：原文照放，翻譯改成下方淡色小字
+  const trHtml = (t, cls) => { const p = splitTr(t); return p ? `${inline(p[0])}<span class="${cls}">${inline(p[1])}</span>` : inline(t); };
+  const innerHtml = (t) => t.split("\n").map((l) => {
+    const only = l.match(/^\s*[（(]([^（）()]+)[）)]\s*$/);
+    return only && /[\u4e00-\u9fff]/.test(only[1]) ? `<span class="os-tr">${inline(only[1])}</span>` : trHtml(l, "os-tr");
+  }).join("<br>").replace(/<br>(<span class="os-tr">)/g, "$1");
+  board.innerHTML = `<div class="os-tape">${trHtml(heart || title, "os-ttr")}</div>`;
   const note = document.createElement("div");
   note.className = "os-note";
-  note.innerHTML = frags.map((f) => `<div class="os-f"><div class="os-s">${f.pg ? `<span class="pg">${esc(f.pg)}</span>` : ""}<span>${inline(f.said)}</span></div>${f.inner ? `<div class="os-o">${inline(f.inner).replace(/\n/g, "<br>")}</div>` : ""}</div>`).join("") + '<span class="os-cat"></span>';
+  note.innerHTML = frags.map((f) => `<div class="os-f"><div class="os-s">${f.pg ? `<span class="pg">${esc(f.pg)}</span>` : ""}<span>${trHtml(f.said, "os-str")}</span></div>${f.inner ? `<div class="os-o">${innerHtml(f.inner)}</div>` : ""}</div>`).join("") + '<span class="os-cat"></span>';
   board.append(note);
   const who = document.createElement("div");
   who.className = "os-who";
