@@ -473,6 +473,95 @@
   .fd-go { margin-top: 10px; border: 0; border-radius: 8px; background: var(--fd-pick); color: var(--fd-pick-ink); font-weight: 700; padding: 9px 16px; }
   .fd-go[hidden] { display: none; }
   .picker-sheet > .note { margin-top: 0; }
+  /* ===== 封蠟（工具列、選單、存檔頁、設定共用） ===== */
+  .wax { --s: 30px; width: var(--s); height: var(--s); flex-shrink: 0; border-radius: 47% 53% 50% 48% / 52% 46% 54% 48%; color: var(--ink, #fbf3df);
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.3), transparent 45%), var(--c);
+    box-shadow: inset -2px -2px 4px rgba(0,0,0,.32), inset 2px 2px 2px rgba(255,255,255,.2), 0 2px 0 rgba(0,0,0,.45);
+    display: inline-flex; align-items: center; justify-content: center; transition: transform .1s, box-shadow .1s; }
+  .wax.s2 { border-radius: 52% 48% 46% 54% / 48% 54% 46% 52%; } .wax.s3 { border-radius: 49% 51% 53% 47% / 50% 48% 52% 50%; } .wax.s4 { border-radius: 46% 54% 49% 51% / 53% 47% 51% 49%; }
+  .wax > i { font-style: normal; width: 72%; height: 72%; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1;
+    font-size: calc(var(--s) * .42); box-shadow: inset 1px 1px 2px rgba(0,0,0,.4), inset -1px -1px 1px rgba(255,255,255,.25); }
+  button:active > .wax, .wkey:active .wax { transform: translateY(2px); box-shadow: inset -2px -2px 4px rgba(0,0,0,.32), inset 2px 2px 2px rgba(255,255,255,.2), 0 0 0 rgba(0,0,0,.45); }
+  /* 底部工具列：日月星雲封蠟鍵＋信紙＋封蠟送出 */
+  .tools { display: flex; justify-content: space-around; gap: 4px; margin-bottom: 10px; flex-wrap: nowrap; }
+  .tools .wkey { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 62px; padding: 0; border: 0; background: none; color: var(--text); font: inherit; }
+  .tools .wkey[hidden] { display: none; }
+  .tools .wkey b { font-size: 11px; font-weight: 700; line-height: 1.2; }
+  .tools .wkey small { font-size: 9.5px; color: var(--muted); line-height: 1.2; }
+  .tools .wkey.sun b { color: #c0705a; }
+  .tools .wkey:disabled { opacity: .45; }
+  #input { min-height: 46px; line-height: 26px; padding: 9px 12px 8px; border-radius: 4px; border: 1px solid #d8c49a; color: #2f2722;
+    background: repeating-linear-gradient(transparent 0 25px, rgba(120,90,50,.25) 25px 26px) 0 9px / 100% 26px local, #fbf6ec; }
+  #input::placeholder { color: #8b7d70; }
+  #send.wsend { padding: 0; border: 0; background: none; flex-shrink: 0; }
+  #send.wsend .wax > i { font-size: 15px; gap: 1px; }
+  #send.wsend .wax > i b { font-family: "Noto Serif TC", serif; font-size: 12.5px; font-weight: 700; }
+  #send.wsend:disabled { opacity: .5; }
+  /* ☰ 選單：封蠟圖示 */
+  .menu a, .menu button { padding: 8px 12px; }
+  .menu .wax { --s: 30px; }
+  /* 存檔頁：打孔索引卡＋封蠟按鈕 */
+  .slot { align-items: center; gap: 8px; margin-bottom: 4px; }
+  .slot > button:first-child { position: relative; text-align: left; padding: 9px 12px 9px 28px; border: 0; border-top: 3px solid #d8c49a; border-radius: 4px; color: #2f2722;
+    font-family: "Noto Serif TC", serif; font-size: 15px; box-shadow: 0 2px 0 rgba(0,0,0,.3);
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.35) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(60,50,40,.07) 0 1px, transparent 1px 3px), #f1e4c8; }
+  .slot > button:first-child::before { content: ""; position: absolute; left: 10px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: var(--page); }
+  .slot > button.current { border-top-color: #7a2f35; background-color: #fbf3df; }
+  .charlist .slot > button:first-child small { color: #8b7d70; }
+  .charlist .slot > button.current small { color: #7a2f35; }
+  .charlist .slot > button.current { border-left: 0; border-right: 0; border-bottom: 0; }
+  .slot .mini, .wbtn { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 34px; padding: 0; border: 0; background: none; font: inherit; color: var(--muted); }
+  .slot .mini small, .wbtn small { font-size: 9.5px; line-height: 1.1; }
+  .slot .mini.del small { color: #c0705a; }
+  #slotNew { align-items: center; }
+  /* 設定：金框封蠟索引卡 */
+  #settings .sheet { counter-reset: sf; }
+  .scard { position: relative; margin: 0 2px 16px; padding: 7px; border-radius: 4px; color: #2f2722; box-shadow: 0 3px 0 rgba(0,0,0,.35);
+    background: radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(120,80,30,.16) 100%), repeating-linear-gradient(0deg, rgba(255,255,255,.35) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(60,50,40,.07) 0 1px, transparent 1px 3px), #f1e4c8; }
+  .scard:nth-of-type(1) { transform: rotate(-.4deg); } .scard:nth-of-type(2) { transform: rotate(.3deg); } .scard:nth-of-type(3) { transform: rotate(-.25deg); }
+  .scard > .in { border: 1px solid #b08a3e; outline: 1px solid #b08a3e; outline-offset: 2px; padding: 9px 12px 12px; }
+  .scard .hd { display: flex; align-items: center; gap: 9px; border-bottom: 1px solid rgba(176,138,62,.6); padding-bottom: 7px; }
+  .scard .hd b { display: block; font-family: "Noto Serif TC", serif; font-size: 15.5px; font-weight: 700; line-height: 1.2; }
+  .scard .hd small { font-family: ui-monospace, "Courier New", monospace; font-size: 8.5px; letter-spacing: .2em; color: #7a5e2a; }
+  .scard .clip { position: absolute; right: 22px; top: -18px; width: 15px; height: 42px; }
+  .scard label { color: #6e5236; font-size: 12px; margin: 11px 0 5px; counter-increment: sf; }
+  .scard label::before { content: counter(sf, decimal-leading-zero); font-family: ui-monospace, "Courier New", monospace; font-size: 9.5px; color: #b08a3e; margin-right: 7px; }
+  .scard input, .scard select, .scard textarea { background: #fffaf0; border: 1px solid #d8c49a; color: #2f2722; border-radius: 6px; box-shadow: inset 0 1px 2px rgba(90,60,20,.15); }
+  .scard input::placeholder, .scard textarea::placeholder { color: #a8957a; }
+  .scard select { -webkit-appearance: none; appearance: none; padding-right: 36px; background-repeat: no-repeat; background-position: right 9px center; background-size: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='8.5' fill='none' stroke='%23b08a3e'/%3E%3Cpath d='M6.5 8.5 L10 12 L13.5 8.5' fill='none' stroke='%23b08a3e' stroke-width='1.4'/%3E%3C/svg%3E"); }
+  .scard .row button { background: #fbf3df; border: 1px solid #b08a3e; color: #6e5236; border-radius: 6px; }
+  .scard .note, .scard .status { color: #7a5e48; }
+  .scard .status.err { color: #9b2a2a; }
+  .scard .key-chips .lab { color: #7a5e48; }
+  .scard .key-chips button { background: #fffaf0; color: #2f2722; border-color: #d8c49a; }
+  .scard .key-chips button.on { background: #4a5670; border-color: #4a5670; color: #fbf3df; }
+  .scard .lead { font-size: 11.5px; line-height: 1.7; color: #7a5e48; margin: 8px 0 0; }
+  /* 聊天標記：故事開頭郵戳、其他紙膠帶 */
+  .postmark { display: flex !important; justify-content: center; align-items: center; margin: 4px auto !important; }
+  .postmark .pm { position: relative; width: 84px; height: 84px; border-radius: 50%; border: 2px solid var(--pmc); color: var(--pmc); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; line-height: 1.15; transform: rotate(var(--pmr, -6deg)); opacity: .9; text-align: center; }
+  .postmark .pm::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; border: 1px solid var(--pmc); }
+  .postmark .pm small { font-family: ui-monospace, "Courier New", monospace; font-size: 7.5px; letter-spacing: .08em; }
+  .postmark .pm b { font-family: "Noto Serif TC", serif; font-size: 13px; font-weight: 700; margin: 2px 0; }
+  .postmark .ln { margin-left: -8px; width: 80px; height: 18px; opacity: .45; background: repeating-linear-gradient(transparent 0 3px, var(--pmc) 3px 4px);
+    -webkit-mask-image: linear-gradient(90deg, #000, transparent); mask-image: linear-gradient(90deg, #000, transparent); }
+  .postmark.new { --pmc: #b08a3e; } .postmark.cont { --pmc: #6d84b0; --pmr: 5deg; }
+  .tapemark, .pill.save-mark, .pill.win-hint, .marker.away { align-self: center; width: fit-content !important; max-width: 92% !important; border: 0 !important; border-radius: 0 !important;
+    padding: 5px 16px !important; font-family: "Noto Sans TC", sans-serif; font-size: 12px; letter-spacing: .02em; text-align: center;
+    -webkit-mask: conic-gradient(from 135deg at 5px 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 6px repeat-y, linear-gradient(#000, #000) 5px 0 / calc(100% - 10px) 100% no-repeat, conic-gradient(from -45deg at calc(100% - 5px) 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 6px repeat-y;
+    mask: conic-gradient(from 135deg at 5px 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 6px repeat-y, linear-gradient(#000, #000) 5px 0 / calc(100% - 10px) 100% no-repeat, conic-gradient(from -45deg at calc(100% - 5px) 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 6px repeat-y; }
+  .pill.save-mark { background: rgba(85,112,74,.72) !important; color: #f2f5ec !important; transform: rotate(1.2deg); }
+  .pill.save-mark.saving { background: rgba(85,112,74,.45) !important; }
+  .pill.save-mark.fail { background: rgba(106,42,48,.85) !important; color: #fbe9e4 !important; transform: rotate(.8deg); }
+  .pill.win-hint { background: rgba(192,112,90,.88) !important; color: #fff6ef !important; transform: rotate(-1.5deg); }
+  .pill.win-hint:active { transform: rotate(-1.5deg) scale(.96); }
+  .marker.away { background: rgba(74,86,112,.75); color: #e6ecf7; transform: rotate(-1deg); letter-spacing: .04em; }
+  .typing { font-style: normal; font-family: "Noto Serif TC", serif; color: var(--muted); }
+  .typing .dt { animation: tdot 1.2s infinite; } .typing .dt:nth-child(2) { animation-delay: .2s; } .typing .dt:nth-child(3) { animation-delay: .4s; }
+  @keyframes tdot { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .typing .dt { animation: none; } }
   /* 「點我」小膠囊：所有車票類按鈕共用 */
   .tap { display: inline-flex; align-items: center; gap: 3px; background: #7a2f35; color: #fbf3df; font-size: 10.5px; font-weight: 700; border-radius: 999px;
     padding: 2px 7px; letter-spacing: .06em; box-shadow: 0 2px 0 rgba(0,0,0,.3); white-space: nowrap; position: relative; z-index: 3; }
@@ -1237,17 +1326,17 @@
 
 <div id="menu" class="menu-wrap">
   <nav class="menu" aria-label="選單">
-    <button type="button" id="openChars"><span class="ico">👤</span>切換角色</button>
+    <button type="button" id="openChars"><span class="wax s1" style="--c:#4a5670"><i>👤</i></span>切換角色</button>
     <hr>
-    <a id="linkChars" target="_blank" rel="noopener"><span class="ico">🩷</span>角色們（單人）<span class="ext">↗</span></a>
-    <a id="linkWorlds" target="_blank" rel="noopener"><span class="ico">💜</span>開放世界（多人）<span class="ext">↗</span></a>
-    <a id="linkGuide" target="_blank" rel="noopener"><span class="ico">❔</span>使用說明<span class="ext">↗</span></a>
+    <a id="linkChars" target="_blank" rel="noopener"><span class="wax s2" style="--c:#c2a15a"><i>🩷</i></span>角色們（單人）<span class="ext">↗</span></a>
+    <a id="linkWorlds" target="_blank" rel="noopener"><span class="wax s3" style="--c:#c2a15a"><i>💜</i></span>開放世界（多人）<span class="ext">↗</span></a>
+    <a id="linkGuide" target="_blank" rel="noopener"><span class="wax s4" style="--c:#c2a15a"><i>❔</i></span>使用說明<span class="ext">↗</span></a>
     <hr>
-    <button type="button" id="openMemory"><span class="ico">📖</span>記憶庫</button>
-    <button type="button" id="newWindow"><span class="ico">🎫</span>換窗接續</button>
-    <button type="button" id="saveNow"><span class="ico">💾</span>立即寫入記憶庫</button>
-    <button type="button" id="openIO"><span class="ico">📦</span>匯出／匯入</button>
-    <button type="button" id="openSettings"><span class="ico">⚙︎</span>設定</button>
+    <button type="button" id="openMemory"><span class="wax s1" style="--c:#7a5e88"><i>📖</i></span>記憶庫</button>
+    <button type="button" id="newWindow"><span class="wax s2" style="--c:#c0705a"><i>🎫</i></span>換窗接續</button>
+    <button type="button" id="saveNow"><span class="wax s3" style="--c:#55704a"><i>💾</i></span>立即寫入記憶庫</button>
+    <button type="button" id="openIO"><span class="wax s4" style="--c:#8a6a4a"><i>📦</i></span>匯出／匯入</button>
+    <button type="button" id="openSettings"><span class="wax s1" style="--c:#6a2a30"><i>⚙️</i></span>設定</button>
   </nav>
 </div>
 
@@ -1257,14 +1346,14 @@
 
 <footer>
   <div class="tools">
-    <button id="newGame">開始新遊戲</button>
-    <button id="retry">重來最後一則</button>
-    <button id="editLast">修改上一句</button>
-    <button id="pasteCard" hidden>貼上我的角色卡</button>
+    <button id="retry" class="wkey" type="button"><span class="wax s1" style="--c:#4a5670;--ink:#dfe5ee;--s:42px"><i><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M15 4 a8 8 0 1 0 5 13 a6.5 6.5 0 0 1 -5 -13 Z"/></svg></i></span><b>讓角色重寫</b><small>重新回一次</small></button>
+    <button id="editLast" class="wkey" type="button"><span class="wax s2" style="--c:#c9c5bc;--ink:#5f5d57;--s:42px"><i><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M6 18 a4 4 0 0 1 0-8 a5.5 5.5 0 0 1 10.5-1.5 a4 4 0 0 1 1.5 9.5 Z"/></svg></i></span><b>改我上一句</b><small>收回重打</small></button>
+    <button id="pasteCard" class="wkey" type="button" hidden><span class="wax s3" style="--c:#c2a15a;--ink:#3d2e12;--s:42px"><i><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3 l2.6 5.6 6 .7 -4.5 4.1 1.2 6 -5.3 -3 -5.3 3 1.2 -6 -4.5 -4.1 6 -.7 Z"/></svg></i></span><b>我的角色卡</b><small>貼回輸入框</small></button>
+    <button id="newGame" class="wkey sun" type="button"><span class="wax s4" style="--c:#c0705a;--ink:#fbeee6;--s:42px"><i><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></i></span><b>新的故事</b><small>從頭開始</small></button>
   </div>
   <div class="composer">
     <textarea id="input" rows="1" placeholder="輸入你的行動或對話…"></textarea>
-    <button class="primary" id="send">送出</button>
+    <button id="send" class="wsend" type="button" aria-label="送出"><span class="wax" style="--c:#6a2a30;--ink:#f6e2d8;--s:58px"><i><span>✉</span><b>送出</b></i></span></button>
   </div>
 </footer>
 
@@ -1290,7 +1379,7 @@
     <div id="charList" class="charlist"></div>
     <div id="slotNew" class="row" hidden>
       <input id="slotName" autocomplete="off" maxlength="30" placeholder="為新存檔取名">
-      <button class="primary" id="addSlot" type="button">＋ 新增</button>
+      <button class="wbtn" id="addSlot" type="button"><span class="wax s2" style="--c:#55704a;--s:38px"><i>＋</i></span><small>新增</small></button>
     </div>
     <div class="status" id="charStatus"></div>
   </div>
@@ -1375,8 +1464,8 @@
         <button type="button" id="saveSettings" class="stampbtn" aria-label="儲存"><span class="face"><small>✦ SAVE ✦</small><b>儲存</b></span><span class="tap">☝ 點我儲存</span></button>
       </div>
     </div>
-    <p class="note">API key 只存在這支手機的瀏覽器裡，每次對話經轉送後即丟棄，作者端不會留存。<br>網頁版沒有放任何越獄內容，對話規範依照你所用平台的使用政策。角色以三大平台（Gemini、Claude、ChatGPT）的高階模型為主，其他平台與較小的模型演繹效果無法保證。</p>
-
+    <div class="scard"><div class="in">
+      <div class="hd"><span class="wax s1" style="--c:#7a5e88;--s:30px"><i>🎨</i></span><span><b>外觀</b><small>✦ APPEARANCE ✦</small></span></div>
     <label for="theme">外觀</label>
     <select id="theme">
       <option value="auto">跟隨手機設定</option>
@@ -1398,7 +1487,11 @@
       <option value="on">打開</option>
     </select>
     <p class="note" style="margin:6px 0 0">打開後，你離開超過 8 小時再回來，角色可能會先傳訊息給你。<br>觸發時那一則回覆會稍微長一點，多用一些 token。</p>
+    </div></div>
 
+    <div class="scard"><svg class="clip" viewBox="0 0 15 42" aria-hidden="true"><path d="M4 38 V8 a3.5 3.5 0 0 1 7 0 V31 a2.2 2.2 0 0 1 -4.4 0 V12" fill="none" stroke="#9aa0a6" stroke-width="1.7" stroke-linecap="round"/></svg><div class="in">
+      <div class="hd"><span class="wax s2" style="--c:#4a5670;--s:30px"><i>🔑</i></span><span><b>通行證</b><small>✦ PASS ✦</small></span></div>
+      <p class="lead">API key 只存在這支手機的瀏覽器裡，每次對話經轉送後即丟棄，作者端不會留存。網頁版沒有放任何越獄內容，對話規範依照你所用平台的使用政策。角色以三大平台（Gemini、Claude、ChatGPT）的高階模型為主，其他平台與較小的模型演繹效果無法保證。</p>
     <label for="invite">邀請碼</label>
     <input id="invite" autocomplete="off">
 
@@ -1418,7 +1511,10 @@
     </div>
     <div class="key-chips" id="keyChips"></div>
     <div class="status" id="keyHint"></div>
+    </div></div>
 
+    <div class="scard"><div class="in">
+      <div class="hd"><span class="wax s3" style="--c:#6a2a30;--s:30px"><i>🎭</i></span><span><b>這次要玩</b><small>✦ NOW PLAYING ✦</small></span></div>
     <label for="model">模型</label>
     <div class="row">
       <select id="model"><option value="">先按「載入」</option></select>
@@ -1433,6 +1529,7 @@
 
     <label for="card">目前存檔的玩家角色卡</label>
     <textarea id="card" placeholder="開始新遊戲後，角色會給你這部作品的角色卡範本；在聊天中填好送出，會自動存在這裡。"></textarea>
+    </div></div>
 
     <div class="status" id="status"></div>
   </div>
@@ -1869,10 +1966,34 @@ function render() {
   scrollDown();
 }
 
+// 故事開頭的郵戳（新的故事、接續的故事）
+function postmark(kind, top, mid, bot) {
+  const d = document.createElement("div");
+  d.className = `postmark ${kind}`;
+  d.innerHTML = `<span class="pm"><small>${esc(top)}</small><b>${esc(mid)}</b><small>${esc(bot)}</small></span><span class="ln"></span>`;
+  return d;
+}
+
+// 角色回應中：角色名＋隨機一句（通用；標籤是古風或偶像時混進專屬句子）
+const TYPING_LINES = {
+  common: ["正在努力奔向你", "正在想怎麼回你", "把寫好的句子又劃掉了", "正在斟酌字句", "的筆尖停了一下", "看著你的訊息，笑了一下", "打了一半，又全部刪掉",
+    "正在認真回你，等一下下", "正在輸入中", "已讀，正在想", "把手機翻過來又翻回去"],
+  ancient: ["正在研墨", "提筆，又放下", "正在等墨乾", "將信紙對摺又攤開"],
+  idol: ["剛下台，正在打字", "躲在休息室回你", "經紀人在旁邊，正偷偷打字"],
+};
+function typingLine() {
+  const tags = (settings.characterTags || []).join(" ");
+  let pool = TYPING_LINES.common.slice();
+  if (/古風|修仙|仙俠|武俠|宮廷|古代/.test(tags)) pool = pool.concat(TYPING_LINES.ancient, TYPING_LINES.ancient);
+  if (/偶像|idol|愛豆/i.test(tags)) pool = pool.concat(TYPING_LINES.idol, TYPING_LINES.idol);
+  const line = pool[Math.floor(Math.random() * pool.length)];
+  return `${charShort()}${line.startsWith("的") ? "" : " "}${line}`;
+}
+
 function addAwayMark(n) {
   const d = document.createElement("div");
-  d.className = "marker";
-  d.textContent = `你離開了 ${n} 小時`;
+  d.className = "marker away";
+  d.textContent = `☾ 你離開了 ${n} 小時`;
   chatEl.append(d);
 }
 
@@ -1891,13 +2012,9 @@ function addBubble(role, text, scroll = true, usage = null, latest = true, page 
     d = renderPage(text, latest);
     if (page) d.dataset.page = page;
   } else if (role === "user" && text === NEW_GAME) {
-    d = document.createElement("div");
-    d.className = "marker";
-    d.textContent = "新的故事";
+    d = postmark("new", "✦ STORY ✦", "新的故事", "P.1 開始");
   } else if (role === "user" && isOldGame(text)) {
-    d = document.createElement("div");
-    d.className = "marker";
-    d.textContent = `接續的故事・從 page.${((curSlot() || {}).base || 0) + 1} 開始`;
+    d = postmark("cont", "✦ CONTINUE ✦", "接續的故事", `從 P.${((curSlot() || {}).base || 0) + 1} 開始`);
   } else if (lore) {
     // 翻看指令顯示成小標記
     d = document.createElement("div");
@@ -3950,7 +4067,7 @@ function setBusy(on) {
   if (on) {
     const t = document.createElement("div");
     t.className = "typing";
-    t.textContent = "角色正在回應…";
+    t.innerHTML = `✒ ${esc(typingLine())}<span><span class="dt">.</span><span class="dt">.</span><span class="dt">.</span></span>`;
     chatEl.append(t);
     scrollDown();
   }
@@ -4620,6 +4737,7 @@ async function openChars() {
     // 打開時停在目前角色所在的分頁
     const cur = pickChars.find((c) => c.id === settings.character);
     pickTab = cur ? tabOf(cur) : "solo";
+    if (cur) { settings.characterTags = charTags(cur); store.set("rp_settings", settings); }
     pickStatus(pickChars.length ? "" : "目前沒有角色");
     showCharStep();
   } catch (e) {
@@ -4845,7 +4963,7 @@ function showSlotStep(c) {
     const ren = document.createElement("button");
     ren.type = "button";
     ren.className = "mini";
-    ren.textContent = "改名";
+    ren.innerHTML = '<span class="wax s1" style="--c:#4a5670;--s:28px"><i>✎</i></span><small>改名</small>';
     ren.onclick = async () => {
       const v = await askDialog({ tab: "✎ 改名", title: "幫存檔換個名字", sub: "只改名字，故事和記憶庫都不會動", input: s.name, ok: "改好了" });
       if (v === null || !v.trim()) return;
@@ -4858,7 +4976,7 @@ function showSlotStep(c) {
     const del = document.createElement("button");
     del.type = "button";
     del.className = "mini del";
-    del.textContent = "刪除";
+    del.innerHTML = '<span class="wax s2" style="--c:#6a2a30;--s:28px"><i>🗑</i></span><small>刪除</small>';
     del.onclick = async () => {
       if (!(await askDialog({
         tab: "🗑 刪除", title: `要刪掉「${s.name}」嗎？`, ok: "確定刪除", kind: "danger",
@@ -4881,6 +4999,7 @@ function showSlotStep(c) {
 function enterSlot(c, sid) {
   settings.character = c.id;
   settings.characterName = c.name || c.id;
+  if (Array.isArray(c.tags)) settings.characterTags = charTags(c);
   store.set("rp_settings", settings);
   charSlots(c.id).current = sid;
   saveSlots();
@@ -5052,6 +5171,7 @@ $("loadChars").onclick = async () => {
   try {
     const data = await callWorker("/characters", {});
     fillSelect($("character"), data.characters, settings.character, "目前沒有角色");
+    pickChars = data.characters || [];
     setLore(data.lorebook);
     $("card").value = (slotOf($("character").value) || {}).card || "";
     status(data.characters.length ? "角色已載入" : "目前沒有角色", !data.characters.length);
@@ -5078,6 +5198,7 @@ $("saveSettings").onclick = () => {
     models: draftModels,
     character: charSel.value,
     characterName: charSel.value ? charSel.options[charSel.selectedIndex].textContent : "",
+    characterTags: charSel.value === prevChar ? settings.characterTags || [] : charTags(pickChars.find((x) => x.id === charSel.value) || {}),
   };
   store.set("rp_settings", settings);
   ensureSlot(settings.character);
