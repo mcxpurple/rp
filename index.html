@@ -4821,13 +4821,13 @@ function setPickTab(tab) {
 }
 
 // 角色立繪：GitHub 上 avatars/角色ID.png（3:5 去背直式圖）。找不到就記下來，這次開網頁不再重找
-// 沒有專屬圖時，列表改用 avatars/_default.png（通用圖，正方形也可），右下角蓋名字第一個字的封蠟
+// 沒有專屬圖時，列表改用 avatars/default.png（通用圖，正方形也可），右下角蓋名字第一個字的封蠟
 const avMiss = new Set();
 let avDefault = "";            // "" 還沒找、"ok" 有、"miss" 沒有
 const avDefaultWait = [];
 function loadDefaultAvatar(onok) {
   if (avDefault === "miss") return;
-  const make = () => { const im = new Image(); im.alt = ""; im.src = "avatars/_default.png"; return im; };
+  const make = () => { const im = new Image(); im.alt = ""; im.src = "avatars/default.png"; return im; };
   if (avDefault === "ok") { onok(make()); return; }
   avDefaultWait.push(onok);
   if (avDefaultWait.length > 1) return;
