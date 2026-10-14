@@ -464,7 +464,48 @@
   .fd-go { margin-top: 10px; border: 0; border-radius: 8px; background: var(--fd-pick); color: var(--fd-pick-ink); font-weight: 700; padding: 9px 16px; }
   .fd-go[hidden] { display: none; }
   .picker-sheet > .note { margin-top: 0; }
-  /* 設定的儲存：磁片 */
+  /* 「點我」小膠囊：所有車票類按鈕共用 */
+  .tap { display: inline-flex; align-items: center; gap: 3px; background: #7a2f35; color: #fbf3df; font-size: 10.5px; font-weight: 700; border-radius: 999px;
+    padding: 2px 7px; letter-spacing: .06em; box-shadow: 0 2px 0 rgba(0,0,0,.3); white-space: nowrap; position: relative; z-index: 3; }
+  .tap.bob { animation: tapbob 1.4s ease-in-out infinite; }
+  @keyframes tapbob { 50% { transform: translateY(-3px); } }
+  @media (prefers-reduced-motion: reduce) { .tap.bob { animation: none; } }
+  .fd-hint { margin: 8px 0 0; font-size: 11.5px; color: var(--fd-ink2); text-align: right; letter-spacing: .03em; }
+  .fd-hint:empty { display: none; }
+  /* 設定的儲存：圓章 */
+  .stampbtn { display: flex; flex-direction: column; align-items: center; gap: 7px; flex-shrink: 0; padding: 0; border: 0; background: none; font: inherit; }
+  .stampbtn .face { position: relative; width: 60px; height: 60px; border-radius: 50%; border: 2.5px solid #7a2f35; color: #7a2f35; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; line-height: 1.1; transform: rotate(-8deg); box-shadow: 0 3px 0 rgba(0,0,0,.3); transition: transform .1s, box-shadow .1s;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.35) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(60,50,40,.07) 0 1px, transparent 1px 3px), #f1e4c8; }
+  .stampbtn .face::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; border: 1px dashed #7a2f35; }
+  .stampbtn .face small { font-family: ui-monospace, "Courier New", monospace; font-size: 7px; letter-spacing: .1em; }
+  .stampbtn .face b { font-family: "Noto Serif TC", serif; font-size: 15px; font-weight: 700; }
+  .stampbtn:active .face { transform: rotate(-8deg) translateY(3px); box-shadow: 0 0 0 rgba(0,0,0,.3); }
+  /* 小車票按鈕：開始接續、對話框的確定 */
+  .mtk { display: inline-flex; padding: 0; border: 0; background: none; font: inherit; transform: rotate(-2deg); filter: drop-shadow(0 3px 0 rgba(16,35,46,.55)); transition: transform .1s; }
+  .mtk:active { transform: rotate(-2deg) translateY(2px); }
+  .mtk[hidden] { display: none; }
+  .mtk .f { padding: 6px 10px; border-radius: 6px 0 0 6px; color: var(--ink);
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.35) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(60,50,40,.07) 0 1px, transparent 1px 3px), var(--paper); }
+  .mtk .f span { display: block; border: 1px solid #b08a3e; outline: 1px solid #b08a3e; outline-offset: 2px; padding: 2px 12px; text-align: center; }
+  .mtk .f small { display: block; font-family: ui-monospace, "Courier New", monospace; font-size: 7px; letter-spacing: .15em; color: #7a5e2a; }
+  .mtk .f b { font-family: "Noto Serif TC", serif; font-size: 15px; font-weight: 700; white-space: nowrap; }
+  .mtk .s { min-width: 42px; border-left: 2px dashed #fbf3df; border-radius: 0 6px 6px 0; background: var(--stub); color: var(--stub-ink);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 0 6px; }
+  .mtk.lilac { --paper: #e6dfec; --ink: #2e2638; --stub: #9c8bb3; --stub-ink: #1f1726; }
+  .mtk.lilac .f { mask: radial-gradient(circle 5px at 0 50%, #0000 97%, #000); }
+  .mtk.apricot { --paper: #f1e4c8; --ink: #3a2a18; --stub: #d9b65a; --stub-ink: #3a2a18; }
+  .mtk.danger { --paper: #d3d1c7; --ink: #7a2f35; --stub: #7a2f35; --stub-ink: #fbf3df; }
+  /* 小對話框（改名、刪除、新遊戲、換窗取名） */
+  #dlg { align-items: center; padding: 16px; }
+  #dlg .sheet { max-width: 360px; border-radius: 22px; padding-bottom: 18px; }
+  #dlg .fd-head { position: relative; top: auto; margin-bottom: 0; }
+  #dlg .dlg-in { width: 100%; margin-top: 10px; background: #fbf3df; color: #2f2722; border: 1px solid #b08a3e; border-radius: 8px; }
+  #dlg .dlg-warn { margin-top: 10px; border-left: 3px solid #7a2f35; background: rgba(122,47,53,.2); padding: 7px 10px; font-size: 12.5px; line-height: 1.75; }
+  #dlg .dlg-warn b { color: var(--fd-ink); text-decoration: underline wavy #7a2f35; text-underline-offset: 3px; }
+  #dlg .dlg-list { margin-top: 10px; font-size: 13px; line-height: 1.9; }
+  #dlg .dlg-go { display: flex; justify-content: flex-end; margin-top: 14px; }
+  /* 設定的儲存：磁片（舊，保留樣式不用） */
   .floppy { position: relative; width: 62px; height: 62px; flex-shrink: 0; padding: 0; border: 0; border-radius: 4px 12px 4px 4px; background: var(--tape);
     transform: rotate(-4deg); box-shadow: 0 3px 0 rgba(0,0,0,.28); transition: transform .1s, box-shadow .1s; }
   .floppy:active { transform: rotate(-4deg) translateY(3px); box-shadow: 0 0 0 rgba(0,0,0,.28); }
@@ -490,7 +531,8 @@
   .tkt svg.band { display: block; width: calc(100% + 16px); margin: 3px -8px 0; }
   .tkt .stub { width: 52px; flex-shrink: 0; border-left: 2px dashed #fbf3df; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
     background: var(--stub); color: var(--stub-ink); }
-  .tkt .stub b { font-size: 12px; font-weight: 700; line-height: 1.25; text-align: center; }
+  .tkt .stub b { font-size: 11px; font-weight: 700; line-height: 1.2; text-align: center; }
+  .tkt .stub { justify-content: space-between; padding: 8px 0 7px; }
   .tkt .stub span { font-size: 16px; }
   .tkt .seal { position: absolute; right: 28px; top: 50%; width: 50px; height: 50px; margin-top: -25px; border-radius: 50%; border: 2px solid #7a2f35; color: #7a2f35;
     transform: rotate(-14deg); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; mix-blend-mode: multiply; opacity: .82; pointer-events: none; }
@@ -1193,7 +1235,7 @@
     <a id="linkGuide" target="_blank" rel="noopener"><span class="ico">❔</span>使用說明<span class="ext">↗</span></a>
     <hr>
     <button type="button" id="openMemory"><span class="ico">📖</span>記憶庫</button>
-    <button type="button" id="newWindow"><span class="ico">🪟</span>換窗接續</button>
+    <button type="button" id="newWindow"><span class="ico">🎫</span>換窗接續</button>
     <button type="button" id="saveNow"><span class="ico">💾</span>立即寫入記憶庫</button>
     <button type="button" id="openIO"><span class="ico">📦</span>匯出／匯入</button>
     <button type="button" id="openSettings"><span class="ico">⚙︎</span>設定</button>
@@ -1256,7 +1298,7 @@
       <div class="fd-body">
         <h2 id="ioTitle">匯出／匯入</h2>
         <p class="note" id="ioNote">存檔只存在這支手機的瀏覽器裡。換手機、換瀏覽器或清除資料前，先匯出記憶庫備份（對話紀錄不會匯出）。</p>
-        <button class="fd-go" id="ioStart" type="button" hidden>開始接續 →</button>
+        <button class="mtk lilac" id="ioStart" type="button" hidden style="margin-top:12px"><span class="f"><span><small>✦ ONE WAY ✦</small><b>開始接續</b></span></span><span class="s"><span class="tap bob">點我</span><span>→</span></span></button>
       </div>
     </div>
 
@@ -1292,9 +1334,25 @@
         <h2 id="memTitle">記憶庫</h2>
         <p class="note" id="memNote" style="margin:0"></p>
         <button type="button" id="memWindow" class="tkt" aria-label="換窗接續"></button>
+        <p class="fd-hint" id="memHint"></p>
       </div>
     </div>
     <div id="memBody"></div>
+  </div>
+</div>
+
+<div id="dlg" class="overlay">
+  <div class="sheet picker-sheet">
+    <div class="fd-head">
+      <div class="fd-tabs"><span class="on" id="dlgTab"></span></div>
+      <button type="button" id="dlgCancel" class="fd-tape" aria-label="取消">✕ 取消</button>
+      <div class="fd-body">
+        <h2 id="dlgTitle"></h2>
+        <div id="dlgBody"></div>
+        <input id="dlgInput" class="dlg-in" autocomplete="off" maxlength="30" hidden>
+        <div class="dlg-go"><button type="button" id="dlgOk" class="mtk apricot"></button></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1304,8 +1362,8 @@
       <div class="fd-tabs"><span class="on">⚙︎ 設定</span></div>
       <button type="button" id="closeSettings" class="fd-tape" aria-label="取消">✕ 取消</button>
       <div class="fd-body fd-row">
-        <div><h2>遊玩設定</h2><p class="note" style="margin:0">改完按右邊的磁片存起來</p></div>
-        <button type="button" id="saveSettings" class="floppy" aria-label="儲存"><span class="sh"><i></i></span><span class="lab">儲存</span></button>
+        <div><h2>遊玩設定</h2><p class="note" style="margin:0">改完按右邊存起來</p></div>
+        <button type="button" id="saveSettings" class="stampbtn" aria-label="儲存"><span class="face"><small>✦ SAVE ✦</small><b>儲存</b></span><span class="tap">☝ 點我儲存</span></button>
       </div>
     </div>
     <p class="note">API key 只存在這支手機的瀏覽器裡，每次對話經轉送後即丟棄，作者端不會留存。<br>網頁版沒有放任何越獄內容，對話規範依照你所用平台的使用政策。角色以三大平台（Gemini、Claude、ChatGPT）的高階模型為主，其他平台與較小的模型演繹效果無法保證。</p>
@@ -3217,7 +3275,7 @@ function showWindowHint() {
   h.className = "pill win-hint";
   h.setAttribute("role", "button");
   h.tabIndex = 0;
-  h.textContent = "🪟 建議換窗接續・點這裡";
+  h.textContent = "🎫 建議換窗接續・點這裡";
   h.onclick = () => newWindow();
   h.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); newWindow(); } };
   mark.after(h);
@@ -3282,7 +3340,7 @@ async function runSave(manual = false) {
     if (sameSlot(job)) {
       showSaveMark(to, "done", `Page.${from}-${to}`);
       showWindowHint();
-      if (windowDue()) toast(`已寫入記憶庫 Page.${from}-${to}・建議換窗接續 🪟`);
+      if (windowDue()) toast(`已寫入記憶庫 Page.${from}-${to}・建議換窗接續 🎫`);
       else if (manual) toast(`已寫入記憶庫 Page.${from}-${to} ✧`);
     }
     return true;
@@ -4048,10 +4106,13 @@ function autoGrow() {
 }
 $("input").addEventListener("input", autoGrow);
 
-$("newGame").onclick = () => {
+$("newGame").onclick = async () => {
   if (!ready()) return;
   const name = (curSlot() || {}).name || "這個存檔";
-  if (history.length && !confirm(`開始新遊戲會清除「${name}」目前的對話與記憶庫（角色卡保留），確定嗎？\n\n想保留這段故事，可以到「切換角色」另開新存檔。`)) return;
+  if (history.length && !(await askDialog({
+    tab: "✦ 新的故事", title: `要從頭開始「${name}」嗎？`, ok: "重新開始", kind: "lilac",
+    html: '<div class="dlg-list"><div>🧹 會清掉：目前的對話、記憶庫</div><div>📌 會留下：你的玩家角色卡</div></div><p class="note" style="margin:6px 0 0">想保留這段故事，可以到「切換角色」另開一個新存檔。</p>',
+  }))) return;
   history = [];
   saveHistory();
   // 記憶庫一起清空；epoch +1 讓進行中的寫入結果作廢
@@ -4283,8 +4344,9 @@ function renderTicket() {
     `<span class="rt"><b>第${n}窗</b><span class="ic">${K.ic}${kind === "flight" ? '<span class="st">✦</span>' : ""}</span><b class="to">第${n + 1}窗</b></span>` +
     `<span class="ft"><span>${esc(name)}</span><span>p.${page} ${K.go}</span><span>${date}</span></span>` +
     ticketBand(kind) + `</span></span>` +
-    `<span class="stub"><span>${K.stub}</span><b>換<br>窗<br>接<br>續</b></span>` +
+    `<span class="stub"><b>換窗<br>接續</b><span class="tap bob">點我</span></span>` +
     `<span class="seal"><small>✦ ${date.slice(5)} ✦</small><b>${K.seal}</b><small>${K.en}</small></span></span>`;
+  $("memHint").textContent = `☝ 點一下車票，就會換到第 ${n + 1} 窗接著玩`;
 }
 $("closeMemory").onclick = () => closePanel("memoryPanel");
 
@@ -4298,12 +4360,13 @@ function ioStatus(msg, err = false) {
   $("ioStatus").textContent = msg;
   $("ioStatus").className = "status" + (err ? " err" : "");
 }
+const IO_NOTE = $("ioNote").textContent;
 function ioShow(form) {
   $("ioMain").hidden = form;
   $("ioForm").hidden = !form;
   $("ioBack").hidden = !form;
   $("ioStart").hidden = !form;
-  $("ioNote").hidden = form;
+  $("ioNote").textContent = form ? "貼好角色卡和記憶後，點車票出發。" : IO_NOTE;
   $("ioTitle").textContent = form ? "從其他平台接續" : "匯出／匯入";
   $("ioTab").hidden = form;
   ioStatus("");
@@ -4434,7 +4497,7 @@ async function newWindow() {
 
   const n = (s.win || 1) + 1;
   const baseName = s.name.replace(/・第\s*\d+\s*窗$/, "");
-  const name = prompt("新窗的名稱", `${baseName}・第 ${n} 窗`);
+  const name = await askDialog({ tab: "🎫 換窗接續", title: "幫新窗取個名字", sub: "舊的那一窗會完整留著", input: `${baseName}・第 ${n} 窗`, ok: "出發" });
   if (name === null) return;
 
   if ((s.pages || 0) > loadMem().saved) {
@@ -4742,8 +4805,8 @@ function showSlotStep(c) {
     ren.type = "button";
     ren.className = "mini";
     ren.textContent = "改名";
-    ren.onclick = () => {
-      const v = prompt("新的存檔名稱", s.name);
+    ren.onclick = async () => {
+      const v = await askDialog({ tab: "✎ 改名", title: "幫存檔換個名字", sub: "只改名字，故事和記憶庫都不會動", input: s.name, ok: "改好了" });
       if (v === null || !v.trim()) return;
       s.name = v.trim().slice(0, 30);
       saveSlots();
@@ -4755,8 +4818,11 @@ function showSlotStep(c) {
     del.type = "button";
     del.className = "mini del";
     del.textContent = "刪除";
-    del.onclick = () => {
-      if (!confirm(`刪除「${s.name}」？這個存檔的對話、角色卡與記憶庫都會清除，無法復原。`)) return;
+    del.onclick = async () => {
+      if (!(await askDialog({
+        tab: "🗑 刪除", title: `要刪掉「${s.name}」嗎？`, ok: "確定刪除", kind: "danger",
+        html: '<div class="dlg-warn">這個存檔的對話、角色卡和記憶庫都會一起清掉，<b>刪了就找不回來</b>。<br>想留著的話，先到「📦 匯出／匯入」匯出記憶庫。</div>',
+      }))) return;
       store.remove(historyKey(c.id, s.id));
       store.remove(memKey(c.id, s.id));
       cs.list = cs.list.filter((x) => x.id !== s.id);
@@ -4799,6 +4865,7 @@ function openPanel(id) {
 }
 function closePanel(id) {
   $(id).classList.remove("open");
+  if (id === "dlg") dlgDone(null);
   const i = NAV.lastIndexOf(id);
   if (i < 0) return;
   NAV.splice(i, 1);
@@ -4813,8 +4880,39 @@ window.addEventListener("popstate", () => {
   if (id === "charPicker" && $("pickTools").hidden) { showCharStep(); stay(); return; }
   if (id === "ioPanel" && !$("ioForm").hidden) { ioShow(false); stay(); return; }
   $(id).classList.remove("open");
+  if (id === "dlg") dlgDone(null);
 });
-for (const id of ["charPicker", "ioPanel", "memoryPanel", "settings"]) {
+// 小對話框：回傳 Promise；有輸入框時回傳文字，沒有時回傳 true；取消（膠帶、點外面、返回鍵）回傳 null
+let dlgResolve = null;
+function dlgDone(v) {
+  if (!dlgResolve) return;
+  const r = dlgResolve;
+  dlgResolve = null;
+  r(v);
+}
+function askDialog({ tab, title, sub = "", html = "", input = null, ok = "確定", kind = "apricot" }) {
+  dlgDone(null);
+  $("dlgTab").textContent = tab;
+  $("dlgTitle").textContent = title;
+  $("dlgBody").innerHTML = (sub ? `<p class="note" style="margin:2px 0 0">${esc(sub)}</p>` : "") + html;
+  const inp = $("dlgInput");
+  inp.hidden = input === null;
+  inp.value = input === null ? "" : input;
+  const b = $("dlgOk");
+  b.className = `mtk ${kind}`;
+  b.innerHTML = `<span class="f"><span><b>${esc(ok)}</b></span></span><span class="s">${kind === "danger" ? "🗑" : '<span class="tap bob">點我</span>'}</span>`;
+  openPanel("dlg");
+  if (input !== null) setTimeout(() => { inp.focus(); inp.select(); }, 50);
+  return new Promise((res) => { dlgResolve = res; });
+}
+$("dlgOk").onclick = () => {
+  const v = $("dlgInput").hidden ? true : $("dlgInput").value;
+  dlgDone(v);
+  closePanel("dlg");
+};
+$("dlgCancel").onclick = () => closePanel("dlg");
+$("dlgInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); $("dlgOk").click(); } });
+for (const id of ["charPicker", "ioPanel", "memoryPanel", "settings", "dlg"]) {
   $(id).addEventListener("click", (e) => { if (e.target === $(id)) closePanel(id); });
 }
 $("closeChars").onclick = () => closePanel("charPicker");
