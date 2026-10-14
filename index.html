@@ -426,7 +426,12 @@
   .charlist > button.ccard:nth-of-type(even) .pol { transform: rotate(2.5deg); }
   .charlist .pol > span { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; overflow: hidden;
     background: linear-gradient(160deg, #e9dcc0, #d8c49a); color: #6e5236; font-family: "Noto Serif TC", serif; font-size: 19px; font-weight: 700; }
-  .charlist .pol img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .charlist .pol > span.pic { align-items: flex-start; background: linear-gradient(160deg, #e6d6ee, #cdb9d9); }
+  .charlist .pol > span.pic img { flex: none; width: 170%; height: auto; margin-top: -3px; display: block; }
+  /* 存檔頁：資料夾右邊的半身立繪（下半身被資料夾底部切掉） */
+  .fd-body.has-fig { position: relative; overflow: hidden; padding-right: 128px; }
+  .fd-body > .fig { position: absolute; right: 2px; top: 4px; width: 130px; height: auto; pointer-events: none; filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
+  .fd-tape { z-index: 5; }
   .charlist .cb { flex: 1; min-width: 0; }
   .charlist > button.ccard .top { font-family: "Noto Serif TC", serif; font-size: 16.5px; font-weight: 700; color: #2f2722; }
   .charlist > button.ccard small { color: #7a5e48; }
@@ -4808,7 +4813,25 @@ function setPickTab(tab) {
   renderCharList();
 }
 
+// 角色立繪：GitHub 上 avatars/角色ID.png（3:5 去背直式圖）。找不到就記下來，這次開網頁不再重找
+const avMiss = new Set();
+function loadAvatar(c, onok) {
+  if (!c || !c.id || avMiss.has(c.id)) return;
+  const im = new Image();
+  im.alt = "";
+  im.decoding = "async";
+  im.onload = () => onok(im);
+  im.onerror = () => avMiss.add(c.id);
+  im.src = c.avatar || `avatars/${encodeURIComponent(c.id)}.png`;
+}
+function clearPickFig() {
+  const body = $("pickTitle").closest(".fd-body");
+  body.classList.remove("has-fig");
+  body.querySelectorAll(".fig").forEach((x) => x.remove());
+}
+
 function showCharStep() {
+  clearPickFig();
   $("pickTitle").textContent = "切換角色";
   $("pickNote").textContent = "每個角色可以開多個存檔，每個存檔有自己的玩家角色卡與對話。";
   $("slotNew").hidden = true;
@@ -4929,16 +4952,15 @@ function charCard(c) {
   }
   note.append([n ? `${n} 個存檔` : "尚未開始", t ? `最後遊玩 ${fmtTime(t)}` : ""].filter(Boolean).join("・"));
   b.append(note);
-  // 金框名片＋拍立得：有圖用圖（avatar／image），沒圖放名字第一個字
+  // 金框名片＋拍立得：avatars/角色ID.png 有圖就放大頭，沒圖放名字第一個字
   const cb = document.createElement("span");
   cb.className = "cb";
   cb.append(...b.childNodes);
   const pol = document.createElement("span");
   pol.className = "pol";
   const ph = document.createElement("span");
-  const pic = c.avatar || c.image;
-  if (pic) { const im = document.createElement("img"); im.src = pic; im.alt = ""; im.loading = "lazy"; ph.append(im); }
-  else ph.textContent = [...String(c.name || c.id || "?")][0];
+  ph.textContent = [...String(c.name || c.id || "?")][0];
+  loadAvatar(c, (im) => { ph.textContent = ""; ph.classList.add("pic"); ph.append(im); });
   pol.append(ph);
   const inn = document.createElement("span");
   inn.className = "in";
@@ -4976,6 +4998,15 @@ $("pickSearch").addEventListener("input", renderCharList);
 function showSlotStep(c) {
   const cname = c.name || c.id;
   $("pickTitle").textContent = cname;
+  clearPickFig();
+  loadAvatar(c, (im) => {
+    if ($("pickTitle").textContent !== cname || $("backChars").hidden) return;
+    const body = $("pickTitle").closest(".fd-body");
+    im.className = "fig";
+    im.setAttribute("aria-hidden", "true");
+    body.append(im);
+    body.classList.add("has-fig");
+  });
   $("pickNote").textContent = "選一個存檔繼續，或新增一個存檔，用另一張玩家角色卡開始新的故事線。";
   $("pickTools").hidden = true;
   $("tabSolo").hidden = true;
