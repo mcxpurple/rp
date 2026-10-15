@@ -2454,7 +2454,7 @@ function renderPage(text, latest) {
 
   // 5.2 狀態欄：整理成可收合的狀態卡（翻看也收在卡片裡）；沒有狀態欄的頁面，翻看照舊放在最下面
   if (end < lines.length) page.append(renderStatus(lines.slice(end), latest, headInfo(headLines)));
-  else if (latest && lorebook.length) page.append(renderPeek());
+  else if (latest && lorebook.length && peekReady()) page.append(renderPeek());
   return page;
 }
 
@@ -2808,7 +2808,7 @@ function renderStatus(lines, latest, head = {}) {
   }
 
   // 翻看：收在狀態卡最下面，預設收合
-  if (latest && lorebook.length) {
+  if (latest && lorebook.length && peekReady()) {
     const pk = document.createElement("details");
     pk.className = "peek st-peek";
     const ps = document.createElement("summary");
@@ -2897,6 +2897,12 @@ function renderLoreCard(block) {
   return card;
 }
 
+// 翻看只在故事開始後出現：這個存檔有玩家角色卡＝開始玩（2026.10.15）
+// 保險：角色卡沒被認出來時，滿 4 頁也照常顯示，避免翻看永遠不出現
+function peekReady() {
+  const s = curSlot();
+  return !!currentCard() || ((s && s.pages) || 0) >= 4;
+}
 function renderPeek() {
   const det = document.createElement("details");
   det.className = "peek";
