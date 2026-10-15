@@ -2151,7 +2151,7 @@ function render() {
     d.className = "empty pcard";
     const ready = !!settings.character;
     d.innerHTML = `<div class="pc"><b></b><span class="tx"></span><span class="wax s4" style="--c:${ready ? "#c0705a" : "#6a2a30"};--ink:#fbeee6;--s:44px"><i>${ready ? "☀" : "⚙"}</i></span></div><span class="arrow">${ready ? "▼ 在下面" : "▲ 右上角 ☰"}</span>`;
-    d.querySelector("b").textContent = ready ? `「${(curSlot() || {}).name || "存檔"}」還沒開始` : "歡迎來到紫梓家";
+    d.querySelector("b").textContent = ready ? `「${(curSlot() || {}).name || "存檔"}」還沒開始` : "歡迎來到紫夜星光";
     d.querySelector(".tx").innerHTML = ready
       ? '按下方 <span class="sun">☀ 新的故事</span>，角色會先登場，接著請你填寫玩家角色卡。'
       : '先到右上角 ☰ →「設定」填好邀請碼、API key，再載入模型與角色。';
