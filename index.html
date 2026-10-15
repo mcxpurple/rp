@@ -2214,6 +2214,18 @@ if (md) {
       },
       image(href, title, text) { return esc(text || ""); },
     },
+    // 中文粗體（2026.10.15）：Markdown 規則遇到「字**《書名》**」這種標點貼著 ** 的寫法不會變粗體，
+    // 這裡改成同一行內成對的 **…** 一律當粗體（*** 與 **** 交給原本規則）
+    extensions: [{
+      name: "cjkStrong",
+      level: "inline",
+      start(src) { const i = src.indexOf("**"); return i < 0 ? undefined : i; },
+      tokenizer(src) {
+        const m = /^\*\*(?![\s*])([^\n]*?[^\s*])\*\*(?!\*)/.exec(src);
+        if (!m) return;
+        return { type: "strong", raw: m[0], text: m[1], tokens: this.lexer.inlineTokens(m[1]) };
+      },
+    }],
   });
 }
 
