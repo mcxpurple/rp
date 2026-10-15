@@ -5132,9 +5132,8 @@ function setPickTab(tab) {
   renderCharList();
 }
 
-// 角色立繪：GitHub 上 avatars/角色ID.png（3:5 去背直式圖）。找不到就記下來，這次開網頁不再重找
+// 角色立繪：GitHub 上 avatars/角色ID.png（3:5 去背直式圖），可再放 角色ID-2.png 等多張隨機顯示。找不到就記下來，這次開網頁不再重找
 // 沒有專屬圖時，列表改用 avatars/default.png（通用圖，正方形也可），右下角蓋名字第一個字的封蠟
-const avMiss = new Set();
 let avDefault = "";            // "" 還沒找、"ok" 有、"miss" 沒有
 const avDefaultWait = [];
 function loadDefaultAvatar(onok) {
@@ -5147,15 +5146,43 @@ function loadDefaultAvatar(onok) {
   probe.onload = () => { avDefault = "ok"; avDefaultWait.splice(0).forEach((f) => f(make())); };
   probe.onerror = () => { avDefault = "miss"; avDefaultWait.length = 0; };
 }
+// 多張圖（2026.10.15）：avatars/角色ID.png 之後可放 角色ID-2.png、角色ID-3.png…（號碼要連續，最多 AV_MAX 張）
+// 第一次用到某角色時依序試到找不到為止，記下有哪些圖；之後每次畫面都從裡面隨機挑一張
+const AV_MAX = 5;
+const avList = new Map();
+const avWait = new Map();
+function avatarList(id, done) {
+  if (avList.has(id)) { done(avList.get(id)); return; }
+  if (avWait.has(id)) { avWait.get(id).push(done); return; }
+  avWait.set(id, [done]);
+  const base = `avatars/${encodeURIComponent(id)}`;
+  const urls = [];
+  const finish = () => { avList.set(id, urls); (avWait.get(id) || []).forEach((f) => f(urls)); avWait.delete(id); };
+  const tryN = (n) => {
+    if (n > AV_MAX) { finish(); return; }
+    const u = n === 1 ? `${base}.png` : `${base}-${n}.png`;
+    const im = new Image();
+    im.onload = () => { urls.push(u); tryN(n + 1); };
+    im.onerror = finish;
+    im.src = u;
+  };
+  tryN(1);
+}
 function loadAvatar(c, onok, ondefault) {
   if (!c || !c.id) return;
-  if (avMiss.has(c.id)) { if (ondefault) loadDefaultAvatar(ondefault); return; }
-  const im = new Image();
-  im.alt = "";
-  im.decoding = "async";
-  im.onload = () => onok(im);
-  im.onerror = () => { avMiss.add(c.id); if (ondefault) loadDefaultAvatar(ondefault); };
-  im.src = c.avatar || `avatars/${encodeURIComponent(c.id)}.png`;
+  const show = (u) => {
+    const im = new Image();
+    im.alt = "";
+    im.decoding = "async";
+    im.onload = () => onok(im);
+    im.onerror = () => { if (ondefault) loadDefaultAvatar(ondefault); };
+    im.src = u;
+  };
+  if (c.avatar) { show(c.avatar); return; }
+  avatarList(c.id, (urls) => {
+    if (!urls.length) { if (ondefault) loadDefaultAvatar(ondefault); return; }
+    show(urls[Math.floor(Math.random() * urls.length)]);
+  });
 }
 // 3:5 這種直式去背圖＝立繪（裁頭、放半身）；接近正方形的圖＝照片（整張塞滿、存檔頁貼成拍立得）
 function isTallPic(im) { return im.naturalHeight > im.naturalWidth * 1.3; }
