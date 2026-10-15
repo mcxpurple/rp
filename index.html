@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#1a1420">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>mcx_purple</title>
+<title>Violet Hour🌌紫夜星光</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -1420,12 +1420,26 @@
   /* 手寫：翻看的日記、心聲便條、關於你、狀態卡翻看便條 */
   .diary, .os-tape, .os-o, .ab-tape, .ab-tape small, .ab-tp.said, .ab-leaf.said p, :root[data-skin^="paper"] .stcard .chip
     { font-family: "ChenYuluoyan", "Iansui", serif; font-weight: 400; }
+  /* 關於這裡（2026.10.15） */
+  .scard.about p, .scard.about li { font-size: 14.5px; line-height: 1.85; margin: 8px 0 0; color: #2f2722; text-wrap: pretty; }
+  .scard.about ul { margin: 4px 0 0; padding-left: 1.15em; }
+  .scard.about li { margin-top: 4px; }
+  .ab-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .ab-links { gap: 10px 12px; margin-top: 12px; }
+  .ab-links a { font-family: "ChenYuluoyan", "Iansui", serif; font-size: 14px; color: #2f2722; background: var(--c, #e3c4c0); padding: 5px 12px; text-decoration: none;
+    transform: rotate(var(--r, -1.5deg)); box-shadow: 0 1px 2px rgba(0,0,0,.2); clip-path: polygon(2% 0, 98% 6%, 100% 50%, 98.5% 100%, 1% 94%, 0 50%); }
+  .ab-links a:nth-child(1) { --c: #e3c4c0; --r: -2deg; } .ab-links a:nth-child(2) { --c: #cfdcc4; --r: 1.5deg; } .ab-links a:nth-child(3) { --c: #d8cbe3; --r: -1deg; }
+  .scard.about .ab-me { font-weight: 700; color: #7a2f35; }
+  .ab-tea { display: inline-block; margin-top: 10px; background: #55704a; color: #f2f5ec; padding: 6px 18px; transform: rotate(-1.5deg); text-decoration: none;
+    font-family: "ChenYuluoyan", "Iansui", serif; font-size: 15px; box-shadow: 0 2px 3px rgba(0,0,0,.25); }
+  .scard.about .ab-small { font-size: 12.5px; color: #6e5236; }
+  .scard.about .ab-hand { font-family: "ChenYuluoyan", "Iansui", serif; font-size: 15px; color: #7a2f35; margin-top: 12px; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1 id="title">mcx_purple</h1>
+  <h1 id="title">Violet Hour🌌紫夜星光</h1>
   <button class="ghost" id="menuBtn" aria-label="選單" aria-haspopup="true" aria-expanded="false">☰</button>
 </header>
 
@@ -1442,6 +1456,8 @@
     <button type="button" id="saveNow"><span class="wax s3" style="--c:#55704a"><i>💾</i></span>立即寫入記憶庫</button>
     <button type="button" id="openIO"><span class="wax s4" style="--c:#8a6a4a"><i>📦</i></span>匯出／匯入</button>
     <button type="button" id="openSettings"><span class="wax s1" style="--c:#6a2a30"><i>⚙️</i></span>設定</button>
+    <hr>
+    <button type="button" id="openAbout"><span class="wax s2" style="--c:#7a2f35"><i>✦</i></span>關於這裡</button>
   </nav>
 </div>
 
@@ -1542,6 +1558,48 @@
       </div>
     </div>
     <div id="memBody"></div>
+  </div>
+</div>
+
+<div id="aboutPanel" class="overlay">
+  <div class="sheet picker-sheet">
+    <div class="fd-head">
+      <div class="fd-tabs"><span class="on">✦ 關於這裡</span></div>
+      <button type="button" id="closeAbout" class="fd-tape" aria-label="關閉">✕ 關閉</button>
+      <div class="fd-body">
+        <h2>關於這裡</h2>
+        <p class="note" style="margin:0">Violet Hour🌌紫夜星光</p>
+      </div>
+    </div>
+    <div class="scard about"><div class="in">
+      <div class="hd"><span class="wax s1" style="--c:#c2a15a;--s:30px"><i>✧</i></span><span><b>這裡是什麼</b><small>✦ ABOUT ✦</small></span></div>
+      <p>自訂 Gem 和 GPTs 要下架了。我不想讓大家就這樣跟喜歡的角色斷了線，也不想把角色交給別人的平台和 App 決定去留，所以自己和 Claude 一起，做了這個小小的地方。</p>
+      <p>在這裡，角色們會一直在。你帶著自己的 API key 來，就能接著跟他們說話。</p>
+    </div></div>
+    <div class="scard about"><div class="in">
+      <div class="hd"><span class="wax s2" style="--c:#7a5e88;--s:30px"><i>梓</i></span><span><b>關於作者</b><small>✦ AUTHOR ✦</small></span></div>
+      <p class="ab-me">我是紫梓｜INFP｜熱愛構築角色</p>
+      <p>有些話我自己說不出口，就讓他們替我說吧。<br>不是每個時刻都有人陪在身邊，所以我寫了他們。<br>他們有自己的脾氣，也會拒絕你，就像真的人一樣。<br>希望他們能接住你藏在心裡的累，也陪你走過一段快樂的時光。</p>
+      <div class="ab-links"><a id="aboutThreads" target="_blank" rel="noopener">Threads ↗</a><a id="aboutGuide" target="_blank" rel="noopener">使用說明 ↗</a><a id="aboutIntro" target="_blank" rel="noopener">角色介紹 ↗</a></div>
+    </div></div>
+    <div class="scard about"><div class="in">
+      <div class="hd"><span class="wax s3" style="--c:#55704a;--s:30px"><i>約</i></span><span><b>小約定</b><small>✦ PROMISE ✦</small></span></div>
+      <ul>
+        <li>這裡不收任何費用，花費只有你自己 API 的用量。</li>
+        <li>不保存你的對話，也不記錄誰玩了哪個角色。</li>
+        <li>網頁沒有放越獄內容，對話規範依照 API平台規定。</li>
+      </ul>
+    </div></div>
+    <div class="scard about" id="aboutDonate" hidden><div class="in">
+      <div class="hd"><span class="wax s4" style="--c:#c0705a;--s:30px"><i>☕</i></span><span><b>請作者喝杯飲料</b><small>✦ COFFEE ✦</small></span></div>
+      <p>想請就請，不想也完全沒關係。</p>
+      <a id="aboutDonateLink" class="ab-tea" target="_blank" rel="noopener">☕ 點我請一杯</a>
+    </div></div>
+    <div class="scard about"><div class="in">
+      <div class="hd"><span class="wax s1" style="--c:#4a5670;--s:30px"><i>謝</i></span><span><b>致謝</b><small>✦ THANKS ✦</small></span></div>
+      <p class="ab-small">正文字型：芫荽（But Ko）<br>手寫字型：辰宇落雁體（劉韋辰、王立宇）</p>
+      <p class="ab-hand">願意來這裡與他們一起走下去的你</p>
+    </div></div>
   </div>
 </div>
 
@@ -1652,6 +1710,11 @@ const WORKER_URL = "https://rp.mcxpurple.workers.dev";
 const CHARS_URL = "https://obvious-tenor-7aa.notion.site/210f4e50bb4b80008d28edd7fbe3da7c";  // 角色們（單人）
 const WORLDS_URL = "https://obvious-tenor-7aa.notion.site/2d1f4e50bb4b802d9c80e60a76446428"; // 開放世界（多人）
 const GUIDE_URL = "https://obvious-tenor-7aa.notion.site/3f5f4e50bb4b81e184d4eed446634734";  // 使用說明
+// 網站名稱與「關於這裡」（2026.10.15）
+const SITE_NAME = "Violet Hour🌌紫夜星光";
+const THREADS_URL = "https://www.threads.com/@mcx_purple";
+const INTRO_URL = "https://obvious-tenor-7aa.notion.site/210f4e50bb4b800da8f2fdf1292cdf64"; // 角色介紹（關於這裡用）
+const DONATE_URL = ""; // 綠界贊助連結：拿到後填進引號裡，「請作者喝杯飲料」那張卡才會出現
 
 // 每幾頁自動寫入記憶庫一次（實測時可暫時改小，例如 2）
 const SAVE_EVERY = 20;
@@ -2070,7 +2133,7 @@ function today() {
 // 標題小字：存檔名・page.X・模型
 function renderTitle() {
   $("title").innerHTML = "";
-  $("title").append(document.createTextNode(settings.characterName || "mcx_purple"));
+  $("title").append(document.createTextNode(settings.characterName || SITE_NAME));
   if (settings.characterName) {
     const s = document.createElement("small");
     const slot = curSlot();
@@ -5446,7 +5509,13 @@ $("dlgOk").onclick = () => {
 };
 $("dlgCancel").onclick = () => closePanel("dlg");
 $("dlgInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); $("dlgOk").click(); } });
-for (const id of ["charPicker", "ioPanel", "memoryPanel", "settings", "dlg"]) {
+$("aboutThreads").href = THREADS_URL;
+$("aboutGuide").href = GUIDE_URL;
+$("aboutIntro").href = INTRO_URL;
+if (/^https:\/\//.test(DONATE_URL)) { $("aboutDonateLink").href = DONATE_URL; $("aboutDonate").hidden = false; }
+$("openAbout").onclick = () => openPanel("aboutPanel");
+$("closeAbout").onclick = () => closePanel("aboutPanel");
+for (const id of ["charPicker", "ioPanel", "memoryPanel", "settings", "dlg", "aboutPanel"]) {
   $(id).addEventListener("click", (e) => { if (e.target === $(id)) closePanel(id); });
 }
 $("closeChars").onclick = () => closePanel("charPicker");
