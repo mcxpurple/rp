@@ -2096,7 +2096,11 @@ function fixHeadPage(text, n) {
   const lines = text.split("\n");
   let i = 0;
   while (i < lines.length && !lines[i].trim()) i++;
-  for (let k = i; k < Math.min(i + 3, lines.length) && lines[k].includes("｜"); k++) {
+  // 節目框（直播、實境秀）開頭是分隔線：跳過分隔線再找 Page
+  for (let k = i; k < Math.min(i + 6, lines.length); k++) {
+    const t = lines[k].trim();
+    if (!t || isLvSep(t)) continue;
+    if (!t.includes("｜")) break;
     const re = /(page\s*[.．:：]?\s*)\d+/i;
     if (re.test(lines[k])) {
       lines[k] = lines[k].replace(re, `$1${n}`);
@@ -2209,6 +2213,8 @@ function emotionLayer(text) {
 // 換窗後第一輪：全部記憶片段依時間先後完整附上（之後改用 EVT 回查翻閱）
 function allFragsText(mem) {
   if (!mem.frags.length) return "";
+  // 全部都是「直接使用」的匯入記憶：常駐記憶檔裡已經有整份，換窗第一輪不再重複送
+  if (mem.frags.every((f) => f.imported && !fragEvts(f.text).length)) return "";
   const body = mem.frags.map((f) => `【${fragLabel(f)}｜記憶片段】\n${String(f.text).trim()}`).join("\n\n━━━━━━━━\n\n");
   return "以下為全部記憶片段，依時間先後排列；現況以常駐記憶檔為準，記憶片段保存事件細節與原話。\n\n" + body;
 }
@@ -2247,7 +2253,8 @@ function evtIndex(mem) {
         body,
         keys: kw.split(/[,，、;；]/).map((s) => s.trim()).filter((s) => s.length >= 2),
         related: [...rel.matchAll(/EVT\.?\s*(\d+)/gi)].map((m) => +m[1]),
-        pageTo: pg ? +(pg[2] || pg[1]) : f.to || 0,
+        // 其他平台匯入的片段不在這一窗的對話裡，不能被「還在最近對話內」濾掉
+        pageTo: f.imported ? 0 : pg ? +(pg[2] || pg[1]) : f.to || 0,
       };
       const old = map.get(evt.num);
       if (!old || evt.body.length > old.body.length) map.set(evt.num, evt);
@@ -2781,14 +2788,15 @@ function renderPage(text, latest) {
     start = headEnd;
   }
 
-  const isProse = (l) => !l.includes("｜") && [...l.trim()].length > 60;
+  // 正文判斷：不含｜且超過 60 字；①②③ 行動選項再長也不算正文（避免狀態欄收不起來）
+  const isProse = (l) => !l.includes("｜") && [...l.trim()].length > 60 && !ST_OPTION.test(l.trim()) && !ST_LOOSE_OPT.test(l.trim());
 
   // 深夜存檔頁（Heatwave、不良追愛、QUADRA）：採訪室、重點回放留在正文；重點回放之後（關係溫度、信件、⏬⚡💋…）收進狀態卡
   if (lines.some((l, i) => i >= start && LV_NIGHT.test(l)) && lines.some((l, i) => i >= start && LV_TAPE.test(l.trim()))) {
     let k = lines.findIndex((l, i) => i >= start && LV_REPLAY.test(l.trim()));
     if (k < 0) for (let i = lines.length - 1; i >= start; i--) if (LV_TAPE.test(lines[i].trim())) { k = i; break; }
     k++;
-    while (k < lines.length && (!lines[k].trim() || LV_CUT.test(lines[k].trim()) || /^[\s　]/.test(lines[k]))) k++;
+    while (k < lines.length && (!lines[k].trim() || LV_CUT.test(lines[k].trim()) || /^[\s　]/.test(lines[k]) || !/[\p{L}\p{N}]/u.test(lines[k]))) k++;
     renderBody(lines, start, k, page, { night: true });
     if (k < lines.length && lines.slice(k).some((l) => /[\p{L}\p{N}]/u.test(l))) page.append(renderNight(lines.slice(k), latest, headInfo(headLines)));
     else if (latest && lorebook.length && peekReady()) page.append(renderPeek());
@@ -3201,27 +3209,37 @@ function headInfo(head) {
 // ---------- 結算面板（直播、實境秀）：「圖示 名稱: 數字」→ 數字格；其他照狀態卡規則 ----------
 // 一行裡用「｜」串起來的幾段（例：📉 體力消耗: -30｜🥵｜耳根泛紅）先拆開，圖示格接到下一段
 function panelTile(s) {
+  // ①②③ 行動選項不做成數字格（留給三條路按鈕）
+  if (ST_OPTION.test(s) || ST_LOOSE_OPT.test(s)) return null;
   const m = s.match(/^([^\p{L}\p{N}\s]{1,4})\s*([^:：]{1,16})[:：]\s*(.+)$/u);
   if (!m) return null;
   const val = m[3].trim();
   if ([...val].length > 40) return null;
-  const n = val.match(/(?:No\.?\s*)?[+\-−±]?\s*[₩$¥€]?\s*\d[\d,]*(?:\.\d+)?/i);
+  // 數字要在值的開頭（「微醺（喝了 2 杯）」這種句子不算）；%、萬、億、/分母 一起收進大字
+  const n = val.match(/^(?:No\.?\s*)?[+\-−±]?\s*[₩$¥€]?\s*\d[\d,]*(?:\.\d+)?(?:\s*(?:%|萬|億|\/\s*\d[\d,]*))?/i)
+    || val.match(/[（(]\s*([+\-−±]\s*[₩$¥€]?\s*\d[\d,]*(?:\.\d+)?%?)\s*[)）]/);
   if (!n) return null;
-  const small = (val.slice(0, n.index) + " " + val.slice(n.index + n[0].length)).replace(/[()（）]/g, " ").replace(/\s+/g, " ").trim();
-  return { icon: m[1], label: m[2].trim(), big: n[0].replace(/\s+/g, ""), small };
+  const hit = n[1] || n[0];
+  const at = val.indexOf(hit);
+  const small = (val.slice(0, at) + " " + val.slice(at + hit.length)).replace(/[()（）]/g, " ").replace(/\s+/g, " ").trim();
+  return { icon: m[1], label: m[2].trim(), big: hit.replace(/\s+/g, ""), small };
 }
 function panelSplit(lines) {
   const groups = [], rest = [];
   let grp = null;
+  let frame = false;
   for (const raw of lines) {
     const t = raw.trim();
     if (LV_PANEL.test(t)) { grp = { title: t.replace(/[{｛].*$/, "").trim(), tiles: [] }; groups.push(grp); continue; }
-    if (!t || !/[\p{L}\p{N}]/u.test(t) || isDeco(t)) { rest.push(raw); continue; }
+    // 小幫手框線區塊（╓…╙、┏…┗、◆…◆）、①②③ 選項、行程：原樣交給狀態卡處理
+    if (frame) { rest.push(raw); if (ST_CLOSE.test(t) || ST_DIAMOND.test(t)) frame = false; continue; }
+    if (ST_OPEN.test(t) || ST_DIAMOND.test(t)) { frame = true; rest.push(raw); continue; }
+    if (!t || !/[\p{L}\p{N}]/u.test(t) || isDeco(t) || ST_OPTION.test(t) || ST_LOOSE_OPT.test(t) || isSched(t)) { rest.push(raw); continue; }
     const c = stCells(t);
-    if (c.length >= 3 && isIcon(c[0]) && c[1] && [...c[1]].length <= 12) { rest.push(raw); continue; }
-    // 「🩹 韓禹潤｜狀態｜衣著」：第一格＝圖示＋名字 → 拆成這個人的兩行（狀態、衣著）
+    if (c.length >= 3 && isIcon(c[0]) && c[1] && [...c[1]].length <= 12 && !/[:：]/.test(c[1])) { rest.push(raw); continue; }
+    // 「🩹 韓禹潤｜狀態｜衣著」：三格以上、第一格＝圖示＋名字 → 拆成這個人的兩行（狀態、衣著）
     const nm = c[0].match(/^([^\p{L}\p{N}\s]{1,4})\s*([\p{L}\p{N}][^\s:：]{0,11})$/u);
-    if (c.length >= 2 && nm) {
+    if (c.length >= 3 && nm && !c.slice(1).some((x) => panelTile(x))) {
       c.slice(1).filter(Boolean).forEach((x, k, a) => rest.push(`${a.length >= 2 && k === a.length - 1 ? "👗" : nm[1]}｜${nm[2]}｜${x}`));
       continue;
     }
@@ -3233,6 +3251,8 @@ function panelSplit(lines) {
       segs.push((carry ? carry + " " : "") + x);
       carry = "";
     }
+    // 這一行完全沒有數字格：原樣保留（小幫手標題、引言等不加｜）
+    if (!segs.some((x) => panelTile(x))) { rest.push(raw); continue; }
     for (const s of segs) {
       const tl = panelTile(s);
       if (tl) {
@@ -3431,7 +3451,7 @@ function renderNight(lines, latest, head = {}) {
     const hd = t.replace(/[{｛][^}｝]*[}｝]/g, "").trim();
     if (!ind && /[:：]$/.test(hd) && [...hd].length <= 30) { g = { title: hd.replace(/[:：]$/, ""), items: [] }; groups.push(g); continue; }
     const lead = (s) => (s.match(/^[^\p{L}\p{N}\s]+/u) || [""])[0].replace(/️/g, "");
-    if (g && (ind || /^[\p{L}\p{N}]/u.test(t) || (lead(t) && lead(t) === lead(g.title)))) { g.items.push(t); continue; }
+    if (g && (ind || /^[\p{L}\p{N}└•·▸▹\-]/u.test(t) || (lead(t) && lead(t) === lead(g.title)))) { g.items.push(t); continue; }
     g = null;
     const c = stCells(t);
     if (c.length >= 2 && isIcon(c[0])) top.push({ icon: c[0], text: c.slice(1).join("｜"), kind: "" });
@@ -3451,7 +3471,7 @@ function renderNight(lines, latest, head = {}) {
     const box = document.createElement("div");
     box.className = "nt-list";
     box.innerHTML = gr.items.map((it) => {
-      const s = it.replace(/^└\s*/, "");
+      const s = it.replace(/^[└•·▸▹\-]\s*/, "");
       const c = stCells(s);
       let nm = "", tx = s;
       if (c.length >= 2 && c[0] && [...c[0]].length <= 14) { nm = c[0]; tx = c.slice(1).filter(Boolean).join("｜"); }
@@ -5297,7 +5317,8 @@ function memBlock(title, sub, text, { open = false, main = false, edited = false
     };
     const rv = ed.querySelector(".rv");
     if (rv) rv.onclick = async () => {
-      if (!(await askDialog({ tab: "↺ 換回原版", title: "換回 AI 寫的原版？", sub: "你改過的內容會被拿掉", ok: "換回去", kind: "danger" }))) return;
+      const conv = edited === "AI 整理";
+      if (!(await askDialog({ tab: "↺ 換回原版", title: conv ? "換回你貼的原版？" : "換回 AI 寫的原版？", sub: conv ? "AI 整理的版本會被換掉" : "你改過的內容會被拿掉", ok: "換回去", kind: "danger" }))) return;
       onRevert();
     };
   }
@@ -5452,7 +5473,7 @@ function openIO() {
 }
 $("openIO").onclick = openIO;
 $("closeIO").onclick = () => closePanel("ioPanel");
-$("ioBack").onclick = () => ioShow(false);
+$("ioBack").onclick = () => { if (ioBusy) { toast("AI 正在整理記憶，請稍等完成"); return; } ioShow(false); };
 
 function safeName(x) { return String(x || "").replace(/[\\/:*?"<>|\s]+/g, "_").slice(0, 30); }
 
@@ -5647,6 +5668,7 @@ $("ioContinue").onclick = async () => {
 
 $("ioStart").onclick = async () => {
   if (ioBusy) return;
+  if (busy || saving) { ioStatus("角色正在回應或寫入記憶庫，稍等一下再試", true); return; }
   const cid = $("ioChar").value;
   const name = $("ioName").value.trim();
   const card = $("ioCard").value.trim();
@@ -6127,6 +6149,8 @@ function openPanel(id) {
   try { window.history.pushState({ panel: id }, ""); } catch {}
 }
 function closePanel(id) {
+  // 轉寄單正在請 AI 整理：不能關，避免整理完突然在背景換存檔
+  if (id === "ioPanel" && ioBusy) { toast("AI 正在整理記憶，請稍等完成"); return; }
   $(id).classList.remove("open");
   if (id === "dlg") dlgDone(null);
   const i = NAV.lastIndexOf(id);
@@ -6141,6 +6165,7 @@ window.addEventListener("popstate", () => {
   if (!id || !$(id).classList.contains("open")) return;
   const stay = () => { NAV.push(id); try { window.history.pushState({ panel: id }, ""); } catch {} };
   if (id === "charPicker" && $("pickTools").hidden) { showCharStep(); stay(); return; }
+  if (id === "ioPanel" && ioBusy) { toast("AI 正在整理記憶，請稍等完成"); stay(); return; }
   if (id === "ioPanel" && !$("ioForm").hidden) { ioShow(false); stay(); return; }
   $(id).classList.remove("open");
   if (id === "dlg") dlgDone(null);
@@ -6293,11 +6318,12 @@ $("character").addEventListener("change", () => {
 });
 
 $("saveSettings").onclick = () => {
-  store.set("rp_away", $("away").value === "on" ? "on" : "off");
   const charSel = $("character");
   const prevChar = settings.character;
+  if (busy && charSel.value !== prevChar) { status("角色正在回應，稍等一下再切換角色", true); return; }
   const bad = keyMismatch();
   if (bad) { keyHint(); status(bad, true); return; }
+  store.set("rp_away", $("away").value === "on" ? "on" : "off");
   keepDraft();
   settings = {
     invite: $("invite").value.trim(),
