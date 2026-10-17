@@ -589,6 +589,29 @@
   .scard .row button { background: #fbf3df; border: 1px solid #b08a3e; color: #6e5236; border-radius: 6px; }
   .scard .note, .scard .status { color: #7a5e48; }
   .scard .status.err { color: #9b2a2a; }
+  /* 轉寄單：記憶用法 A／B（2026.10.17） */
+  .scard label .must { color: #9b2a2a; margin-left: 4px; }
+  .io-ok { margin-top: 6px; font-size: 13px; color: #3f6b33; }
+  .io-picks { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+  .io-pick { position: relative; background: #fbf6ec; border: 1px solid #b08a3e; box-shadow: inset 0 0 0 3px #fbf6ec, inset 0 0 0 4px #d8c49a;
+    border-radius: 6px; padding: 12px 14px 10px; color: #45372a; font-size: 13.5px; line-height: 1.7; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+  .io-pick:focus-visible { outline: 2px solid #7a2f35; outline-offset: 2px; }
+  .io-pick.on { border-color: #7a2f35; box-shadow: inset 0 0 0 3px #fbf6ec, inset 0 0 0 4px #7a2f35, 0 2px 0 #7a2f35; }
+  .io-pick .hd { display: flex; align-items: center; gap: 9px; font-size: 15px; }
+  .io-pick .hd b { font-weight: 700; }
+  .io-pick .rd { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #8a7658; flex: 0 0 auto; background: #fffaf0; }
+  .io-pick.on .rd { border-color: #7a2f35; background: radial-gradient(#7a2f35 0 4px, #fffaf0 5px); }
+  .io-pick .rec { margin-left: auto; font-size: 11px; background: #7a2f35; color: #fff; border-radius: 999px; padding: 1px 9px; letter-spacing: .1em; }
+  .io-pick p { margin: 6px 0 0; }
+  .io-pick ul { margin: 2px 0 0; padding-left: 18px; }
+  .io-pick li { margin: 1px 0; }
+  .io-pick .wr { color: #9b2a2a; }
+  .io-pick li.hot { color: #9b2a2a; font-weight: 700; }
+  .io-pick .wr.big { font-weight: 700; }
+  .io-pick .ok { color: #3f6b33; }
+  .io-pick .mt { font-size: 12px; color: #8a7658; }
+  .io-picks.need .io-pick { animation: io-need .5s; border-color: #9b2a2a; }
+  @keyframes io-need { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
   .scard .key-chips .lab { color: #7a5e48; }
   .scard .key-chips button { background: #fffaf0; color: #2f2722; border-color: #d8c49a; }
   .scard .key-chips button.on { background: #4a5670; border-color: #4a5670; color: #fbf3df; }
@@ -1669,6 +1692,26 @@
       <label for="ioMem">常駐記憶檔或最近一份記憶片段</label>
       <textarea id="ioMem" placeholder="貼上原平台存下的記憶。有 Page.53-76 這類頁碼的話，會從下一頁接著算"></textarea>
       <div class="status" id="ioHint"></div>
+      <div class="io-ok" id="ioWeb" hidden>✓ 這份看起來已經是網頁格式，選 A 就好</div>
+      <label id="ioPickLab">這份記憶要怎麼用？<span class="must">（一定要選一個）</span></label>
+      <div class="io-picks" role="radiogroup" aria-labelledby="ioPickLab">
+        <div class="io-pick" data-v="raw" role="radio" aria-checked="false" tabindex="0">
+          <div class="hd"><span class="rd" aria-hidden="true"></span><span class="wax s2" style="--c:#8a6a4a;--s:30px"><i>A</i></span><b>直接使用，不整理</b></div>
+          <p>你貼的內容原封不動，每一輪都整份送給角色。</p>
+          <p class="wr">⚠️ 選這個要知道：</p>
+          <ul><li>每一輪都會多送這些字，越長越貴</li><li>寫法跟網頁不一樣，格式不同，角色可能會失憶</li><li id="ioLong">內容太多或太瑣碎，角色也可能會失憶</li></ul>
+          <p class="wr big" id="ioBig" hidden>這份很長：選 A 每一輪都會很貴，建議選 B</p>
+          <p class="mt">適合：很短的記憶，或本來就是網頁格式的記憶</p>
+        </div>
+        <div class="io-pick" data-v="ai" role="radio" aria-checked="false" tabindex="0">
+          <div class="hd"><span class="rd" aria-hidden="true"></span><span class="wax s3" style="--c:#55704a;--s:30px"><i>B</i></span><b>請 AI 整理成網頁格式</b><span class="rec">推薦</span></div>
+          <p>先用你的 API key 跑一次整理，再開始接續。</p>
+          <p class="wr">⚠️ 選這個要知道：</p>
+          <ul><li>會多花一次錢</li><li>要等 10 秒～1 分鐘，整理中不要關網頁</li><li>AI 整理時可能漏掉小細節</li></ul>
+          <p class="ok">✓ 整理完：格式跟網頁一樣，角色比較不會失憶，之後每輪也比較省</p>
+          <p class="ok">✓ 你貼的原版會留著：到 📖 記憶庫可以「換回原版」或自己修改</p>
+        </div>
+      </div>
     </div>    </div>
 
     <div class="status" id="ioStatus"></div>
@@ -2100,6 +2143,18 @@ function fragLabel(f) {
   if (f.imported) return f.to ? `Page.1-${f.to}（其他平台匯入）` : "其他平台匯入";
   return `Page.${f.from}-${f.to}`;
 }
+// 事件總目錄的一段：Page 行＋事件標題；其他平台匯入、又沒有 [EVT] 格式的記憶整份放進來（玩家選「直接使用」），玩多久都不會被擠掉
+function fragIndex(f) {
+  const evts = fragEvts(f.text);
+  const head = fragLabel(f) + `｜${f.date || ""}`;
+  if (f.imported && !evts.length && String(f.text || "").trim()) return [head, String(f.text).trim()];
+  return [head, ...evts.map(([, t]) => t)];
+}
+// 最新一份是「直接使用」的匯入記憶：整份已在事件總目錄裡，結尾不再重複貼一次
+function rawLast(mem) {
+  const f = mem.frags[mem.frags.length - 1];
+  return !!f && f.imported && !fragEvts(f.text).length;
+}
 function nextEvt(mem) {
   let max = 0;
   for (const f of mem.frags) for (const [n] of fragEvts(f.text)) max = Math.max(max, n);
@@ -2116,15 +2171,12 @@ function buildMemory(mem, slotName = (curSlot() || {}).name || "") {
     const ls = mem.main.text.split("\n");
     const cut = ls.findIndex((l) => /^\s*━.*情感/.test(l) || /當前狀態總結/.test(l));
     const out = [(cut >= 0 ? ls.slice(0, cut) : ls).join("\n").trimEnd()];
-    for (const f of newer) {
-      out.push(fragLabel(f) + `｜${f.date || ""}`);
-      for (const [, t] of fragEvts(f.text)) out.push(t);
-    }
+    for (const f of newer) out.push(...fragIndex(f));
     const last = mem.frags[mem.frags.length - 1].text;
-    const emo = emotionLayer(last);
+    const emo = rawLast(mem) ? "" : emotionLayer(last);
     if (emo) out.push(emo);
     const i = last.indexOf("當前狀態總結");
-    out.push(i >= 0 ? last.slice(i).trim() : last.trim());
+    if (!rawLast(mem)) out.push(i >= 0 ? last.slice(i).trim() : last.trim());
     return out.join("\n");
   }
   const char = settings.characterName || "角色";
@@ -2134,16 +2186,13 @@ function buildMemory(mem, slotName = (curSlot() || {}).name || "") {
     `玩家名稱｜${user}｜記錄角色｜${char}`,
     "━ 事件總目錄 ━ # 權重：S=核心劇情 / A=重要事件 / B=一般過渡 / C=瑣碎細節",
   ];
-  for (const f of mem.frags) {
-    out.push(fragLabel(f) + `｜${f.date || ""}`);
-    for (const [, t] of fragEvts(f.text)) out.push(t);
-  }
+  for (const f of mem.frags) out.push(...fragIndex(f));
   const last = mem.frags[mem.frags.length - 1].text;
   // 最新一份片段的情感記憶層（A-2 多角色時含每位角色的情感層），避免感情斷層
-  const emo = emotionLayer(last);
+  const emo = rawLast(mem) ? "" : emotionLayer(last);
   if (emo) out.push(emo);
   const i = last.indexOf("當前狀態總結");
-  out.push(i >= 0 ? last.slice(i).trim() : last.trim());
+  if (!rawLast(mem)) out.push(i >= 0 ? last.slice(i).trim() : last.trim());
   return out.join("\n");
 }
 
@@ -5131,6 +5180,7 @@ function openSettings(msg = "") {
   $("provider").value = draftProvider;
   keyHint();
   $("card").value = currentCard();
+  $("away").value = store.get("rp_away", "off") === "on" ? "on" : "off";
   fillSelect($("model"), settings.model ? [{ id: settings.model, name: settings.model }] : [], settings.model, "先按「載入」");
   fillSelect($("character"), settings.character ? [{ id: settings.character, name: settings.characterName }] : [], settings.character, "先按「載入」");
   status(msg);
@@ -5194,7 +5244,7 @@ function memBlock(title, sub, text, { open = false, main = false, edited = false
   if (edited) {
     const st = document.createElement("span");
     st.className = "edst";
-    st.textContent = "已修改";
+    st.textContent = typeof edited === "string" ? edited : "已修改";
     sum.append(st);
   }
   const tools = document.createElement("span");
@@ -5306,9 +5356,10 @@ function renderMemory(openKey = "main") {
     const f = mem.frags[idx];
     const key = String(f.at || idx);
     body.append(memBlock(fragLabel(f), f.date || "", f.text, {
-      open: openKey === key, edited: f.orig !== undefined,
-      onSave: (v) => commit((m) => { const g = m.frags[idx]; if (g.orig === undefined) g.orig = g.text; g.text = v; }, key, `已修改 ${fragLabel(f)} ✧`),
-      onRevert: f.orig !== undefined ? () => commit((m) => { const g = m.frags[idx]; g.text = g.orig; delete g.orig; }, key, "已換回 AI 寫的原版 ✧") : null,
+      // 匯入時請 AI 整理過的片段：orig＝玩家貼的原版，章顯示「AI 整理」；玩家再改過才顯示「已修改」
+      open: openKey === key, edited: f.orig !== undefined ? (f.converted && !f.edited ? "AI 整理" : true) : false,
+      onSave: (v) => commit((m) => { const g = m.frags[idx]; if (g.orig === undefined) g.orig = g.text; g.text = v; if (g.converted) g.edited = true; }, key, `已修改 ${fragLabel(f)} ✧`),
+      onRevert: f.orig !== undefined ? () => commit((m) => { const g = m.frags[idx]; g.text = g.orig; delete g.orig; delete g.converted; delete g.edited; }, key, f.converted ? "已換回你貼的原版 ✧" : "已換回 AI 寫的原版 ✧") : null,
     }));
   }
 }
@@ -5546,12 +5597,35 @@ function lastPageOf(text) {
   if (!max) for (const m of text.matchAll(/Page\.\s*(\d+)/gi)) max = Math.max(max, +m[1]);
   return max;
 }
+// 貼上記憶後：字數、頁碼；已是網頁格式（有 [EVT.01] 與「當前狀態總結」）顯示綠字；超過 IO_LONG 字時 A 卡出紅字
+const IO_LONG = 15000;
+let ioMode = "";
+let ioBusy = false;
 function ioHint() {
   const t = $("ioMem").value.trim();
   const n = lastPageOf(t);
-  $("ioHint").textContent = t ? (n ? `找到 Page.${n}，會從 page.${n + 1} 接著算` : "沒有找到頁碼，會從 page.1 開始") : "";
+  const len = [...t.replace(/\s/g, "")].length;
+  $("ioHint").textContent = t ? `約 ${len.toLocaleString()} 字・${n ? `找到 Page.${n}，會從 page.${n + 1} 接著算` : "沒有找到頁碼，會從 page.1 開始"}` : "";
+  $("ioWeb").hidden = !(/\[EVT\.\d+/.test(t) && /當前狀態總結/.test(t));
+  const long = len > IO_LONG;
+  $("ioBig").hidden = !long;
+  $("ioLong").classList.toggle("hot", long);
 }
 $("ioMem").addEventListener("input", ioHint);
+function ioPick(v) {
+  ioMode = v;
+  document.querySelectorAll(".io-pick").forEach((el) => {
+    const on = el.dataset.v === v;
+    el.classList.toggle("on", on);
+    el.setAttribute("aria-checked", on ? "true" : "false");
+  });
+  document.querySelector(".io-picks").classList.remove("need");
+  ioStatus("");
+}
+document.querySelectorAll(".io-pick").forEach((el) => {
+  el.addEventListener("click", () => ioPick(el.dataset.v));
+  el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); ioPick(el.dataset.v); } });
+});
 
 $("ioContinue").onclick = async () => {
   ioShow(true);
@@ -5559,6 +5633,7 @@ $("ioContinue").onclick = async () => {
   $("ioCard").value = "";
   $("ioMem").value = "";
   ioHint();
+  ioPick("");
   fillSelect($("ioChar"), [], "", "載入中…");
   try {
     const data = await callWorker("/characters", {});
@@ -5570,7 +5645,8 @@ $("ioContinue").onclick = async () => {
   }
 };
 
-$("ioStart").onclick = () => {
+$("ioStart").onclick = async () => {
+  if (ioBusy) return;
   const cid = $("ioChar").value;
   const name = $("ioName").value.trim();
   const card = $("ioCard").value.trim();
@@ -5579,13 +5655,54 @@ $("ioStart").onclick = () => {
   if (!cid) { ioStatus("請先選擇角色", true); return; }
   if (!name) { ioStatus("請為新存檔取名", true); $("ioName").focus(); return; }
   if (!memText) { ioStatus("請貼上原平台的記憶", true); $("ioMem").focus(); return; }
+  // 防呆：一定要選 A 或 B
+  if (!ioMode) {
+    const box = document.querySelector(".io-picks");
+    box.classList.remove("need"); void box.offsetWidth; box.classList.add("need");
+    box.scrollIntoView({ block: "center", behavior: "smooth" });
+    ioStatus("先選 A 或 B：這份記憶要怎麼用？", true);
+    return;
+  }
   const c = ioChars.find((x) => x.id === cid) || { id: cid, name: cid };
 
   const base = lastPageOf(memText);
+  const frag = { from: 1, to: base, date: today(), text: memText, at: Date.now(), imported: true };
+  // B：先請 AI 整理成網頁的記憶片段格式；玩家貼的原版存在 orig，記憶庫可以換回
+  if (ioMode === "ai") {
+    ioBusy = true;
+    $("ioStart").disabled = true;
+    ioStatus("AI 正在整理記憶，大約 10 秒～1 分鐘，整理中不要關網頁…");
+    toast("AI 正在整理記憶，整理中不要關網頁…");
+    try {
+      const data = await callWorker("/save", {
+        key: settings.key,
+        model: settings.model,
+        character: cid,
+        from: 1,
+        to: base,
+        evtStart: 1,
+        playerName: playerName(card),
+        characterName: c.name,
+        slotName: name,
+        date: today(),
+        importText: memText,
+      });
+      frag.text = cleanFragText(data.text);
+      frag.orig = memText;
+      frag.converted = true;
+    } catch (e) {
+      ioStatus(`整理失敗：${e.message}。可以再按一次，或改選 A 直接使用`, true);
+      toast("整理失敗，請看最下面的說明");
+      return;
+    } finally {
+      ioBusy = false;
+      $("ioStart").disabled = false;
+    }
+  }
   const s = newSlot(cid, name);
   s.card = card;
   s.base = base;
-  const mem = { saved: base, epoch: 0, frags: [{ from: 1, to: base, date: today(), text: memText, at: Date.now(), imported: true }] };
+  const mem = { saved: base, epoch: 0, frags: [frag] };
   if (!writeNewSlot(cid, s, [], mem)) { ioStatus("手機瀏覽器的空間不夠。可以先刪掉不玩的存檔再試", true); return; }
   saveSlots();
   enterSlot(c, s.id);
@@ -6176,6 +6293,7 @@ $("character").addEventListener("change", () => {
 });
 
 $("saveSettings").onclick = () => {
+  store.set("rp_away", $("away").value === "on" ? "on" : "off");
   const charSel = $("character");
   const prevChar = settings.character;
   const bad = keyMismatch();
@@ -6214,8 +6332,8 @@ function applySkin(k) { document.documentElement.dataset.skin = SKINS.includes(k
 $("skin").value = SKINS.includes(store.get("rp_skin", "paper")) ? store.get("rp_skin", "paper") : "paper";
 $("skin").addEventListener("change", () => { store.set("rp_skin", $("skin").value); applySkin($("skin").value); });
 // 角色主動傳訊息：離開 AWAY_HOURS 小時以上再回來，第一句話附上彩蛋（存在這支手機，預設關閉）
+// 打開設定時讀回目前的值；按「儲存」才寫入（按取消不會改到）
 $("away").value = store.get("rp_away", "off") === "on" ? "on" : "off";
-$("away").addEventListener("change", () => store.set("rp_away", $("away").value));
 applySkin($("skin").value);
 $("theme").value = store.get("rp_theme", "auto");
 $("theme").addEventListener("change", () => {
