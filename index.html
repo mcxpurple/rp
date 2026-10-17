@@ -6212,10 +6212,10 @@ function applyTheme(t) {
 const SKINS = ["paper", "paper-coffee", "paper-lilac", "paper-sage"];
 function applySkin(k) { document.documentElement.dataset.skin = SKINS.includes(k) ? k : "paper"; }
 $("skin").value = SKINS.includes(store.get("rp_skin", "paper")) ? store.get("rp_skin", "paper") : "paper";
-$("skin").addEventListener("change", () => { store.set("rp_skin", $("skin").value); applySkin($("skin").value);
+$("skin").addEventListener("change", () => { store.set("rp_skin", $("skin").value); applySkin($("skin").value); });
 // 角色主動傳訊息：離開 AWAY_HOURS 小時以上再回來，第一句話附上彩蛋（存在這支手機，預設關閉）
 $("away").value = store.get("rp_away", "off") === "on" ? "on" : "off";
-$("away").addEventListener("change", () => store.set("rp_away", $("away").value)); });
+$("away").addEventListener("change", () => store.set("rp_away", $("away").value));
 applySkin($("skin").value);
 $("theme").value = store.get("rp_theme", "auto");
 $("theme").addEventListener("change", () => {
