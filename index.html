@@ -1464,6 +1464,7 @@
     --lv-rank-g1: linear-gradient(180deg, #4a3b14, #2c240e); --lv-rank-g1-line: #a9852f;
     --lv-sys-bg: rgba(255, 255, 255, .07); --lv-sys-ink: #c9c3d4;
     --lv-pd-bg: #221d28; --lv-pd-ink: #ece6f2; --lv-pd-line: #4c4455; --lv-pd-tag: #ece6f2; --lv-pd-tag-ink: #1c1c1c;
+    --lv-dm-bg: #37333d; --lv-dm-line: rgba(255, 255, 255, .10);
   }
   :root[data-theme="light"] {
     --lv-pin-bg: rgba(255, 248, 225, .8); --lv-pin-ink: #4a3a20; --lv-pin-id: #8c5a10;
@@ -1471,6 +1472,7 @@
     --lv-rank-g1: linear-gradient(180deg, #fff3c7, #f4dc8a); --lv-rank-g1-line: #d4ad45;
     --lv-sys-bg: rgba(69, 55, 42, .08); --lv-sys-ink: #6b5a44;
     --lv-pd-bg: #fffdf7; --lv-pd-ink: #2a2a2a; --lv-pd-line: #2b2b2b; --lv-pd-tag: #1c1c1c; --lv-pd-tag-ink: #ffffff;
+    --lv-dm-bg: linear-gradient(180deg, rgba(28, 24, 32, .9), rgba(28, 24, 32, .8)); --lv-dm-line: transparent;
   }
   @media (prefers-color-scheme: light) {
     :root:not([data-theme="dark"]):not([data-theme="light"]) {
@@ -1479,6 +1481,7 @@
       --lv-rank-g1: linear-gradient(180deg, #fff3c7, #f4dc8a); --lv-rank-g1-line: #d4ad45;
       --lv-sys-bg: rgba(69, 55, 42, .08); --lv-sys-ink: #6b5a44;
       --lv-pd-bg: #fffdf7; --lv-pd-ink: #2a2a2a; --lv-pd-line: #2b2b2b; --lv-pd-tag: #1c1c1c; --lv-pd-tag-ink: #ffffff;
+      --lv-dm-bg: linear-gradient(180deg, rgba(28, 24, 32, .9), rgba(28, 24, 32, .8)); --lv-dm-line: transparent;
     }
   }
   .lv-hud, .lv-dm, .lv-gift, .lv-pin, .lv-rank, .lv-sys, .lv-pd, .lv-rec, .lv-win { font-family: "Noto Sans TC", sans-serif; letter-spacing: normal; }
@@ -1505,7 +1508,7 @@
   .lv-hud .rw .lb { flex: 0 0 auto; font-size: 11px; letter-spacing: .1em; color: var(--ac); border: 1px solid var(--ac); border-radius: 5px; padding: 0 6px; height: 19px; line-height: 17px; margin-top: 1px; white-space: nowrap; }
   .lv-hud .rw .tx { color: #e9e3ef; min-width: 0; }
 
-  .lv-dm { margin: 14px 0; padding: 10px 12px 8px; border-radius: 12px; background: linear-gradient(180deg, rgba(28, 24, 32, .9), rgba(28, 24, 32, .8)); color: #f3eef6; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); position: relative; overflow: hidden; }
+  .lv-dm { margin: 14px 0; padding: 10px 12px 8px; border-radius: 4px 12px 12px 4px; background: var(--lv-dm-bg); border: 1px solid var(--lv-dm-line); border-left: 3px solid var(--ac, var(--accent)); color: #f3eef6; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); position: relative; overflow: hidden; }
   .lv-dm::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .03) 0 1px, transparent 1px 3px); pointer-events: none; }
   .lv-dm .hd { display: flex; align-items: center; gap: 6px; font-size: 11.5px; letter-spacing: .12em; color: #c9bfd2; margin-bottom: 6px; line-height: 1.4; }
   .lv-dm .hd i { width: 7px; height: 7px; border-radius: 50%; background: #ff4d6d; box-shadow: 0 0 6px #ff4d6d; animation: lvb 1.2s infinite; }
@@ -2773,7 +2776,10 @@ function renderPage(text, latest) {
   let headEnd = start;
   if (hudTo > 0) {
     headEnd = hudTo;
-    page.append(renderHud(lines.slice(start, hudTo)));
+    const hud = renderHud(lines.slice(start, hudTo));
+    page.append(hud);
+    // 節目框主色傳給整頁，彈幕框左邊的色條跟著同色
+    page.style.setProperty("--ac", hud.style.getPropertyValue("--ac"));
   } else {
     // 5.1 頁首：開頭連續幾行帶「｜」、且其中一行有 page
     while (headEnd < lines.length && headEnd - start < 3 && lines[headEnd].includes("｜")) headEnd++;
