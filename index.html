@@ -3082,12 +3082,27 @@ function parseStatus(lines) {
       let h = out.helpers.find((x) => x.loose && x.open);
       if (!h) {
         h = { title: "", lines: [], options: [], loose: true, open: true };
+        // 緊接選項的「圖示｜一句話」（例：🎙️｜製作人丟出抉擇）：當三條路上方的引言，不另開小幫手（2026.10.18）
+        let lab = null;
+        for (let q = i - 1; q >= 0; q--) {
+          const u = list[q].trim();
+          if (!u) continue;
+          const lc = stCells(u);
+          if (lc.length === 2 && isIcon(lc[0]) && lc[1] && !["outfit", "body", "rel", "player"].includes(fieldOf(lc[0]))) lab = { raw: u, icon: lc[0], text: lc[1] };
+          break;
+        }
+        if (lab) {
+          const k = out.nodes.findIndex((r) => r.icon === lab.icon && r.text === lab.text);
+          if (k >= 0) out.nodes.splice(k, 1);
+          seg = seg.filter((it) => it.raw !== lab.raw);
+        }
         for (const it of seg) { const k = it.arr.indexOf(it.item); if (k >= 0) it.arr.splice(k, 1); }
         const got = seg.map((it) => it.raw);
         // 第一行短、沒有｜：當標題（例：✧ 知煙 ✧）
         if (got.length > 1 && !got[0].includes("｜") && [...stTitle(got[0])].length <= 16) h.title = stTitle(got.shift());
         // 緊接選項的那行沒有｜：當引言（例：梓璃寶貝 ㊙️ 行動星圖指向）
-        if (got.length && !got[got.length - 1].includes("｜")) h.optLabel = got.pop();
+        if (lab) h.optLabel = `${lab.icon} ${lab.text}`;
+        else if (got.length && !got[got.length - 1].includes("｜")) h.optLabel = got.pop();
         h.lines = got;
         out.helpers.push(h);
         seg = [];
@@ -3099,7 +3114,7 @@ function parseStatus(lines) {
     if (tailH && t.includes("｜")) { tailH.open = false; tailH = null; }
     if (ST_TIME.test(t) || ST_TIME1.test(t)) { if (tailH) tailH.open = false; addSched(t); seg = []; continue; }
     const c = stCells(t);
-    if (c.length >= 3 && isIcon(c[0]) && c[1] && [...c[1]].length <= 12) {
+    if (c.length >= 3 && isIcon(c[0]) && c[1] && [...c[1]].length <= 20) { // 人名上限 20 字：洋名如「Dion．de Lévis」（2026.10.18）
       const row = { icon: c[0], text: c.slice(2).join("｜"), kind: fieldOf(c[0]) };
       if (me && imSame(c[1], me)) out.player.push(row);
       else person(c[1]).rows.push(row);
@@ -3244,7 +3259,7 @@ function panelSplit(lines) {
     if (ST_OPEN.test(t) || ST_DIAMOND.test(t)) { frame = true; rest.push(raw); continue; }
     if (!t || !/[\p{L}\p{N}]/u.test(t) || isDeco(t) || ST_OPTION.test(t) || ST_LOOSE_OPT.test(t) || isSched(t)) { rest.push(raw); continue; }
     const c = stCells(t);
-    if (c.length >= 3 && isIcon(c[0]) && c[1] && [...c[1]].length <= 12 && !/[:：]/.test(c[1])) { rest.push(raw); continue; }
+    if (c.length >= 3 && isIcon(c[0]) && c[1] && [...c[1]].length <= 20 && !/[:：]/.test(c[1])) { rest.push(raw); continue; }
     // 「🩹 韓禹潤｜狀態｜衣著」：三格以上、第一格＝圖示＋名字 → 拆成這個人的兩行（狀態、衣著）
     const nm = c[0].match(/^([^\p{L}\p{N}\s]{1,4})\s*([\p{L}\p{N}][^\s:：]{0,11})$/u);
     if (c.length >= 3 && nm && !c.slice(1).some((x) => panelTile(x))) {
