@@ -2879,6 +2879,12 @@ function renderPage(text, latest) {
   return page;
 }
 
+// ✧✦ 手機框的開頭：下一個有字的行要是「類型｜平台…」才算
+function imHead(lines, from, end) {
+  for (let k = from; k < end; k++) { const u = lines[k].trim(); if (u) return u.includes("｜") || u.includes("|"); }
+  return false;
+}
+
 function renderBody(lines, start, end, page, opt = {}) {
   let buf = [];
   let fence = false;
@@ -2917,7 +2923,10 @@ function renderBody(lines, start, end, page, opt = {}) {
         continue;
       }
     }
-    if (t.startsWith("✧✦")) {
+    if (t.startsWith("✧✦") && !imHead(lines, i + 1, end)) {
+      // ✧✦ 後面不是「類型｜平台…」：模型拿來當分隔線用（例：論壇之後「時間拉回當下」），當分隔線畫，正文不關進手機框（2026.10.18）
+      buf.push("", "---", "");
+    } else if (t.startsWith("✧✦")) {
       flush();
       const block = [];
       i++;
@@ -2935,7 +2944,21 @@ function renderBody(lines, start, end, page, opt = {}) {
       let last = i;
       for (let k = i + 1; k < end; k++) if (isLoreSep(lines[k].trim())) last = k;
       const stop = loreCommentsEnd(lines, last + 1, end);
-      page.append(renderLoreBlock(lines.slice(i, stop)));
+      // 一次翻出好幾篇論壇貼文（例：QUADRA 四人各發一篇）：前一篇已有 💬 留言、下一條分隔線後接 🗨／📌 標頭 → 另開一張卡（2026.10.18）
+      let cs = i, seenCmt = false;
+      for (let k = i + 1; k <= last; k++) {
+        const u = lines[k].trim();
+        if (/^💬/.test(u)) seenCmt = true;
+        if (!seenCmt || !isLoreSep(u)) continue;
+        let n = k + 1;
+        while (n < stop && !lines[n].trim()) n++;
+        if (n < stop && /^(🗨|📌)/.test(lines[n].trim())) {
+          page.append(renderLoreBlock(lines.slice(cs, k)));
+          cs = k;
+          seenCmt = false;
+        }
+      }
+      page.append(renderLoreBlock(lines.slice(cs, stop)));
       i = stop - 1;
     } else if (LV_REC.test(t)) {
       flush();
