@@ -3088,12 +3088,15 @@ function parseStatus(lines) {
           const u = list[q].trim();
           if (!u) continue;
           const lc = stCells(u);
-          if (lc.length === 2 && isIcon(lc[0]) && lc[1] && !["outfit", "body", "rel", "player"].includes(fieldOf(lc[0]))) lab = { raw: u, icon: lc[0], text: lc[1] };
+          if (lc.length === 2 && isIcon(lc[0]) && lc[1] && !["outfit", "body", "rel"].includes(fieldOf(lc[0]))) lab = { raw: u, icon: lc[0], text: lc[1] };
           break;
         }
         if (lab) {
-          const k = out.nodes.findIndex((r) => r.icon === lab.icon && r.text === lab.text);
-          if (k >= 0) out.nodes.splice(k, 1);
+          // 範本寫了「丟給玩家」時 Worker 會把這個圖示判成玩家欄位：劇情、玩家兩區都找
+          for (const arr of [out.nodes, out.player]) {
+            const k = arr.findIndex((r) => r.icon === lab.icon && r.text === lab.text);
+            if (k >= 0) arr.splice(k, 1);
+          }
           seg = seg.filter((it) => it.raw !== lab.raw);
         }
         for (const it of seg) { const k = it.arr.indexOf(it.item); if (k >= 0) it.arr.splice(k, 1); }
