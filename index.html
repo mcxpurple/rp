@@ -81,7 +81,9 @@
   .page h4, .page h5, .page h6 { font-size: .95em; }
   .page > :first-child { margin-top: 0; }
   .page hr { border: 0; border-top: 1px solid var(--line); width: 40%; margin: 1.7em auto; }
-  .page em { font-style: normal; color: color-mix(in srgb, var(--text) 55%, var(--muted)); }
+  /* *星號* 內心話（2026.10.18）：辰宇落雁體手寫，字放大到跟正文看起來差不多、顏色比原本淡色深一點，行距略開 */
+  .page em { font-style: normal; font-family: "ChenYuluoyan", "Iansui", serif; font-weight: 400; font-size: 1.15em; line-height: 1.75;
+    color: color-mix(in srgb, var(--text) 78%, var(--muted)); }
   .page ul, .page ol { margin: 0 0 1.15em; padding-left: 1.5em; }
   .page blockquote { margin: 0 0 1.15em; padding: 2px 0 2px 14px; border-left: 3px solid var(--accent-line); color: var(--muted); }
   .page .tbl { overflow-x: auto; margin: 0 0 1.15em; }
