@@ -1597,7 +1597,20 @@
   :root { --bg-fade: rgba(23, 19, 29, .62); --bg-fade-s: rgba(30, 25, 37, .78); }
   :root[data-theme="light"] { --bg-fade: rgba(238, 235, 242, .58); --bg-fade-s: rgba(249, 247, 251, .74); }
   @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]):not([data-theme="light"]) { --bg-fade: rgba(238, 235, 242, .58); --bg-fade-s: rgba(249, 247, 251, .74); } }
-  #chat.bgshow { background: linear-gradient(var(--bg-fade), var(--bg-fade)), var(--bg-img, none) center / cover no-repeat; }
+  /* 對話背景（2026.10.20）：開場（第一則回覆出現前）用 --bg-fade 看得到圖；角色回覆後 1.5 秒內淡成厚霧 --bg-fade-c；設定關閉時淡成純色 */
+  /* 厚霧依時段微調：淺色的白天、深夜圖案較明顯，霧加到 .90 */
+  :root { --bg-fade-c: rgba(23, 19, 29, .88); }
+  :root[data-theme="light"] { --bg-fade-c: rgba(238, 235, 242, .86); }
+  :root[data-theme="light"]:is([data-bgslot="day"], [data-bgslot="late"]) { --bg-fade-c: rgba(238, 235, 242, .90); }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]):not([data-theme="light"]) { --bg-fade-c: rgba(238, 235, 242, .86); }
+    :root:not([data-theme="dark"]):not([data-theme="light"]):is([data-bgslot="day"], [data-bgslot="late"]) { --bg-fade-c: rgba(238, 235, 242, .90); } }
+  @property --fog { syntax: "<color>"; inherits: false; initial-value: transparent; }
+  #chat.bgshow { --fog: var(--bg-fade); background: linear-gradient(var(--fog), var(--fog)), var(--bg-img, none) center / cover no-repeat; transition: --fog 1.5s ease; }
+  #chat.bgshow.thick { --fog: var(--bg-fade-c); }
+  #chat.bgshow.thick.plain { --fog: var(--bg); }
+  #chat.bg-instant { transition: none; }
+  @media (prefers-reduced-motion: reduce) { #chat.bgshow { transition: none; } }
   #aboutPanel .sheet { background: linear-gradient(var(--bg-fade-s), var(--bg-fade-s)), var(--bg-img, none) center / cover no-repeat, var(--page); }
   #aboutPanel .fd-head { background: transparent; }
   /* 開場：當下時段的圖浮現一下，再淡出（一天一次；點一下可略過） */
@@ -1845,6 +1858,12 @@
       <option value="paper-coffee">棕・拿鐵與黑咖啡</option>
       <option value="paper-lilac">紫・薰衣草信紙</option>
       <option value="paper-sage">綠・舊帳本</option>
+    </select>
+
+    <label for="chatbg">對話背景</label>
+    <select id="chatbg">
+      <option value="on">打開（淡淡的風景）</option>
+      <option value="off">關閉（純色）</option>
     </select>
 
     <label for="away">角色主動傳訊息</label>
@@ -2368,6 +2387,7 @@ function bgSlot(d = new Date()) {
   return s;
 }
 function applyBg() {
+  document.documentElement.dataset.bgslot = bgSlot();
   const tall = window.innerHeight >= window.innerWidth;
   document.documentElement.style.setProperty("--bg-img", `url("bg/${bgSlot()}-${tall ? "v" : "h"}.webp")`);
 }
@@ -2396,11 +2416,21 @@ window.addEventListener("resize", () => {
   if (t !== bgTall) { bgTall = t; applyBg(); }
 });
 
+// 對話背景：開場看得到圖；第一則角色回覆出現後淡成厚霧（打開）或純色（關閉）
+function chatBgOn() { return store.get("rp_chatbg", "on") !== "off"; }
+function updateChatBg(instant = false) {
+  if (instant) chatEl.classList.add("bg-instant");
+  chatEl.classList.add("bgshow");
+  chatEl.classList.toggle("thick", history.some((m) => m.role === "model"));
+  chatEl.classList.toggle("plain", !chatBgOn());
+  if (instant) requestAnimationFrame(() => requestAnimationFrame(() => chatEl.classList.remove("bg-instant")));
+}
+
 function render() {
   renderTitle();
   chatEl.innerHTML = "";
   applyBg();
-  chatEl.classList.toggle("bgshow", !history.length);
+  updateChatBg(true);
   if (!history.length) {
     // 空白頁：明信片＋封蠟，指向下一步
     const d = document.createElement("div");
@@ -5193,6 +5223,7 @@ async function send(text, { addUser = true } = {}) {
     renderTitle();
     const last = history[history.length - 1];
     addBubble("model", last.text, true, data.usage, true, last.page);
+    updateChatBg();
   } catch (e) {
     setBusy(false);
     addBubble("error", e.message);
@@ -6470,6 +6501,9 @@ const SKINS = ["paper", "paper-coffee", "paper-lilac", "paper-sage"];
 function applySkin(k) { document.documentElement.dataset.skin = SKINS.includes(k) ? k : "paper"; }
 $("skin").value = SKINS.includes(store.get("rp_skin", "paper")) ? store.get("rp_skin", "paper") : "paper";
 $("skin").addEventListener("change", () => { store.set("rp_skin", $("skin").value); applySkin($("skin").value); });
+// 對話背景：選了立即生效（跟外觀、狀態卡樣式一樣即時預覽）
+$("chatbg").value = chatBgOn() ? "on" : "off";
+$("chatbg").addEventListener("change", () => { store.set("rp_chatbg", $("chatbg").value); updateChatBg(); });
 // 角色主動傳訊息：離開 AWAY_HOURS 小時以上再回來，第一句話附上彩蛋（存在這支手機，預設關閉）
 // 打開設定時讀回目前的值；按「儲存」才寫入（按取消不會改到）
 $("away").value = store.get("rp_away", "off") === "on" ? "on" : "off";
