@@ -1592,6 +1592,28 @@
   .nt-it b { font-weight: 700; margin-right: 8px; color: var(--accent); }
   :root[data-skin^="paper"] .stcard .nt-it { font-family: var(--pp-serif); padding-bottom: 6px; border-bottom: 1px dotted var(--pp-line); }
   :root[data-skin^="paper"] .stcard .nt-it b { color: var(--pp-acc); }
+  /* ---------- 背景圖：開場、空白頁、關於這裡（2026.10.19）---------- */
+  /* 依時段換圖（白天鐵軌、傍晚海邊、夜晚棧橋、深夜窗台），直式螢幕用直圖；--bg-img 由 applyBg() 設定 */
+  :root { --bg-fade: rgba(23, 19, 29, .62); --bg-fade-s: rgba(30, 25, 37, .78); }
+  :root[data-theme="light"] { --bg-fade: rgba(238, 235, 242, .58); --bg-fade-s: rgba(249, 247, 251, .74); }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]):not([data-theme="light"]) { --bg-fade: rgba(238, 235, 242, .58); --bg-fade-s: rgba(249, 247, 251, .74); } }
+  #chat.bgshow { background: linear-gradient(var(--bg-fade), var(--bg-fade)), var(--bg-img, none) center / cover no-repeat; }
+  #aboutPanel .sheet { background: linear-gradient(var(--bg-fade-s), var(--bg-fade-s)), var(--bg-img, none) center / cover no-repeat, var(--page); }
+  #aboutPanel .fd-head { background: transparent; }
+  /* 開場：當下時段的圖浮現一下，再淡出（一天一次；點一下可略過） */
+  #splash { position: fixed; inset: 0; z-index: 50; background: #120e16; display: flex; align-items: flex-end; justify-content: center; cursor: pointer;
+    opacity: 1; transition: opacity .8s ease; }
+  #splash[hidden] { display: none; }
+  #splash.out { opacity: 0; pointer-events: none; }
+  #splash .sp-img { position: absolute; inset: 0; background: var(--bg-img, none) center / cover no-repeat; animation: spzoom 3.2s ease-out both; }
+  #splash .sp-img::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 55%, rgba(18, 14, 22, .55)); }
+  #splash .sp-t { position: relative; text-align: center; color: #fbf3df; padding: 0 20px max(56px, env(safe-area-inset-bottom)); text-shadow: 0 2px 10px rgba(0, 0, 0, .55);
+    animation: spin 1.2s .3s ease-out both; }
+  #splash .sp-t b { display: block; font-family: "Iansui", serif; font-size: 26px; font-weight: 700; letter-spacing: .12em; }
+  #splash .sp-t small { display: block; margin-top: 6px; font-family: ui-monospace, "Courier New", monospace; font-size: 11px; letter-spacing: .3em; opacity: .85; }
+  @keyframes spzoom { from { transform: scale(1.08); opacity: 0; } 30% { opacity: 1; } to { transform: scale(1); opacity: 1; } }
+  @keyframes spin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { #splash .sp-img, #splash .sp-t { animation: none; } }
 </style>
 </head>
 <body>
@@ -1620,6 +1642,8 @@
 </div>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<div id="splash" hidden aria-hidden="true"><div class="sp-img"></div><div class="sp-t"><b>Violet Hour🌌紫夜星光</b><small id="spTime"></small></div></div>
 
 <main id="chat"></main>
 
@@ -2334,9 +2358,49 @@ function renderTitle() {
   }
 }
 
+// ---------- 背景圖（2026.10.19）：依現在時間換，直式螢幕用 -v、橫式用 -h ----------
+// 檔案放 repo 的 bg/：day（06–16 森林鐵軌）、dusk（16–19 海邊傍晚）、night（19–24 棧橋星空）、late（00–06 窗台月亮）
+const BG_SLOTS = [[0, "late"], [6, "day"], [16, "dusk"], [19, "night"]];
+function bgSlot(d = new Date()) {
+  const h = d.getHours();
+  let s = "late";
+  for (const [a, n] of BG_SLOTS) if (h >= a) s = n;
+  return s;
+}
+function applyBg() {
+  const tall = window.innerHeight >= window.innerWidth;
+  document.documentElement.style.setProperty("--bg-img", `url("bg/${bgSlot()}-${tall ? "v" : "h"}.webp")`);
+}
+// 開場：一天第一次打開時出現約 1.8 秒，點一下可略過
+function showSplash() {
+  const sp = $("splash");
+  const day = today();
+  if (store.get("rp_splash", "") === day) return;
+  store.set("rp_splash", day);
+  const d = new Date();
+  $("spTime").textContent = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  sp.hidden = false;
+  let done = false;
+  const out = () => {
+    if (done) return;
+    done = true;
+    sp.classList.add("out");
+    setTimeout(() => { sp.hidden = true; sp.classList.remove("out"); }, 850);
+  };
+  sp.onclick = out;
+  setTimeout(out, 2200);
+}
+let bgTall = window.innerHeight >= window.innerWidth;
+window.addEventListener("resize", () => {
+  const t = window.innerHeight >= window.innerWidth;
+  if (t !== bgTall) { bgTall = t; applyBg(); }
+});
+
 function render() {
   renderTitle();
   chatEl.innerHTML = "";
+  applyBg();
+  chatEl.classList.toggle("bgshow", !history.length);
   if (!history.length) {
     // 空白頁：明信片＋封蠟，指向下一步
     const d = document.createElement("div");
@@ -6253,7 +6317,7 @@ $("aboutThreads").href = THREADS_URL;
 $("aboutGuide").href = GUIDE_URL;
 $("aboutIntro").href = INTRO_URL;
 if (/^https:\/\//.test(DONATE_URL)) { $("aboutDonateLink").href = DONATE_URL; $("aboutDonate").hidden = false; }
-$("openAbout").onclick = () => openPanel("aboutPanel");
+$("openAbout").onclick = () => { applyBg(); openPanel("aboutPanel"); };
 $("closeAbout").onclick = () => closePanel("aboutPanel");
 for (const id of ["charPicker", "ioPanel", "memoryPanel", "settings", "dlg", "aboutPanel"]) {
   $(id).addEventListener("click", (e) => { if (e.target === $(id)) closePanel(id); });
@@ -6440,6 +6504,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape") setMenu(fa
 if (settings.character) ensureSlot(settings.character);
 loadHistory();
 render();
+showSplash();
 if (!settings.key || !settings.invite) openSettings();
 
 // 背景更新翻看清單（作者新增或修改條目時，玩家不用重新設定）
