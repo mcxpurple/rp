@@ -1148,14 +1148,14 @@
   .ab-grp { font-size: 11px; color: var(--muted); letter-spacing: .1em; margin: 12px 0 6px 2px; display: flex; align-items: center; gap: 6px; }
   .ab-grp i { display: inline-block; width: 9px; height: 9px; border-radius: 50% 50% 0 50%; transform: rotate(45deg); }
   .ab-tapes { display: flex; flex-direction: column; }
-  .ab-tp { position: relative; margin: 0 0 8px; padding: 7px 16px 8px; font-size: 13px; line-height: 1.6; color: #2b2a22; transform: rotate(var(--r)); width: fit-content; max-width: 100%;
+  .ab-tp { position: relative; margin: 0 0 8px; padding: 7px 16px 8px; font-size: 15px; line-height: 1.6; color: #2b2a22; transform: rotate(var(--r)); width: fit-content; max-width: 100%;
     background: repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 2px, transparent 2px 6px), var(--c); filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.15)); word-break: break-word;
     mask: conic-gradient(from 135deg at 6px 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 7px repeat-y, linear-gradient(#000, #000) 6px 0 / calc(100% - 12px) 100% no-repeat, conic-gradient(from -45deg at calc(100% - 6px) 50%, #0000, #000 1deg 89deg, #0000 90deg) 0 50% / 100% 7px repeat-y; }
   .ab-tp:nth-child(odd) { margin-left: auto; }
   .ab-tp b { display: block; font-weight: 700; }
-  .ab-tp small { display: block; font-size: 11.5px; opacity: .72; }
+  .ab-tp small { display: block; font-size: 13px; opacity: .85; }
   .ab-tp.like { --c: color-mix(in srgb, #b7dc9c 85%, #fff); } .ab-tp.avoid { --c: color-mix(in srgb, #ddd08a 85%, #fff); } .ab-tp.said { --c: color-mix(in srgb, #a8d6be 85%, #fff); font-family: "Iansui", serif; }
-  .ab-list .ab-note { position: relative; left: auto; transform: rotate(-1.5deg); width: auto; max-width: none; margin: 22px 8px 6px; text-align: left; padding: 18px 16px 12px; font-size: 13px; }
+  .ab-list .ab-note { position: relative; left: auto; transform: rotate(-1.5deg); width: auto; max-width: none; margin: 22px 8px 6px; text-align: left; padding: 18px 16px 12px; font-size: 14.5px; }
   .ab-list .ab-note p { -webkit-line-clamp: unset; }
   .ab-list .ab-note b { text-align: center; }
   .ab-tape { font-size: 15px; padding: 6px 20px 7px; }
@@ -1445,6 +1445,8 @@
   /* 手寫：翻看的日記、心聲便條、關於你、狀態卡翻看便條 */
   .diary, .os-tape, .os-o, .ab-tape, .ab-tape small, .ab-tp.said, .ab-leaf.said p, :root[data-skin^="paper"] .stcard .chip
     { font-family: "ChenYuluoyan", "Iansui", serif; font-weight: 400; }
+  /* 關於你・說過的話（2026.10.20 紫梓選 B）：原話留手寫，底下時間與說明改芫荽，像備註 */
+  .ab-tp.said small { font-family: "Iansui", serif; }
   /* 關於這裡（2026.10.15） */
   .scard.about p, .scard.about li { font-size: 14.5px; line-height: 1.85; margin: 8px 0 0; color: #2f2722; text-wrap: pretty; }
   .scard.about ul { margin: 4px 0 0; padding-left: 1.15em; }
@@ -3063,25 +3065,32 @@ function renderBody(lines, start, end, page, opt = {}) {
       page.append(renderSong(block));
     } else if (isLoreSep(t)) {
       // 翻看卡：第一條到最後一條「✦ ─」分隔線之間
+      // 翻看標題（📱📒🗨🗑💭📝，論壇另含 📌 標題、👤 作者）寫在第一條分隔線「前面」時，一起收進卡片（2026.10.20；Gemini 4 Argon 常這樣排）
+      let pre = [], k0 = buf.length;
+      while (k0 > 0 && (!buf[k0 - 1].trim() || LORE_SUB.test(buf[k0 - 1].trim()))) k0--;
+      if (k0 > 0 && loreTitleIcon(buf[k0 - 1])) { k0--; pre = buf.slice(k0).filter((x) => x.trim()); buf.length = k0; }
       flush();
       let last = i;
       for (let k = i + 1; k < end; k++) if (isLoreSep(lines[k].trim())) last = k;
       const stop = loreCommentsEnd(lines, last + 1, end);
-      // 一次翻出好幾篇論壇貼文（例：QUADRA 四人各發一篇）：前一篇已有 💬 留言、下一條分隔線後接 🗨／📌 標頭 → 另開一張卡（2026.10.18）
-      let cs = i, seenCmt = false;
+      // 一次翻好幾份（例：Lior、Kael 兩支手機；QUADRA 四人各發一篇論壇）：分隔線後接「同一種翻看的標題」→ 另開一張卡（2026.10.20 六種通用）
+      let cs = i, seenCmt = false, icon = pre.length ? loreTitleIcon(pre[0]) : "";
       for (let k = i + 1; k <= last; k++) {
         const u = lines[k].trim();
+        if (!icon && loreTitleIcon(u)) { icon = loreTitleIcon(u); continue; }
         if (/^💬/.test(u)) seenCmt = true;
-        if (!seenCmt || !isLoreSep(u)) continue;
+        if (!isLoreSep(u)) continue;
         let n = k + 1;
         while (n < stop && !lines[n].trim()) n++;
-        if (n < stop && /^(🗨|📌)/.test(lines[n].trim())) {
-          page.append(renderLoreBlock(lines.slice(cs, k)));
+        const nx = n < stop ? lines[n].trim() : "";
+        if ((icon && loreTitleIcon(nx) === icon && loreMainTitle(nx)) || (seenCmt && /^(🗨|📌)/.test(nx))) {
+          page.append(renderLoreBlock(pre.concat(lines.slice(cs, k))));
+          pre = [];
           cs = k;
           seenCmt = false;
         }
       }
-      page.append(renderLoreBlock(lines.slice(cs, stop)));
+      page.append(renderLoreBlock(pre.concat(lines.slice(cs, stop))));
       i = stop - 1;
     } else if (LV_REC.test(t)) {
       flush();
@@ -3661,6 +3670,11 @@ function renderNight(lines, latest, head = {}) {
 
 // ---------- 翻看 ----------
 function isLoreSep(t) { return /^✦\s*─/.test(t); }
+// 六種翻看的標題行：📱 隨身紀錄、📒 日記、🗨 論壇、🗑 刪除與收藏、💭 心聲、📝 關於你
+function loreTitleIcon(t) { const m = String(t || "").trim().match(/^(📱|📒|🗨|🗑|💭|📝)/u); return m ? m[1] : ""; }
+// 主標題（誰的、哪一天）才拿來切卡；「🗑️｜已刪除」「📝｜備忘錄」這種短小標不算
+function loreMainTitle(t) { return [...String(t).trim().replace(/^\S+\s*[｜|]?\s*/u, "")].length >= 8; }
+const LORE_SUB = /^(📌|👤|🗓)/u;
 
 // 論壇留言（💬 之後的 ▸ 樓層與 ▾ 樓主回覆）接在最後一條分隔線後面，一起收進卡片
 function loreCommentsEnd(lines, start, end) {
@@ -3791,7 +3805,7 @@ function splitDash(t) {
 }
 
 function renderLorePhone(secs) {
-  const head = secs[0][0].trim().replace(/^📱\s*[｜|]\s*/, "");
+  const head = secs[0][0].trim().replace(/^📱\s*[｜|]?\s*/, "");
   const tm = head.match(/(\d{1,2}[:：]\d{2})\s*$/);
   const title = (tm ? head.slice(0, tm.index) : head).trim();
   const wrap = document.createElement("div");
@@ -3849,7 +3863,7 @@ function renderLorePhone(secs) {
 
 function renderDiary(secs) {
   const head = secs[0];
-  const dateLine = (head.find((l) => /^\s*📒/.test(l)) || "").trim().replace(/^📒\s*[｜|]\s*/, "");
+  const dateLine = (head.find((l) => /^\s*📒/.test(l)) || "").trim().replace(/^📒\s*[｜|]?\s*/, "");
   const whoLine = (head.find((l) => /^\s*👤/.test(l)) || "").trim().replace(/^👤\s*[｜|]\s*/, "");
   const who = whoLine || settings.characterName || "";
   const book = document.createElement("div");
@@ -3954,7 +3968,7 @@ function whenSized(el, fn) {
 }
 
 function renderInner(secs) {
-  const head = secs[0][0].trim().replace(/^💭\s*[｜|]\s*/, "");
+  const head = secs[0][0].trim().replace(/^💭\s*[｜|]?\s*/, "");
   const tm = head.match(/(\d{1,2}[:：]\d{2})\s*$/);
   const title = (tm ? head.slice(0, tm.index) : head).trim();
   const lines = secs.slice(1).flat().map((l) => l.trim());
@@ -4016,7 +4030,7 @@ function leafShort(t) {
   return [...s].length > 14 ? [...s].slice(0, 13).join("") + "…" : s;
 }
 function renderAbout(secs) {
-  const head = secs[0][0].trim().replace(/^📝\s*[｜|]\s*/, "");
+  const head = secs[0][0].trim().replace(/^📝\s*[｜|]?\s*/, "");
   const tm = head.match(/(\d{1,2}[:：]\d{2})\s*$/);
   const title = (tm ? head.slice(0, tm.index) : head).replace(/\s*\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2}\s*$/, "").trim();
   const leaves = [], qs = [];
@@ -4249,7 +4263,7 @@ function mediaIcon(t) {
     : /錄音|語音|留言|\.m4a|\.mp3/i.test(t) ? "🎙️" : /信|郵件|mail/i.test(t) ? "✉️" : /照|相片|圖|背影|自拍/.test(t) ? "📷" : "📦";
 }
 function parseTrash(secs) {
-  const title = secs[0][0].trim().replace(/^🗑️?\s*[｜|]\s*/, "").trim();
+  const title = secs[0][0].trim().replace(/^🗑️?\s*[｜|]?\s*/, "").trim();
   const groups = [];
   let g = null;
   for (const raw of [...secs[0].slice(1), ...secs.slice(1).flat()]) {
