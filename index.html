@@ -2452,7 +2452,7 @@ function render() {
   });
   renderSaveMarks();
   $("pasteCard").hidden = !currentCard();
-  scrollDown();
+  scrollToReader(false);
 }
 
 // 故事開頭的郵戳（新的故事、接續的故事）
@@ -3074,10 +3074,20 @@ function renderBody(lines, start, end, page, opt = {}) {
       for (let k = i + 1; k < end; k++) if (isLoreSep(lines[k].trim())) last = k;
       const stop = loreCommentsEnd(lines, last + 1, end);
       // 一次翻好幾份（例：Lior、Kael 兩支手機；QUADRA 四人各發一篇論壇）：分隔線後接「同一種翻看的標題」→ 另開一張卡（2026.10.20 六種通用）
-      let cs = i, seenCmt = false, icon = pre.length ? loreTitleIcon(pre[0]) : "";
+      let cs = i, seenCmt = false, hasBody = false, icon = pre.length ? loreTitleIcon(pre[0]) : "";
       for (let k = i + 1; k <= last; k++) {
         const u = lines[k].trim();
         if (!icon && loreTitleIcon(u)) { icon = loreTitleIcon(u); continue; }
+        // 沒有分隔線、直接接下一份的主標題（例：Lior 的日記寫完，緊接「📒｜2026.04.15 20:19」「👤｜Kael」）→ 從標題這行另開一張卡（2026.10.23）
+        if (icon && hasBody && loreTitleIcon(u) === icon && loreMainTitle(u)) {
+          page.append(renderLoreBlock(pre.concat(lines.slice(cs, k))));
+          pre = [];
+          cs = k;
+          seenCmt = false;
+          hasBody = false;
+          continue;
+        }
+        if (u && icon && !isLoreSep(u) && !LORE_SUB.test(u) && loreTitleIcon(u) !== icon) hasBody = true;
         if (/^💬/.test(u)) seenCmt = true;
         if (!isLoreSep(u)) continue;
         let n = k + 1;
@@ -3088,6 +3098,7 @@ function renderBody(lines, start, end, page, opt = {}) {
           pre = [];
           cs = k;
           seenCmt = false;
+          hasBody = false;
         }
       }
       page.append(renderLoreBlock(pre.concat(lines.slice(cs, stop))));
@@ -3673,7 +3684,7 @@ function isLoreSep(t) { return /^✦\s*─/.test(t); }
 // 六種翻看的標題行：📱 隨身紀錄、📒 日記、🗨 論壇、🗑 刪除與收藏、💭 心聲、📝 關於你
 function loreTitleIcon(t) { const m = String(t || "").trim().match(/^(📱|📒|🗨|🗑|💭|📝)/u); return m ? m[1] : ""; }
 // 主標題（誰的、哪一天）才拿來切卡；「🗑️｜已刪除」「📝｜備忘錄」這種短小標不算
-function loreMainTitle(t) { return [...String(t).trim().replace(/^\S+\s*[｜|]?\s*/u, "")].length >= 8; }
+function loreMainTitle(t) { const x = String(t).trim(); return [...x.slice(loreTitleIcon(x).length).replace(/^\uFE0F?\s*[｜|]?\s*/u, "")].length >= 8; }
 const LORE_SUB = /^(📌|👤|🗓)/u;
 
 // 論壇留言（💬 之後的 ▸ 樓層與 ▾ 樓主回覆）接在最後一條分隔線後面，一起收進卡片
@@ -5118,6 +5129,21 @@ function usageText(u) {
 }
 
 function scrollDown() { chatEl.scrollTop = chatEl.scrollHeight; }
+// 角色回覆後：停在玩家最後送出的那句（對話框、翻看標記、新的故事郵戳），從回覆開頭往下讀（2026.10.23）
+// 找不到（例如最後一則不是角色回覆）就照舊捲到底
+function scrollToReader(smooth) {
+  const kids = [...chatEl.children];
+  let pi = -1;
+  for (let i = kids.length - 1; i >= 0; i--) if (kids[i].matches(".page")) { pi = i; break; }
+  let el = null;
+  for (let i = pi - 1; i >= 0 && pi >= 0; i--) {
+    if (kids[i].matches(".page")) break;
+    if (kids[i].matches(".aside, .lore-mark, .postmark")) { el = kids[i]; break; }
+  }
+  if (!el) return scrollDown();
+  const top = el.getBoundingClientRect().top - chatEl.getBoundingClientRect().top + chatEl.scrollTop - 12;
+  chatEl.scrollTo({ top: Math.max(0, top), behavior: smooth ? "smooth" : "auto" });
+}
 
 function setBusy(on) {
   busy = on;
@@ -5265,7 +5291,8 @@ async function send(text, { addUser = true } = {}) {
     setBusy(false);
     renderTitle();
     const last = history[history.length - 1];
-    addBubble("model", last.text, true, data.usage, true, last.page);
+    addBubble("model", last.text, false, data.usage, true, last.page);
+    scrollToReader(true);
     updateChatBg();
   } catch (e) {
     setBusy(false);
