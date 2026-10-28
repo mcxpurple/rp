@@ -1629,6 +1629,23 @@
   @keyframes spzoom { from { transform: scale(1.08); opacity: 0; } 30% { opacity: 1; } to { transform: scale(1); opacity: 1; } }
   @keyframes spin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { #splash .sp-img, #splash .sp-t { animation: none; } }
+
+  /* ===== 浮動贊助按鈕（2026.10.28）：看的畫面一直在；進入聊天時打招呼 5 秒；泡泡隨機一句、5 秒後淡出 ===== */
+  #donateFab { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: var(--fab-b, 200px); z-index: 15;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 7px; pointer-events: none;
+    opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity .45s ease, transform .45s ease, visibility 0s linear .45s; }
+  #donateFab.show { opacity: 1; visibility: visible; transform: none; transition: opacity .45s ease, transform .45s ease; }
+  #donateFab .fab-bub { font-family: "Iansui", serif; font-size: 13px; line-height: 1.4; white-space: nowrap; background: #fbf6ec; color: #5a2228;
+    border: 1.5px solid #b08a3e; padding: 6px 10px; border-radius: 14px 14px 3px 14px; box-shadow: 0 2px 6px rgba(0,0,0,.18); transition: opacity .6s ease, transform .6s ease; }
+  #donateFab .fab-bub.fade { opacity: 0; transform: translateY(4px); }
+  #donateFab .fab-btn { pointer-events: auto; padding: 0; margin: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; line-height: 0; -webkit-tap-highlight-color: transparent; }
+  #donateFab .fab-btn:active { transform: scale(.94); }
+  #donateFab .fab-btn img { display: block; width: 56px; height: 56px; border-radius: 50%; object-fit: cover; background: #f6eedd; border: 2px solid #b08a3e;
+    box-shadow: 0 0 0 3px #f6eedd, 0 3px 10px rgba(0,0,0,.25); }
+  #donateFab .fab-btn .wax { display: none; }
+  #donateFab.noimg .fab-btn img { display: none; }
+  #donateFab.noimg .fab-btn .wax { display: inline-flex; }
+  @media (prefers-reduced-motion: reduce) { #donateFab, #donateFab.show, #donateFab .fab-bub { transition: none; transform: none; } }
 </style>
 </head>
 <body>
@@ -1674,6 +1691,7 @@
     <button id="send" class="wsend" type="button" aria-label="送出"><span class="wax" style="--c:#6a2a30;--ink:#f6e2d8;--s:58px"><i><span>✉</span><b>送出</b></i></span></button>
   </div>
 </footer>
+<div id="donateFab" aria-hidden="true"><span class="fab-bub fade" id="fabBub"></span><button type="button" class="fab-btn" id="fabBtn" aria-label="請紫梓喝杯飲料（另開贊助頁）" tabindex="-1"><img src="author/donate-btn.png" alt="" id="fabImg"><span class="wax s4" style="--c:#c0705a;--ink:#fbeee6;--s:56px"><i>☕</i></span></button></div>
 
 <div id="charPicker" class="overlay">
   <div class="sheet picker-sheet">
@@ -1937,7 +1955,7 @@ const GUIDE_URL = "https://obvious-tenor-7aa.notion.site/3f5f4e50bb4b81e184d4eed
 const SITE_NAME = "Violet Hour🌌紫夜星光";
 const THREADS_URL = "https://www.threads.com/@mcx_purple";
 const INTRO_URL = "https://obvious-tenor-7aa.notion.site/210f4e50bb4b800da8f2fdf1292cdf64"; // 角色介紹（關於這裡用）
-const DONATE_URL = ""; // 綠界贊助連結：拿到後填進引號裡，「請作者喝杯飲料」那張卡才會出現
+const DONATE_URL = "https://portaly.cc/mcxpurple/support"; // Portaly 贊助頁（2026.10.28）；清空引號＝「請作者喝杯飲料」卡片隱藏
 
 // 每幾頁自動寫入記憶庫一次（實測時可暫時改小，例如 2）
 const SAVE_EVERY = 20;
@@ -2426,6 +2444,63 @@ function updateChatBg(instant = false) {
   chatEl.classList.toggle("thick", history.some((m) => m.role === "model"));
   chatEl.classList.toggle("plain", !chatBgOn());
   if (instant) requestAnimationFrame(() => requestAnimationFrame(() => chatEl.classList.remove("bg-instant")));
+  fabEnter(instant);
+  updateFab();
+}
+
+// 浮動贊助按鈕（2026.10.28 紫梓定案）
+// 看的畫面（空白頁、選角／存檔清單、關於這裡）：頭像一直在；操作的畫面（聊天、設定、記憶庫、匯出匯入、對話框）：不顯示
+// 進入聊天（打開網頁、切換存檔、換角色）時打招呼 FAB_SHOW_MS 後整顆收起；重寫、改上一句不算（同一個存檔不重複）
+// 每次出現從 FAB_LINES 隨機抽一句（不連抽同一句），FAB_SHOW_MS 後泡泡淡出；要加句子只改 FAB_LINES
+// 用 var、狀態不給初始值：render() 可能在這段之前就跑，記下的「進入聊天」不會被重設；fabReady 為 false 時先不畫
+var FAB_LINES = ["求投餵✨", "有空再請我喝☕", "路過請我一杯🍵", "想起我再投餵💭", "請我喝一口嘛🥺", "隨心投餵無壓力🍃", "🙏佛系化緣心意到", "給點動力繼續寫✒️",
+  "幫本喵補個血🐾", "咖啡也能當罐罐🥫", "一杯換一聲喵🐱", "咖啡杯空空的🥲", "不餵也給你摸摸🤲", "一杯咖啡換星光✨", "請星星喝杯咖啡🌙"];
+var FAB_VIEW = ["charPicker", "aboutPanel"];
+var FAB_OP = ["settings", "memoryPanel", "ioPanel", "dlg"];
+var FAB_SHOW_MS = 5000;
+var fabReady, fabKey, fabGreetUntil, fabWasOn, fabLast, fabBubTimer, fabGreetTimer;
+// 判斷「進入聊天」：render() 畫出有對話的存檔、且跟上次在聊天的存檔不同＝打開；收到回覆（空白頁→第一則）只記下存檔，不打招呼
+function fabEnter(fromRender) {
+  if (!history.length) return;
+  const key = `${settings.character || ""}__${(curSlot() || {}).id || ""}`;
+  if (fromRender && key !== fabKey) {
+    fabGreet(FAB_SHOW_MS);
+  }
+  fabKey = key;
+}
+function fabGreet(ms) {
+  fabGreetUntil = Date.now() + ms;
+  clearTimeout(fabGreetTimer);
+  fabGreetTimer = setTimeout(updateFab, ms + 60);
+}
+function fabBubble() {
+  const b = $("fabBub");
+  let i = Math.floor(Math.random() * FAB_LINES.length);
+  if (FAB_LINES.length > 1 && i === fabLast) i = (i + 1) % FAB_LINES.length;
+  fabLast = i;
+  b.textContent = FAB_LINES[i];
+  b.classList.remove("fade");
+  clearTimeout(fabBubTimer);
+  fabBubTimer = setTimeout(() => b.classList.add("fade"), FAB_SHOW_MS);
+}
+function updateFab() {
+  if (!fabReady) return;
+  const el = $("donateFab");
+  if (!el || !/^https:\/\//.test(DONATE_URL)) return;
+  const isOpen = (id) => { const x = $(id); return !!x && x.classList.contains("open"); };
+  let on = false, panel = false;
+  // 開場動畫（一天一次，約 3 秒）期間看不到：打招呼時間從動畫結束後才開始算
+  if (!$("splash").hidden) { if (Date.now() < (fabGreetUntil || 0)) fabGreet(FAB_SHOW_MS + 3100); on = false; }
+  else if (FAB_OP.some(isOpen)) on = false;
+  else if (FAB_VIEW.some(isOpen)) { on = true; panel = true; }
+  else on = !history.length || Date.now() < (fabGreetUntil || 0);
+  const foot = document.querySelector("footer");
+  el.style.setProperty("--fab-b", panel ? "calc(22px + env(safe-area-inset-bottom))" : `${(foot ? foot.offsetHeight : 150) + 50}px`);
+  if (on && !fabWasOn) fabBubble();
+  el.classList.toggle("show", on);
+  el.setAttribute("aria-hidden", on ? "false" : "true");
+  $("fabBtn").tabIndex = on ? 0 : -1;
+  fabWasOn = on;
 }
 
 function render() {
@@ -6418,6 +6493,19 @@ $("aboutThreads").href = THREADS_URL;
 $("aboutGuide").href = GUIDE_URL;
 $("aboutIntro").href = INTRO_URL;
 if (/^https:\/\//.test(DONATE_URL)) { $("aboutDonateLink").href = DONATE_URL; $("aboutDonate").hidden = false; }
+// 浮動贊助按鈕：點了另開贊助頁；圖讀不到時換成封蠟 ☕；面板開關、開場結束、轉向時重新判斷
+if (/^https:\/\//.test(DONATE_URL)) {
+  const img = $("fabImg");
+  img.onerror = () => $("donateFab").classList.add("noimg");
+  if (img.complete && !img.naturalWidth) $("donateFab").classList.add("noimg");
+  $("fabBtn").onclick = () => window.open(DONATE_URL, "_blank", "noopener");
+  const fabObs = new MutationObserver(() => updateFab());
+  for (const id of [...FAB_VIEW, ...FAB_OP]) if ($(id)) fabObs.observe($(id), { attributes: true, attributeFilter: ["class"] });
+  fabObs.observe($("splash"), { attributes: true, attributeFilter: ["hidden"] });
+  window.addEventListener("resize", () => updateFab());
+  fabReady = true;
+  updateFab();
+}
 $("openAbout").onclick = () => { applyBg(); openPanel("aboutPanel"); };
 $("closeAbout").onclick = () => closePanel("aboutPanel");
 for (const id of ["charPicker", "ioPanel", "memoryPanel", "settings", "dlg", "aboutPanel"]) {
