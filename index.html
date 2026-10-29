@@ -729,6 +729,25 @@
 
   /* ☰ 選單 */
   #menuBtn { font-size: 22px; line-height: 1; padding: 6px 10px; }
+  /* 拍立得（2026.10.29）：標題列閃光燈開關＋書封（故事開頭郵戳下）＋角落（最新一頁開頭，文字繞圖） */
+  header button.pflash { position: relative; flex: none; padding: 0 4px; border: 0; background: none; line-height: 0; }
+  header button.pflash .wax { --s: 32px; transition: filter .2s, opacity .2s; }
+  header button.pflash .wax svg { display: block; }
+  header button.pflash .fx { position: absolute; top: -5px; right: -2px; line-height: 0; filter: drop-shadow(0 0 3px rgba(255,214,110,.95)); }
+  header button.pflash.off .wax { filter: grayscale(1) brightness(.95); opacity: .5; }
+  header button.pflash.off .fx { display: none; }
+  header button.pflash.pop .fx { animation: polPop .6s ease-out; }
+  @keyframes polPop { 0% { transform: scale(.2) rotate(-40deg); opacity: 0; } 55% { transform: scale(1.6) rotate(15deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+  .vh-pol { position: relative; display: block; box-sizing: border-box; background: #fdfaf3; padding: 5px 5px 18px; box-shadow: 0 3px 6px rgba(0,0,0,.28); }
+  .vh-pol .ph { display: block; width: 100%; height: 100%; overflow: hidden; background: linear-gradient(160deg, #e6d6ee, #cdb9d9); }
+  .vh-pol .ph img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+  .vh-pol .ph.tall img { object-position: 50% 6%; }
+  .vh-pol .tape { position: absolute; top: -9px; left: 50%; width: 46px; height: 16px; transform: translateX(-50%) rotate(-4deg); background: rgba(214,190,140,.75); box-shadow: 0 1px 1px rgba(0,0,0,.12); }
+  .vh-pol .cap { position: absolute; left: 6px; right: 6px; bottom: 2px; text-align: center; font-family: "ChenYuluoyan", "Iansui", serif; font-size: 12px; color: #6e5236; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vh-cover { display: flex; justify-content: center; margin: 14px auto 6px; }
+  .vh-cover .vh-pol { width: 132px; height: 172px; transform: rotate(-3deg); }
+  .vh-cover .vh-pol .cap { font-size: 15px; bottom: 1px; }
+  .vh-pol.vh-corner { float: right; width: 74px; height: 96px; margin: 2px 2px 8px 12px; transform: rotate(4deg); }
   .menu-wrap { position: fixed; inset: 0; z-index: 20; display: none; }
   .menu-wrap.open { display: block; }
   .menu { position: absolute; right: 12px; top: calc(max(10px, env(safe-area-inset-top)) + 46px);
@@ -1652,6 +1671,7 @@
 
 <header>
   <h1 id="title">Violet Hour🌌紫夜星光</h1>
+  <button class="pflash" id="polBtn" type="button" aria-label="拍立得" aria-pressed="true"><span class="wax s3" style="--c:#7a5e88;--ink:#f4ecf6"><i><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4 8h3.2l1.6-2.2h6.4L16.8 8H20v10.5H4z"/><circle cx="12" cy="13" r="3.4"/></svg></i></span><span class="fx"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 1.5 13.9 9.4 22 12 13.9 14.6 12 22.5 10.1 14.6 2 12 10.1 9.4Z" fill="#ffd36a" stroke="#b8862a" stroke-width=".8"/></svg></span></button>
   <button class="ghost" id="menuBtn" aria-label="選單" aria-haspopup="true" aria-expanded="false">☰</button>
 </header>
 
@@ -2521,11 +2541,14 @@ function render() {
     if (!ready) d.classList.add("up");
     chatEl.append(d);
   }
+  polBulk = true;
   history.forEach((m, i) => {
     if (m.role === "user" && m.away) addAwayMark(m.away);
     addBubble(m.role, m.text, false, m.usage, i === history.length - 1, m.page);
   });
+  polBulk = false;
   renderSaveMarks();
+  polDecorate();
   $("pasteCard").hidden = !currentCard();
   scrollToReader(false);
 }
@@ -2633,6 +2656,7 @@ function addBubble(role, text, scroll = true, usage = null, latest = true, page 
     d.querySelector(".msg").textContent = text.replace(/^⚠︎\s*/, "");
   }
   chatEl.append(d);
+  if (!polBulk && ((role === "model" && latest) || role === "user" && (text === NEW_GAME || isOldGame(text)))) polDecorate();
 
   const u = usageText(usage);
   if (u) {
@@ -6084,21 +6108,20 @@ function setPickTab(tab) {
 
 // 角色立繪：GitHub 上 avatars/角色ID.png（3:5 去背直式圖），可再放 角色ID-2.png 等多張隨機顯示。找不到就記下來，這次開網頁不再重找
 // 沒有專屬圖時，列表改用 avatars/default.png（通用圖，正方形也可），右下角蓋名字第一個字的封蠟
-let avDefault = "";            // "" 還沒找、"ok" 有、"miss" 沒有
-const avDefaultWait = [];
+// 代班貓（2026.10.29）：default.png 之後可放 default-2.png、default-3.png…（號碼要連續，最多 AV_MAX 張），每次隨機挑一張
 function loadDefaultAvatar(onok) {
-  if (avDefault === "miss") return;
-  const make = () => { const im = new Image(); im.alt = ""; im.src = "avatars/default.png"; return im; };
-  if (avDefault === "ok") { onok(make()); return; }
-  avDefaultWait.push(onok);
-  if (avDefaultWait.length > 1) return;
-  const probe = make();
-  probe.onload = () => { avDefault = "ok"; avDefaultWait.splice(0).forEach((f) => f(make())); };
-  probe.onerror = () => { avDefault = "miss"; avDefaultWait.length = 0; };
+  avatarList("default", (urls) => {
+    if (!urls.length) return;
+    const im = new Image();
+    im.alt = "";
+    im.decoding = "async";
+    im.onload = () => onok(im);
+    im.src = urls[Math.floor(Math.random() * urls.length)];
+  });
 }
-// 多張圖（2026.10.15）：avatars/角色ID.png 之後可放 角色ID-2.png、角色ID-3.png…（號碼要連續，最多 AV_MAX 張）
+// 多張圖（2026.10.15；2026.10.29 上限改 10 張）：avatars/角色ID.png 之後可放 角色ID-2.png、角色ID-3.png…（號碼要連續，最多 AV_MAX 張）
 // 第一次用到某角色時依序試到找不到為止，記下有哪些圖；之後每次畫面都從裡面隨機挑一張
-const AV_MAX = 5;
+const AV_MAX = 10;
 const avList = new Map();
 const avWait = new Map();
 function avatarList(id, done) {
@@ -6136,6 +6159,107 @@ function loadAvatar(c, onok, ondefault) {
 }
 // 3:5 這種直式去背圖＝立繪（裁頭、放半身）；接近正方形的圖＝照片（整張塞滿、存檔頁貼成拍立得）
 function isTallPic(im) { return im.naturalHeight > im.naturalWidth * 1.3; }
+
+// ---------- 📸 拍立得（2026.10.29）----------
+// 書封：每個故事郵戳（新的故事、接續的故事）下面一張大拍立得，這次進入故事固定同一張
+// 角落：只貼在最新一頁的開頭右邊，文字繞著排、不跟著捲動；每則新回覆重抽一張；故事第一頁已有書封就不再貼
+// 圖：avatars/角色ID.png（-2…-10 隨機），沒圖用代班貓 default.png（-2…-10 隨機）
+// 開關：標題列相機（rp_pol），點了跳一句提示；提示只是介面回饋，不進故事、不進記憶庫
+const POL_ON_LINES = ["欸，被你找回來了！", "噹噹，重新登場！", "找到了，原來在這裡。", "偷偷貼回來了，噓。", "好啦，讓你再看一眼。",
+  "照片貼好了，這次別弄丟。", "這個位置，看起來不錯吧？", "這次換我陪你翻頁。", "拍立得歸位，繼續故事吧。", "又見面了，真巧。",
+  "偷偷探個頭，應該沒關係吧？", "好久不見……其實也沒多久。", "找我嗎？我在這裡。", "好吧，這次就不躲了。", "想看我照片？我來了💕"];
+const POL_OFF_LINES = ["好啦，我先躲起來。", "照片收好了，放心。", "噓，這次換我安靜。", "好吧，暫時退場。", "收進抽屜裡，保管好了。",
+  "不見了？其實還在喔。", "先藏起來，等等再見。", "偷偷溜走一下。", "好，這一頁只留給你。", "再見只是暫時的。",
+  "先讓故事當主角。", "收好啦，想看再打開。", "小小退場，不打擾了。", "照片藏好了，沒有人發現。", "那就先留一點神祕感。"];
+let polOn = store.get("rp_pol", true) !== false;
+let polBulk = false;               // render() 一次畫整份對話時先不貼，畫完再貼一次
+let polCover = { key: "", src: "" };
+let polLastLine = "";
+function polChar() {
+  const id = settings.character;
+  return (pickChars || []).find((c) => c.id === id) || { id };
+}
+function polCard(cls, cap) {
+  const w = document.createElement("span");
+  w.className = `vh-pol${cls ? " " + cls : ""}`;
+  w.setAttribute("aria-hidden", "true");
+  w.innerHTML = '<span class="tape"></span><span class="ph"></span>';
+  if (cap) {
+    const c = document.createElement("span");
+    c.className = "cap";
+    c.textContent = cap;
+    w.append(c);
+  }
+  return w;
+}
+function polPhoto(card, coverKey) {
+  const ph = card.querySelector(".ph");
+  const put = (im) => {
+    if (coverKey) polCover = { key: coverKey, src: im.src };
+    ph.textContent = "";
+    ph.classList.toggle("tall", isTallPic(im));
+    ph.append(im);
+  };
+  if (coverKey && polCover.key === coverKey && polCover.src) {
+    const im = new Image();
+    im.alt = "";
+    im.onload = () => put(im);
+    im.src = polCover.src;
+    return;
+  }
+  loadAvatar(polChar(), put, put);
+}
+function polButton() {
+  const b = $("polBtn");
+  if (!b) return;
+  b.classList.toggle("off", !polOn);
+  b.setAttribute("aria-pressed", polOn ? "true" : "false");
+  b.title = polOn ? "拍立得：開著" : "拍立得：關著";
+}
+function polDecorate() {
+  if (polBulk) return;
+  chatEl.querySelectorAll(".vh-cover, .vh-pol").forEach((e) => e.remove());
+  if (!polOn || !settings.character) return;
+  const key = `${settings.character}__${(curSlot() || {}).id || ""}`;
+  if (polCover.key !== key) polCover = { key, src: "" };
+  chatEl.querySelectorAll(".postmark").forEach((pm) => {
+    const box = document.createElement("div");
+    box.className = "vh-cover";
+    const card = polCard("", charShort());
+    box.append(card);
+    pm.after(box);
+    polPhoto(card, key);
+  });
+  const pages = chatEl.querySelectorAll("article.page");
+  const last = pages[pages.length - 1];
+  if (!last) return;
+  // 故事第一頁：上面已經有書封，不重複貼
+  let prev = last.previousElementSibling;
+  while (prev && !prev.matches("article.page, .vh-cover")) prev = prev.previousElementSibling;
+  if (prev && prev.matches(".vh-cover")) return;
+  const firstP = [...last.querySelectorAll("p")].find((x) => !x.closest(".head, .tracker, details, .hud"));
+  if (!firstP) return;
+  const card = polCard("vh-corner");
+  firstP.before(card);
+  polPhoto(card, "");
+}
+function polPick(list) {
+  let line = list[Math.floor(Math.random() * list.length)];
+  if (line === polLastLine && list.length > 1) line = list[(list.indexOf(line) + 1) % list.length];
+  polLastLine = line;
+  return line;
+}
+$("polBtn").onclick = () => {
+  polOn = !polOn;
+  store.set("rp_pol", polOn);
+  polButton();
+  polDecorate();
+  const b = $("polBtn");
+  b.classList.remove("pop");
+  if (polOn) { void b.offsetWidth; b.classList.add("pop"); }
+  toast(polOn ? `📸 ${polPick(POL_ON_LINES)}` : polPick(POL_OFF_LINES));
+};
+polButton();
 function clearPickFig() {
   const body = $("pickTitle").closest(".fd-body");
   body.classList.remove("has-fig");
