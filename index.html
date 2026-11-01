@@ -3381,7 +3381,11 @@ function parseStatus(lines) {
     let tailH = out.helpers.find((x) => x.loose && x.open);
     if (tailH && t.includes("｜")) { tailH.open = false; tailH = null; }
     if (ST_TIME.test(t) || ST_TIME1.test(t)) { if (tailH) tailH.open = false; addSched(t); seg = []; continue; }
-    const c = stCells(t);
+    let c = stCells(t);
+    // 第二格有句讀標點（，、。（）「」…）就不是人名：Claude／ChatGPT 常在內容裡多加「｜」，整行當一般欄位（2026.11.01）
+    if (c.length >= 3 && isIcon(c[0]) && !stIsName(c[1])) c = [c[0], c.slice(1).join("｜")];
+    // 範本原封不動抄出來的 {…}：整行不顯示（2026.11.01）
+    if (c.length >= 2 && isIcon(c[0]) && /^\{[^{}]*\}$/.test(c.slice(1).join("｜").trim())) { seg = []; continue; }
     if (c.length >= 3 && isIcon(c[0]) && c[1] && [...c[1]].length <= 20) { // 人名上限 20 字：洋名如「Dion．de Lévis」（2026.10.18）
       const row = { icon: c[0], text: c.slice(2).join("｜"), kind: fieldOf(c[0]) };
       if (me && imSame(c[1], me)) out.player.push(row);
@@ -3416,6 +3420,9 @@ function parseStatus(lines) {
   }
   return out;
 }
+
+// 狀態列第二格像不像人名：20 字以內、沒有句讀標點（2026.11.01）
+function stIsName(x) { const v = String(x || "").trim(); return !!v && [...v].length <= 20 && !/[，,。、；;：！？!?「」『』（）()…—]/.test(v); }
 
 function stSched(l) {
   const c = stCells(l);
