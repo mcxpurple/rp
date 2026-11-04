@@ -2883,7 +2883,9 @@ function hudEnd(lines, start) {
     info++; i++;
   }
   if (!info || !page || !isSep(i)) return -1;
+  if (!lead && /^✧✦/.test(lines[i].trim())) return -1;
   i++;
+
   if (lead) return i;
   let k = skip(i), rows = 0;
   while (k < lines.length && lvLabel(lines[k].trim())) { rows++; k = skip(k + 1); }
