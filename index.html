@@ -2571,7 +2571,7 @@ function updateFab() {
   // 開場動畫（一天一次，約 3 秒）期間看不到：打招呼時間從動畫結束後才開始算
   if (!$("splash").hidden) { if (Date.now() < (fabGreetUntil || 0)) fabGreet(FAB_SHOW_MS + 3100); on = false; }
   else if (FAB_OP.some(isOpen)) on = false;
-  else if (FAB_VIEW.some(isOpen)) { on = true; panel = true; }
+  else if (FAB_VIEW.some(isOpen)) { on = !(isOpen("charPicker") && $("pickTools").hidden); panel = on; }
   else on = !history.length || Date.now() < (fabGreetUntil || 0);
   const foot = document.querySelector("footer");
   el.style.setProperty("--fab-b", panel ? "calc(22px + env(safe-area-inset-bottom))" : `${(foot ? foot.offsetHeight : 150) + 50}px`);
@@ -6857,6 +6857,7 @@ if (/^https:\/\//.test(DONATE_URL)) {
   $("fabBtn").onclick = () => window.open(DONATE_URL, "_blank", "noopener");
   const fabObs = new MutationObserver(() => updateFab());
   for (const id of [...FAB_VIEW, ...FAB_OP]) if ($(id)) fabObs.observe($(id), { attributes: true, attributeFilter: ["class"] });
+  fabObs.observe($("pickTools"), { attributes: true, attributeFilter: ["hidden"] });
   fabObs.observe($("splash"), { attributes: true, attributeFilter: ["hidden"] });
   window.addEventListener("resize", () => updateFab());
   fabReady = true;
