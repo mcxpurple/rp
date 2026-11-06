@@ -1689,7 +1689,7 @@
 <div id="menu" class="menu-wrap">
   <nav class="menu" aria-label="選單">
     <button type="button" id="openChars"><span class="wax s1" style="--c:#4a5670"><i>👤</i></span>切換角色</button>
-    <button type="button" id="openDlc"><span class="wax s2" style="--c:#8a6a4a"><i>✧</i></span>情境 DLC</button>
+    <button type="button" id="openDlc"><span class="wax s2" style="--c:#8a6a4a"><i>🎁</i></span>情境 DLC</button>
     <hr>
     <a id="linkChars" target="_blank" rel="noopener"><span class="wax s2" style="--c:#c2a15a"><i>🩷</i></span>角色們（單人）<span class="ext">↗</span></a>
     <a id="linkWorlds" target="_blank" rel="noopener"><span class="wax s3" style="--c:#c2a15a"><i>💜</i></span>開放世界（多人）<span class="ext">↗</span></a>
@@ -2303,41 +2303,66 @@ function buildMemory(mem, slotName = (curSlot() || {}).name || "") {
 
 // ---------- ZL DLC：記憶庫保存劇情狀態；存檔僅暫存尚未寫入記憶的啟停指令 ----------
 const DLC_LINE_RE = /^\s*(?:[-*•・]\s*)?DLC\s*[｜|]\s*(ZL-[A-Z]\d+)\s*[｜|]\s*([^｜|\n]+)\s*[｜|]\s*(啟用中|已結束)[^\r\n]*$/;
-function dlcFromMemory(mem = loadMem()) {
+// 一個存檔最多同時兩格：ZL-Q 開頭＝情境（q），其他＝ZL 世界事件（zl）；每格各一個
+const DLC_KINDS = ["zl", "q"];
+// DLC 分類代表圖示（選角資料夾的分類標籤用）
+const DLC_TAG_ICON = { "ZL世界事件": "🪄" };
+function dlcKind(id) { return /^ZL-Q\d+$/i.test(String(id || "")) ? "q" : "zl"; }
+// 記憶庫最新「當前狀態總結」裡的 DLC 行：兩格各取最後一行；帶 kind 只回傳那一格
+function dlcFromMemory(mem = loadMem(), kind) {
+  const out = { zl: null, q: null };
   const text = buildMemory(mem);
-  if (!text) return null;
-  const at = text.lastIndexOf("當前狀態總結");
-  let latest = null;
-  for (const line of (at >= 0 ? text.slice(at) : text).split("\n")) {
-    const m = line.trim().match(DLC_LINE_RE);
-    if (m) latest = { id: m[1], name: m[2].trim(), status: m[3] };
+  if (text) {
+    const at = text.lastIndexOf("當前狀態總結");
+    for (const line of (at >= 0 ? text.slice(at) : text).split("\n")) {
+      const m = line.trim().match(DLC_LINE_RE);
+      if (m) out[dlcKind(m[1])] = { id: m[1], name: m[2].trim(), status: m[3] };
+    }
   }
-  return latest;
+  return kind ? out[kind] : out;
 }
-function dlcNow(s = curSlot()) {
+// 尚未寫進記憶庫的啟停暫存：s.dlcs = { zl, q }；舊版單格 s.dlc 自動搬過來
+function dlcMap(s) {
+  if (!s) return {};
+  if (s.dlc) { s.dlcs = { ...(s.dlcs || {}), [dlcKind(s.dlc.id)]: s.dlc }; delete s.dlc; saveSlots(); }
+  return s.dlcs || {};
+}
+function dlcNow(s = curSlot(), kind = "zl") {
   if (!s) return null;
-  return s.dlc || dlcFromMemory(loadMem(settings.character, s.id));
+  return dlcMap(s)[kind] || dlcFromMemory(loadMem(settings.character, s.id), kind);
 }
 function dlcPending(s = curSlot()) {
-  return s && s.dlc ? { id: s.dlc.id, status: s.dlc.status } : null;
+  const map = dlcMap(s);
+  const list = DLC_KINDS.map((k) => map[k]).filter(Boolean).map((d) => ({ id: d.id, status: d.status }));
+  return list.length ? list : null;
 }
 function dlcMemoryOverlay(memory, s = curSlot()) {
-  if (!s || !s.dlc) return memory;
-  const line = `DLC｜${s.dlc.id}｜${s.dlc.name || s.dlc.id}｜${s.dlc.status}`;
-  return [memory, `【目前世界事件狀態｜優先於先前記憶】\n${line}`].filter(Boolean).join("\n\n");
+  const map = dlcMap(s);
+  const list = DLC_KINDS.map((k) => map[k]).filter(Boolean);
+  if (!list.length) return memory;
+  const lines = list.map((d) => `DLC｜${d.id}｜${d.name || d.id}｜${d.status}`).join("\n");
+  return [memory, `【目前世界事件狀態｜優先於先前記憶】\n${lines}`].filter(Boolean).join("\n\n");
 }
 function dlcSet(s, state) {
   if (!s) return;
-  s.dlc = { id: state.id, name: state.name || state.id, status: state.status };
+  s.dlcs = { ...dlcMap(s), [dlcKind(state.id)]: { id: state.id, name: state.name || state.id, status: state.status } };
   saveSlots();
 }
 function dlcSyncSaved(s, mem) {
-  if (!s || !s.dlc) return;
-  const fresh = dlcFromMemory(mem);
-  if (fresh && fresh.id === s.dlc.id && fresh.status === s.dlc.status) {
-    delete s.dlc; // 已寫進記憶庫，交回既有記憶機制接續
-    saveSlots();
+  if (!s) return;
+  const map = { ...dlcMap(s) };
+  let changed = false;
+  for (const k of DLC_KINDS) {
+    const p = map[k];
+    if (!p) continue;
+    const fresh = dlcFromMemory(mem, k);
+    if (fresh && fresh.id === p.id && fresh.status === p.status) { delete map[k]; changed = true; } // 已寫進記憶庫，交回既有記憶機制接續
   }
+  if (changed) { s.dlcs = map; saveSlots(); }
+}
+function dlcHasActivePending(s = curSlot()) {
+  const map = dlcMap(s);
+  return DLC_KINDS.some((k) => map[k] && map[k].status === "啟用中");
 }
 function dlcImportedState(value) {
   if (!value || typeof value !== "object") return null;
@@ -5497,7 +5522,7 @@ $("newGame").onclick = async () => {
   const name = (curSlot() || {}).name || "這個存檔";
   if (history.length && !(await askDialog({
     tab: "✦ 新的故事", title: `要從頭開始「${name}」嗎？`, ok: "重新開始", kind: "lilac",
-    html: '<div class="dlg-list"><div>🧹 會清掉：目前的對話、記憶庫</div><div>📌 會留下：你的玩家角色卡' + (curSlot() && curSlot().dlc && curSlot().dlc.status === "啟用中" ? "、已掛載的 DLC" : "") + '</div></div><p class="note" style="margin:6px 0 0">想保留這段故事，可以到「切換角色」另開一個新存檔。</p>',
+    html: '<div class="dlg-list"><div>🧹 會清掉：目前的對話、記憶庫</div><div>📌 會留下：你的玩家角色卡' + (dlcHasActivePending() ? "、已掛載的 DLC" : "") + '</div></div><p class="note" style="margin:6px 0 0">想保留這段故事，可以到「切換角色」另開一個新存檔。</p>',
   }))) return;
   history = [];
   saveHistory();
@@ -5507,7 +5532,7 @@ $("newGame").onclick = async () => {
     const old = loadMem();
     saveMem(settings.character, s.id, { saved: 0, epoch: (old.epoch || 0) + 1, frags: [] });
     s.base = 0;
-    if (s.dlc && s.dlc.status !== "啟用中") { delete s.dlc; saveSlots(); }
+    { const m = { ...dlcMap(s) }; for (const k of DLC_KINDS) if (m[k] && m[k].status !== "啟用中") delete m[k]; s.dlcs = m; saveSlots(); }
     saveHistory();
     if (sameSlot(saveFail)) saveFail = null;
   }
@@ -5535,7 +5560,7 @@ function takeBackLast() {
   // 重來的那頁如果已經寫入記憶庫，含這頁的記憶片段作廢，之後重新寫入
   const s = curSlot();
   if (s && dropped) {
-    const beforeDlc = dlcNow(s);
+    const beforeDlc = DLC_KINDS.map((k) => dlcNow(s, k)).filter(Boolean);
     const mem = loadMem();
     if (dropped <= mem.saved) {
       mem.frags = mem.frags.filter((f) => f.to < dropped);
@@ -5543,7 +5568,7 @@ function takeBackLast() {
       if (mem.main && (mem.main.upto || 0) >= dropped) delete mem.main;
       mem.epoch = (mem.epoch || 0) + 1;
       saveMem(settings.character, s.id, mem);
-      if (beforeDlc && !s.dlc) dlcSet(s, beforeDlc);
+      for (const d of beforeDlc) if (!dlcMap(s)[dlcKind(d.id)]) dlcSet(s, d);
     }
   }
   render();
@@ -5897,7 +5922,7 @@ $("ioExportMem").onclick = async () => {
     version: 1,
     exportedAt: new Date().toISOString(),
     character: { id: settings.character, name: settings.characterName },
-    slot: { name: s.name, card: s.card || "", pages: mem.saved, ...(s.dlc ? { dlc: s.dlc } : {}) },
+    slot: { name: s.name, card: s.card || "", pages: mem.saved, ...(Object.keys(dlcMap(s)).length ? { dlcs: { ...dlcMap(s) } } : {}) },
     memory: { saved: mem.saved, frags: mem.frags, ...(mem.main ? { main: mem.main } : {}) },
   };
   download(`${safeName(settings.characterName)}_${safeName(s.name)}_記憶庫_page${mem.saved}_${today()}.json`, JSON.stringify(data, null, 1), "application/json");
@@ -5953,8 +5978,10 @@ $("ioFile").onchange = async () => {
   const s = newSlot(c.id, `${String(slotData.name || "存檔").slice(0, 24)}（接續）`);
   s.card = String(slotData.card || "");
   s.base = base;
-  const importedDlc = dlcImportedState(slotData.dlc);
-  if (importedDlc) s.dlc = importedDlc;
+  for (const d of [slotData.dlc, ...Object.values(slotData.dlcs || {})]) {
+    const st = dlcImportedState(d);
+    if (st) s.dlcs = { ...(s.dlcs || {}), [dlcKind(st.id)]: st };
+  }
   const main = data.memory.main && typeof data.memory.main.text === "string" ? { text: data.memory.main.text, upto: parseInt(data.memory.main.upto, 10) || 0 } : null;
   if (!writeNewSlot(c.id, s, [], { saved: base, epoch: 0, frags, ...(main ? { main } : {}) })) { ioStatus("手機瀏覽器的空間不夠，匯入失敗。可以先刪掉不玩的存檔再試", true); return; }
   saveSlots();
@@ -5988,7 +6015,7 @@ async function newWindow() {
   const mem = loadMem();
   const ns = newSlot(cid, (name.trim() || `${baseName}・第 ${n} 窗`).slice(0, 30));
   ns.card = s.card || "";
-  if (s.dlc) ns.dlc = { ...s.dlc };
+  if (Object.keys(dlcMap(s)).length) ns.dlcs = JSON.parse(JSON.stringify(dlcMap(s)));
   ns.base = s.pages || 0;
   ns.win = n;
   ns.ticket = pickTicket(s.ticket);
@@ -6558,10 +6585,11 @@ function charCard(c) {
 
 // DLC 封面比照角色圖，依 ID 自動讀取 avatars/{ID}.png（1:1）。
 function dlcCard(c) {
-  const b = charCard({ ...c, tags: [c.type, ...(c.tags || [])].filter(Boolean) });
+  const type = c.type && DLC_TAG_ICON[c.type] ? `${DLC_TAG_ICON[c.type]} ${c.type}` : c.type;
+  const b = charCard({ ...c, tags: [type, ...(c.tags || [])].filter(Boolean) });
   const cb = b.querySelector(".cb");
   if (cb && cb.lastElementChild && cb.lastElementChild.tagName === "SMALL") cb.lastElementChild.remove();
-  const state = dlcNow();
+  const state = dlcNow(curSlot(), dlcKind(c.id));
   const note = document.createElement("small");
   note.textContent = state && state.id === c.id ? state.status : c.id;
   if (cb) cb.append(note);
@@ -6584,10 +6612,15 @@ function showDlcStep(c) {
   pickStatus("");
 
   const s = curSlot();
-  const state = dlcNow(s);
+  const kind = dlcKind(c.id);
+  const state = dlcNow(s, kind);
   const active = !!state && state.status === "啟用中";
   const same = active && state.id === c.id;
-  const pendingEnded = !!s && !!s.dlc && s.dlc.status === "已結束" && s.dlc.id !== c.id;
+  const pend = s ? dlcMap(s)[kind] : null;
+  const pendingEnded = !!pend && pend.status === "已結束" && pend.id !== c.id;
+  // 另一格（世界事件／情境）已啟用時，兩個會一起生效
+  const other = s ? dlcNow(s, kind === "q" ? "zl" : "q") : null;
+  const withOther = other && other.status === "啟用中" ? `（同時掛載「${other.name || other.id}」，兩個會一起生效）` : "";
   const list = $("charList");
   list.innerHTML = "";
   const box = document.createElement("div");
@@ -6613,9 +6646,9 @@ function showDlcStep(c) {
   const info = document.createElement("p");
   info.className = "dlc-target";
   info.textContent = !s ? "請先選擇角色與存檔，再掛載 DLC。"
-    : active && !same ? `目前已掛載「${state.name}」。請先結束該事件。`
+    : active && !same ? `目前已掛載同類的「${state.name}」。請先結束該事件。`
     : pendingEnded ? "上一個 DLC 剛結束，請先推進劇情並寫入記憶，再啟用其他事件。"
-    : `套用存檔：${settings.characterName || settings.character}／${s.name}。掛載後從下一輪對話生效。`;
+    : `套用存檔：${settings.characterName || settings.character}／${s.name}。掛載後從下一輪對話生效。${same ? "" : withOther}`;
   box.append(info);
   if (active && !same) {
     const guide = document.createElement("p");
@@ -6635,7 +6668,7 @@ function showDlcStep(c) {
     if (!s || busy || saving || curSlot() !== s) { toast("目前無法變更 DLC，請先確認遊玩存檔與記憶庫狀態"); return; }
     const status = same ? "已結束" : "啟用中";
     const ok = await askDialog({
-      tab: "✧ 情境 DLC", title: same ? `結束「${c.name}」？` : `掛載「${c.name}」？`,
+      tab: "🎁 情境 DLC", title: same ? `結束「${c.name}」？` : `掛載「${c.name}」？`,
       sub: same ? "停止載入事件規則，已發生的故事與後續影響仍由記憶庫承接。" : `套用在「${s.name}」，不切換角色、不清除目前故事。從下一輪對話生效。`,
       ok: same ? "結束事件" : "開始掛載", kind: same ? "danger" : "lilac",
     });
