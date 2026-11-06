@@ -5497,7 +5497,7 @@ $("newGame").onclick = async () => {
   const name = (curSlot() || {}).name || "這個存檔";
   if (history.length && !(await askDialog({
     tab: "✦ 新的故事", title: `要從頭開始「${name}」嗎？`, ok: "重新開始", kind: "lilac",
-    html: '<div class="dlg-list"><div>🧹 會清掉：目前的對話、記憶庫</div><div>📌 會留下：你的玩家角色卡</div></div><p class="note" style="margin:6px 0 0">想保留這段故事，可以到「切換角色」另開一個新存檔。</p>',
+    html: '<div class="dlg-list"><div>🧹 會清掉：目前的對話、記憶庫</div><div>📌 會留下：你的玩家角色卡' + (curSlot() && curSlot().dlc && curSlot().dlc.status === "啟用中" ? "、已掛載的 DLC" : "") + '</div></div><p class="note" style="margin:6px 0 0">想保留這段故事，可以到「切換角色」另開一個新存檔。</p>',
   }))) return;
   history = [];
   saveHistory();
@@ -5507,7 +5507,7 @@ $("newGame").onclick = async () => {
     const old = loadMem();
     saveMem(settings.character, s.id, { saved: 0, epoch: (old.epoch || 0) + 1, frags: [] });
     s.base = 0;
-    if (s.dlc) { delete s.dlc; saveSlots(); }
+    if (s.dlc && s.dlc.status !== "啟用中") { delete s.dlc; saveSlots(); }
     saveHistory();
     if (sameSlot(saveFail)) saveFail = null;
   }
