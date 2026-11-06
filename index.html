@@ -2302,7 +2302,8 @@ function buildMemory(mem, slotName = (curSlot() || {}).name || "") {
 }
 
 // ---------- ZL DLC：記憶庫保存劇情狀態；存檔僅暫存尚未寫入記憶的啟停指令 ----------
-const DLC_LINE_RE = /^\s*(?:[-*•・]\s*)?DLC\s*[｜|]\s*(ZL-[A-Z]\d+)\s*[｜|]\s*([^｜|\n]+)\s*[｜|]\s*(啟用中|已結束)[^\r\n]*$/;
+// DLC 標記：行首可接「已觸發支線：」或項目符號，一行可有多筆，狀態後可接補充
+const DLC_LINE_RE = /(?:^|[^A-Za-z0-9])DLC\s*[｜|]\s*(ZL-[A-Z]\d+)\s*[｜|]\s*([^｜|\n]+?)\s*[｜|]\s*(啟用中|已結束)/g;
 // 一個存檔最多同時兩格：ZL-Q 開頭＝情境（q），其他＝ZL 世界事件（zl）；每格各一個
 const DLC_KINDS = ["zl", "q"];
 // DLC 分類代表圖示（選角資料夾的分類標籤用）
@@ -2315,8 +2316,7 @@ function dlcFromMemory(mem = loadMem(), kind) {
   if (text) {
     const at = text.lastIndexOf("當前狀態總結");
     for (const line of (at >= 0 ? text.slice(at) : text).split("\n")) {
-      const m = line.trim().match(DLC_LINE_RE);
-      if (m) out[dlcKind(m[1])] = { id: m[1], name: m[2].trim(), status: m[3] };
+      for (const m of line.matchAll(DLC_LINE_RE)) out[dlcKind(m[1])] = { id: m[1], name: m[2].trim(), status: m[3] };
     }
   }
   return kind ? out[kind] : out;
@@ -2329,9 +2329,11 @@ function dlcMap(s) {
 }
 function dlcNow(s = curSlot(), kind = "zl") {
   if (!s) return null;
+  if (s === curSlot()) dlcSyncSaved(s, loadMem(settings.character, s.id));
   return dlcMap(s)[kind] || dlcFromMemory(loadMem(settings.character, s.id), kind);
 }
 function dlcPending(s = curSlot()) {
+  if (s && s === curSlot()) dlcSyncSaved(s, loadMem(settings.character, s.id));
   const map = dlcMap(s);
   const list = DLC_KINDS.map((k) => map[k]).filter(Boolean).map((d) => ({ id: d.id, status: d.status }));
   return list.length ? list : null;
@@ -2356,7 +2358,8 @@ function dlcSyncSaved(s, mem) {
     const p = map[k];
     if (!p) continue;
     const fresh = dlcFromMemory(mem, k);
-    if (fresh && fresh.id === p.id && fresh.status === p.status) { delete map[k]; changed = true; } // 已寫進記憶庫，交回既有記憶機制接續
+    // 記憶庫已記下同一個 DLC：交回記憶機制接續（劇情裡結束了也算）；只有玩家按了結束、記憶卻還寫啟用中時才保留暫存
+    if (fresh && fresh.id === p.id && !(p.status === "已結束" && fresh.status === "啟用中")) { delete map[k]; changed = true; }
   }
   if (changed) { s.dlcs = map; saveSlots(); }
 }
@@ -2930,6 +2933,8 @@ const LV_SYS = /^🔔\s*｜/;
 const LV_PD = /^【?\s*📢\s*｜?\s*PD/;
 const LV_REC = /^▶.*ılı/;
 const LV_WIN = /^🔔.*若需換視窗/;
+// 情境 DLC 收尾標記（zlq_common 規定收尾那一則最後單獨一行）：從正文拿掉，換成「結束情境並寫入記憶」按鈕
+const LV_WRAP = /^🎬\s*[｜|]\s*節目殺青/;
 // 結算面板（2026.10.17）：📊 即時結算面板／約會結算面板／關係儀表板、💗 …儀表板、💳 …WALLET → 從這行起收進狀態卡
 const LV_PANEL = /^(?:📊|💗|💳)\s*[^｜]{0,24}?(?:結算|儀表板|WALLET)/u;
 // 深夜存檔頁：「🎬 採訪室」分隔線＋📼 獨白 → 採訪室與重點回放留正文，其餘收進狀態卡
@@ -3060,6 +3065,31 @@ function renderRec(lines, s, e, closeLine) {
   renderBody(lines, k, e, box.querySelector(".in"));
   return box;
 }
+// 節目殺青：情境 DLC 還在啟用中時，出現「結束情境並寫入記憶」按鈕；按下＝結束這一格＋立即寫入記憶庫
+function renderWrapButton() {
+  const s = curSlot();
+  const q = s ? dlcNow(s, "q") : null;
+  if (!q || q.status !== "啟用中") return null;
+  const name = q.name || q.id;
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "lv-win due";
+  b.textContent = `🎬 節目殺青・結束「${name}」並寫入記憶`;
+  b.onclick = async () => {
+    if (busy || saving || curSlot() !== s) { toast("稍等一下，角色回應或記憶寫入中"); return; }
+    const ok = await askDialog({
+      tab: "🎁 情境 DLC", title: `結束「${name}」？`,
+      sub: "節目效果會停止，已經發生的故事會保留，並立即寫入記憶庫。", ok: "結束並寫入", kind: "danger",
+    });
+    if (!ok || busy || saving || curSlot() !== s) return;
+    dlcSet(s, { ...q, status: "已結束" });
+    b.remove();
+    toast(`已結束「${name}」✧`);
+    await runSave(true);
+  };
+  return b;
+}
+
 // 結算面板的「若需換視窗」→ 網頁的換窗按鈕（這一窗滿 40 頁就醒目）
 function renderWinButton() {
   const s = curSlot();
@@ -3079,6 +3109,8 @@ function renderPage(text, latest) {
   // 結算面板的「若需換視窗，請複製…」這行改成網頁換窗按鈕，放在頁尾
   let winBtn = false;
   for (let k = lines.length - 1; k >= 0; k--) if (LV_WIN.test(lines[k].trim())) { lines.splice(k, 1); winBtn = true; }
+  let wrapBtn = false;
+  for (let k = lines.length - 1; k >= 0; k--) if (LV_WRAP.test(lines[k].trim())) { lines.splice(k, 1); wrapBtn = true; }
 
   let start = 0;
   while (start < lines.length && !lines[start].trim()) start++;
@@ -3119,6 +3151,7 @@ function renderPage(text, latest) {
     if (k < lines.length && lines.slice(k).some((l) => /[\p{L}\p{N}]/u.test(l))) page.append(renderNight(lines.slice(k), latest, headInfo(headLines)));
     else if (latest && lorebook.length && peekReady()) page.append(renderPeek());
     if (winBtn) page.append(renderWinButton());
+    if (wrapBtn && latest) { const wb = renderWrapButton(); if (wb) page.append(wb); }
     return page;
   }
 
@@ -3142,6 +3175,7 @@ function renderPage(text, latest) {
     const after = lines.slice(pEnd).filter((l) => !/^[_＿]{3,}$/.test(l.trim()));
     if (after.some((l) => l.trim())) renderBody(after, 0, after.length, page);
     if (winBtn) page.append(renderWinButton());
+    if (wrapBtn && latest) { const wb = renderWrapButton(); if (wb) page.append(wb); }
     return page;
   }
 
@@ -3186,6 +3220,7 @@ function renderPage(text, latest) {
   if (end < lines.length) page.append(renderStatus(lines.slice(end), latest, headInfo(headLines)));
   else if (latest && lorebook.length && peekReady()) page.append(renderPeek());
   if (winBtn) page.append(renderWinButton());
+  if (wrapBtn && latest) { const wb = renderWrapButton(); if (wb) page.append(wb); }
   return page;
 }
 
