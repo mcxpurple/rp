@@ -1689,7 +1689,7 @@
 <div id="menu" class="menu-wrap">
   <nav class="menu" aria-label="選單">
     <button type="button" id="openChars"><span class="wax s1" style="--c:#4a5670"><i>👤</i></span>切換角色</button>
-    <button type="button" id="openDlc"><span class="wax s2" style="--c:#8a6a4a"><i>🎁</i></span>情境 DLC</button>
+    <button type="button" id="openDlc"><span class="wax s2" style="--c:#8a6a4a"><i>🎁</i></span>DLC 擴充劇本</button>
     <hr>
     <a id="linkChars" target="_blank" rel="noopener"><span class="wax s2" style="--c:#c2a15a"><i>🩷</i></span>角色們（單人）<span class="ext">↗</span></a>
     <a id="linkWorlds" target="_blank" rel="noopener"><span class="wax s3" style="--c:#c2a15a"><i>💜</i></span>開放世界（多人）<span class="ext">↗</span></a>
@@ -1732,7 +1732,7 @@
       <div class="fd-tabs" role="tablist">
         <button type="button" id="tabSolo" role="tab">單人</button>
         <button type="button" id="tabMulti" role="tab">多人</button>
-        <button type="button" id="tabDlc" role="tab">情境 DLC</button>
+        <button type="button" id="tabDlc" role="tab">DLC</button>
         <button type="button" id="backChars" class="back" hidden>‹ 角色列表</button>
       </div>
       <button type="button" id="closeChars" class="fd-tape" aria-label="關閉">✕ 關閉</button>
@@ -2304,10 +2304,12 @@ function buildMemory(mem, slotName = (curSlot() || {}).name || "") {
 // ---------- ZL DLC：記憶庫保存劇情狀態；存檔僅暫存尚未寫入記憶的啟停指令 ----------
 // DLC 標記：行首可接「已觸發支線：」或項目符號，一行可有多筆，狀態後可接補充
 const DLC_LINE_RE = /(?:^|[^A-Za-z0-9])DLC\s*[｜|]\s*(ZL-[A-Z]\d+)\s*[｜|]\s*([^｜|\n]+?)\s*[｜|]\s*(啟用中|已結束)/g;
-// 一個存檔最多同時兩格：ZL-Q 開頭＝情境（q），其他＝ZL 世界事件（zl）；每格各一個
+// 一個存檔最多同時兩格：ZL-Q 開頭＝實境秀（q），其他＝症候群（zl）；每格各一個
 const DLC_KINDS = ["zl", "q"];
 // DLC 分類代表圖示（選角資料夾的分類標籤用）
-const DLC_TAG_ICON = { "ZL世界事件": "🪄" };
+const DLC_TAG_ICON = { "症候群": "🪄", "ZL世界事件": "🪄" };
+// 兩類的玩家看到的名稱（按鈕、提示用）
+const DLC_KIND_NAME = { zl: "症候群", q: "實境秀" };
 function dlcKind(id) { return /^ZL-Q\d+$/i.test(String(id || "")) ? "q" : "zl"; }
 // 記憶庫最新「當前狀態總結」裡的 DLC 行：兩格各取最後一行；帶 kind 只回傳那一格
 function dlcFromMemory(mem = loadMem(), kind) {
@@ -3078,7 +3080,7 @@ function renderWrapButton() {
   b.onclick = async () => {
     if (busy || saving || curSlot() !== s) { toast("稍等一下，角色回應或記憶寫入中"); return; }
     const ok = await askDialog({
-      tab: "🎁 情境 DLC", title: `結束「${name}」？`,
+      tab: "🎁 DLC 擴充劇本", title: `結束「${name}」？`,
       sub: "節目效果會停止，已經發生的故事會保留，並立即寫入記憶庫。", ok: "結束並寫入", kind: "danger",
     });
     if (!ok || busy || saving || curSlot() !== s) return;
@@ -6464,9 +6466,9 @@ function renderCharList() {
   $("tabSolo").setAttribute("aria-selected", pickTab === "solo");
   $("tabMulti").setAttribute("aria-selected", pickTab === "multi");
   $("tabDlc").setAttribute("aria-selected", pickTab === "dlc");
-  $("pickTitle").textContent = pickTab === "dlc" ? "情境 DLC" : "切換角色";
+  $("pickTitle").textContent = pickTab === "dlc" ? "DLC 擴充劇本" : "切換角色";
   $("pickNote").textContent = pickTab === "dlc"
-    ? "將世界事件掛載到目前角色的存檔。角色、關係與既有故事維持不變。"
+    ? "替目前的故事加一段新玩法：🪄 症候群讓角色的身體或世界出現變化，🎬 實境秀把你們帶進一檔節目。兩類可以各掛一個，角色、關係與既有故事維持不變。"
     : "每個角色可以開多個存檔，每個存檔有自己的玩家角色卡與對話。";
   $("pickSearch").placeholder = pickTab === "dlc" ? "搜尋 DLC 名稱、簡介或分類" : "搜尋角色名稱、簡介或分類";
 
@@ -6636,7 +6638,7 @@ function dlcCard(c) {
 function showDlcStep(c) {
   clearPickFig();
   $("pickTitle").textContent = c.name || c.id;
-  $("pickNote").textContent = c.intro || "ZL 世界事件";
+  $("pickNote").textContent = c.intro || DLC_KIND_NAME[dlcKind(c.id)];
   $("pickTools").hidden = true;
   $("slotNew").hidden = true;
   $("tabSolo").hidden = true;
@@ -6648,12 +6650,13 @@ function showDlcStep(c) {
 
   const s = curSlot();
   const kind = dlcKind(c.id);
+  const W = DLC_KIND_NAME[kind];
   const state = dlcNow(s, kind);
   const active = !!state && state.status === "啟用中";
   const same = active && state.id === c.id;
   const pend = s ? dlcMap(s)[kind] : null;
   const pendingEnded = !!pend && pend.status === "已結束" && pend.id !== c.id;
-  // 另一格（世界事件／情境）已啟用時，兩個會一起生效
+  // 另一格（症候群／實境秀）已啟用時，兩個會一起生效
   const other = s ? dlcNow(s, kind === "q" ? "zl" : "q") : null;
   const withOther = other && other.status === "啟用中" ? `（同時掛載「${other.name || other.id}」，兩個會一起生效）` : "";
   const list = $("charList");
@@ -6662,7 +6665,7 @@ function showDlcStep(c) {
   box.className = "dlc-detail";
   const id = document.createElement("div");
   id.className = "dlc-id";
-  id.textContent = `${c.id}・${c.type || "ZL 世界事件"}`;
+  id.textContent = `${c.id}・${c.type || W}`;
   box.append(id);
   const pic = document.createElement("div");
   pic.className = "dlc-image";
@@ -6672,7 +6675,7 @@ function showDlcStep(c) {
   box.append(pic);
   const desc = document.createElement("p");
   desc.className = "dlc-description";
-  desc.textContent = c.intro || "選擇後將此世界事件套用到目前的故事。";
+  desc.textContent = c.intro || `選擇後將這個${W}套用到目前的故事。`;
   box.append(desc);
   const tags = document.createElement("p");
   tags.className = "dlc-target";
@@ -6681,15 +6684,15 @@ function showDlcStep(c) {
   const info = document.createElement("p");
   info.className = "dlc-target";
   info.textContent = !s ? "請先選擇角色與存檔，再掛載 DLC。"
-    : active && !same ? `目前已掛載同類的「${state.name}」。請先結束該事件。`
-    : pendingEnded ? "上一個 DLC 剛結束，請先推進劇情並寫入記憶，再啟用其他事件。"
+    : active && !same ? `目前已掛載另一個${W}「${state.name}」。請先結束它。`
+    : pendingEnded ? `上一個${W}剛結束，請先推進劇情並寫入記憶，再掛載新的${W}。`
     : `套用存檔：${settings.characterName || settings.character}／${s.name}。掛載後從下一輪對話生效。${same ? "" : withOther}`;
   box.append(info);
   if (active && !same) {
     const guide = document.createElement("p");
     guide.className = "dlc-target";
     guide.style.whiteSpace = "pre-line";
-    guide.textContent = "想結束目前的 DLC 嗎？\n\n點右上角「☰」→「情境 DLC」→ 選擇正在玩的 DLC →「結束世界事件」。\n\n結束後，DLC 的效果會停止，但已經發生的故事會保留，存檔後就可以選擇其他 DLC。";
+    guide.textContent = `想換一個${W}嗎？\n\n點右上角「☰」→「🎁 DLC 擴充劇本」→ 選擇正在玩的「${state.name}」→「結束${W}」。\n\n結束後，效果會停止，但已經發生的故事會保留，寫入記憶後就可以掛新的${W}。`;
     box.append(guide);
   }
   const actions = document.createElement("div");
@@ -6697,15 +6700,15 @@ function showDlcStep(c) {
   const main = document.createElement("button");
   main.type = "button";
   main.className = "fd-go";
-  main.textContent = same ? "結束世界事件" : "掛載到目前故事";
+  main.textContent = same ? `結束${W}` : "掛載到目前故事";
   main.disabled = !s || (active && !same) || pendingEnded;
   main.onclick = async () => {
     if (!s || busy || saving || curSlot() !== s) { toast("目前無法變更 DLC，請先確認遊玩存檔與記憶庫狀態"); return; }
     const status = same ? "已結束" : "啟用中";
     const ok = await askDialog({
-      tab: "🎁 情境 DLC", title: same ? `結束「${c.name}」？` : `掛載「${c.name}」？`,
-      sub: same ? "停止載入事件規則，已發生的故事與後續影響仍由記憶庫承接。" : `套用在「${s.name}」，不切換角色、不清除目前故事。從下一輪對話生效。`,
-      ok: same ? "結束事件" : "開始掛載", kind: same ? "danger" : "lilac",
+      tab: "🎁 DLC 擴充劇本", title: same ? `結束「${c.name}」？` : `掛載「${c.name}」？`,
+      sub: same ? (kind === "q" ? "節目效果會停止，已經發生的故事會保留，並由記憶庫承接。" : "症狀不再推進，已發生的故事與後續影響仍由記憶庫承接。") : `套用在「${s.name}」，不切換角色、不清除目前故事。從下一輪對話生效。`,
+      ok: same ? `結束${W}` : "開始掛載", kind: same ? "danger" : "lilac",
     });
     if (!ok || busy || saving || curSlot() !== s) return;
     dlcSet(s, { id: c.id, name: c.name || c.id, status });
