@@ -6416,7 +6416,7 @@ function polDecorate() {
   let prev = last.previousElementSibling;
   while (prev && !prev.matches("article.page, .vh-cover")) prev = prev.previousElementSibling;
   if (prev && prev.matches(".vh-cover")) return;
-  const firstP = [...last.querySelectorAll("p")].find((x) => !x.closest(".head, .tracker, details, .hud"));
+  const firstP = [...last.querySelectorAll(":scope > p, :scope > .lv-rec .in > p")].find((x) => !x.closest(".head, .tracker, details, .hud"));
   if (!firstP) return;
   const card = polCard("vh-corner");
   firstP.before(card);
