@@ -3853,7 +3853,8 @@ function stPeek(latest) {
     }
     pk.append(ps, chips);
     foldable(pk, "peek", false);
-    pk.addEventListener("toggle", () => { if (pk.open) chips.scrollIntoView({ block: "nearest", behavior: "smooth" }); });
+    ps.addEventListener("click", () => { ps.dataset.tap = "1"; });
+    pk.addEventListener("toggle", () => { if (pk.open && ps.dataset.tap) chips.scrollIntoView({ block: "nearest", behavior: "smooth" }); delete ps.dataset.tap; });
     return pk;
   }
 }
