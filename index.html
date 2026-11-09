@@ -1661,6 +1661,14 @@
   @media (prefers-reduced-motion: reduce) { #splash .sp-img, #splash .sp-t { animation: none; } }
 
   /* ===== 浮動贊助按鈕（2026.10.28）：看的畫面一直在；進入聊天時打招呼 5 秒；泡泡隨機一句、5 秒後淡出 ===== */
+  /* ===== 桌寵串門子（2026.11.09）：等回覆時偶爾出現，站在輸入區上緣；面板（z-index 10 起）會蓋過它 ===== */
+  #petStage { position: fixed; inset: 0; z-index: 9; pointer-events: none; opacity: 0; transition: opacity .6s ease; }
+  #petStage.on { opacity: 1; }
+  #petStage:not(.on) .qpet { pointer-events: none; }
+  /* 桌寵出現時，聊天區底部讓出位置，「正在輸入⋯」那行不被擋住 */
+  #chat.petpad { padding-bottom: calc(var(--pet-h, 90px) + 36px); }
+  @media (prefers-reduced-motion: reduce) { #petStage { transition: none; } }
+
   #donateFab { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: var(--fab-b, 200px); z-index: 15;
     display: flex; flex-direction: column; align-items: flex-end; gap: 7px; pointer-events: none;
     opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity .45s ease, transform .45s ease, visibility 0s linear .45s; }
@@ -1925,6 +1933,13 @@
       <option value="on">打開</option>
     </select>
     <p class="note" style="margin:6px 0 0">打開後，你離開超過 8 小時再回來，角色可能會先傳訊息給你。<br>觸發時那一則回覆會稍微長一點，多用一些 token。</p>
+
+    <label for="pet">桌寵串門子</label>
+    <select id="pet">
+      <option value="on">打開</option>
+      <option value="off">關閉</option>
+    </select>
+    <p class="note" style="margin:6px 0 0">等角色回覆時，偶爾會有 Q 版角色跑出來晃一晃。</p>
     </div></div>
 
     <div class="scard"><svg class="clip" viewBox="0 0 15 42" aria-hidden="true"><path d="M4 38 V8 a3.5 3.5 0 0 1 7 0 V31 a2.2 2.2 0 0 1 -4.4 0 V12" fill="none" stroke="#9aa0a6" stroke-width="1.7" stroke-linecap="round"/></svg><div class="in">
@@ -5378,8 +5393,98 @@ function scrollToReader(smooth) {
   chatEl.scrollTo({ top: Math.max(0, top), behavior: smooth ? "smooth" : "auto" });
 }
 
+// ---------- 桌寵串門子（2026.11.09）----------
+// 等角色回覆時（setBusy）每次 PET_CHANCE 機率出現一隻 Q 版桌寵；目前角色有桌寵就是他，沒有就從名冊隨機抽一隻來串門子
+// 名冊、圖片、引擎都讀桌寵站（/pet/：roster.yaml、pets/{id}/、pet-engine.js），名冊新增角色不用改這裡
+// 設定「桌寵串門子」可關閉（rp_pet，預設打開）；回覆出來後淡出，回覆太快時至少停留 PET_MIN_MS
+const PET_BASE = "/pet/";
+const PET_CHANCE = 0.2;   // 每次送出出現的機率
+const PET_SIZE = 90;      // 角色高度 px
+const PET_MIN_MS = 2500;  // 至少停留多久
+function petOn() { return store.get("rp_pet", "on") !== "off"; }
+let petRoster = null, petWorld = null, petBmp = {}, petShownAt = 0, petTimer = 0, petTicket = 0;
+function petScript(src) {
+  return new Promise((ok, no) => { const x = document.createElement("script"); x.src = src; x.onload = ok; x.onerror = no; document.head.append(x); });
+}
+async function petLoad() {
+  if (petRoster) return petRoster;
+  if (!window.jsyaml) await petScript("https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js");
+  if (!window.QPet || !window.QPet.World) await petScript(PET_BASE + "pet-engine.js");
+  const raw = window.jsyaml.load(await (await fetch(PET_BASE + "roster.yaml", { cache: "no-cache" })).text()) || [];
+  petRoster = (Array.isArray(raw) ? raw : []).filter((r) => r && r.id).map((r) => window.QPet.normalize(r));
+  return petRoster;
+}
+// 每隻桌寵的圖只讀一次：狀態.png 與 _1～_5 變體
+async function petBitmaps(c) {
+  if (petBmp[c.id]) return petBmp[c.id];
+  const out = {};
+  await Promise.all(c.states.map(async (st) => {
+    const urls = window.QPet.variantNames(st).map((n) => `${PET_BASE}pets/${c.id}/${n}.png`);
+    const got = await Promise.all(urls.map((u) => fetch(u).then((r) => (r.ok ? r.blob() : null)).then((b) => (b ? createImageBitmap(b) : null)).catch(() => null)));
+    out[st] = got.filter(Boolean);
+  }));
+  return (petBmp[c.id] = out);
+}
+// 地面＝輸入區（footer）上緣
+function petGround() { const f = document.querySelector("footer"); return f ? f.getBoundingClientRect().top : window.innerHeight; }
+function petHideNow() {
+  clearTimeout(petTimer);
+  const stage = $("petStage");
+  if (stage) stage.classList.remove("on");
+  if (petWorld) petWorld.clear();
+  chatEl.classList.remove("petpad");
+}
+async function petVisit() {
+  const my = ++petTicket;
+  petHideNow();
+  if (!petOn() || Math.random() >= PET_CHANCE) return;
+  try {
+    const list = await petLoad();
+    const c = list.find((x) => x.id === settings.character) || list[Math.floor(Math.random() * list.length)];
+    if (!c) return;
+    const bitmaps = await petBitmaps(c);
+    if (!bitmaps.idle || !bitmaps.idle.length) return;
+    // 贊助頭像打招呼時先等它收起來
+    while ($("donateFab") && $("donateFab").classList.contains("show")) {
+      await new Promise((r) => setTimeout(r, 400));
+      if (my !== petTicket) return;
+    }
+    if (my !== petTicket || !busy) return;
+    let stage = $("petStage");
+    if (!stage) { stage = document.createElement("div"); stage.id = "petStage"; document.body.append(stage); }
+    if (!petWorld) petWorld = new window.QPet.World(stage);
+    petWorld.set([{ cfg: { ...c, size: PET_SIZE, sleep_after: 9999 }, bitmaps }]);
+    const p = petWorld.pets[0];
+    if (!p) return;
+    p.ground = () => petGround() - p.h - 2;
+    // 從左邊或右邊走進來
+    const left = Math.random() < 0.5;
+    p.x = left ? 0 : Math.max(0, window.innerWidth - p.w);
+    p.dir = left ? 1 : -1;
+    p.y = p.ground();
+    p.setMode("walk", 3 + Math.random() * 2);
+    petShownAt = Date.now();
+    chatEl.style.setProperty("--pet-h", PET_SIZE + "px");
+    chatEl.classList.add("petpad");
+    scrollDown();
+    requestAnimationFrame(() => stage.classList.add("on"));
+  } catch (e) { console.warn("桌寵串門子載入失敗", e); }
+}
+function petLeave() {
+  const my = ++petTicket;
+  const stage = $("petStage");
+  if (!stage || !stage.classList.contains("on")) { if (petWorld) petWorld.clear(); return; }
+  clearTimeout(petTimer);
+  petTimer = setTimeout(() => {
+    if (my !== petTicket) return;
+    stage.classList.remove("on");
+    petTimer = setTimeout(() => { if (my === petTicket) { if (petWorld) petWorld.clear(); chatEl.classList.remove("petpad"); } }, 650);
+  }, Math.max(0, PET_MIN_MS - (Date.now() - petShownAt)));
+}
+
 function setBusy(on) {
   busy = on;
+  if (on) petVisit(); else petLeave();
   for (const id of ["send", "retry", "editLast", "newGame"]) $(id).disabled = on;
   const old = chatEl.querySelector(".typing");
   if (old) old.remove();
@@ -5653,6 +5758,7 @@ function openSettings(msg = "") {
   keyHint();
   $("card").value = currentCard();
   $("away").value = store.get("rp_away", "off") === "on" ? "on" : "off";
+  $("pet").value = petOn() ? "on" : "off";
   fillSelect($("model"), settings.model ? [{ id: settings.model, name: settings.model }] : [], settings.model, "先按「載入」");
   fillSelect($("character"), settings.character ? [{ id: settings.character, name: settings.characterName }] : [], settings.character, "先按「載入」");
   status(msg);
@@ -7055,6 +7161,7 @@ $("saveSettings").onclick = () => {
   const bad = keyMismatch();
   if (bad) { keyHint(); status(bad, true); return; }
   store.set("rp_away", $("away").value === "on" ? "on" : "off");
+  store.set("rp_pet", $("pet").value === "off" ? "off" : "on");
   keepDraft();
   settings = {
     invite: $("invite").value.trim(),
