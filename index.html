@@ -5417,7 +5417,7 @@ const PET_CHANCE = 0.2;   // 每次送出出現的機率
 const PET_SIZE = 90;      // 角色高度 px
 const PET_MIN_MS = 2500;  // 至少停留多久
 function petOn() { return store.get("rp_pet", "on") !== "off"; }
-let petRoster = null, petWorld = null, petBmp = {}, petShownAt = 0, petTimer = 0, petTicket = 0;
+let petRoster = null, petFiles = null, petWorld = null, petBmp = {}, petShownAt = 0, petTimer = 0, petTicket = 0;
 function petScript(src) {
   return new Promise((ok, no) => { const x = document.createElement("script"); x.src = src; x.onload = ok; x.onerror = no; document.head.append(x); });
 }
@@ -5426,6 +5426,8 @@ async function petLoad() {
   if (!window.jsyaml) await petScript("https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js");
   if (!window.QPet || !window.QPet.World) await petScript(PET_BASE + "pet-engine.js");
   const raw = window.jsyaml.load(await (await fetch(PET_BASE + "roster.yaml", { cache: "no-cache" })).text()) || [];
+  // 圖片清單 files.json（2026.11.11）：有清單就只讀清單裡有的圖，不再逐張試，避免觸發 GitHub 流量限制；讀不到清單才逐張試
+  petFiles = await fetch(PET_BASE + "files.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   petRoster = (Array.isArray(raw) ? raw : []).filter((r) => r && r.id).map((r) => window.QPet.normalize(r));
   return petRoster;
 }
@@ -5434,7 +5436,8 @@ async function petBitmaps(c) {
   if (petBmp[c.id]) return petBmp[c.id];
   const out = {};
   await Promise.all(c.states.map(async (st) => {
-    const urls = window.QPet.variantNames(st).map((n) => `${PET_BASE}pets/${c.id}/${n}.png`);
+    const have = petFiles && Array.isArray(petFiles[c.id]) ? petFiles[c.id] : null;
+    const urls = window.QPet.variantNames(st).filter((n) => !have || have.includes(n + ".png")).map((n) => `${PET_BASE}pets/${c.id}/${n}.png`);
     const got = await Promise.all(urls.map((u) => fetch(u).then((r) => (r.ok ? r.blob() : null)).then((b) => (b ? createImageBitmap(b) : null)).catch(() => null)));
     out[st] = got.filter(Boolean);
   }));
@@ -5472,6 +5475,12 @@ async function petVisit() {
     const p = petWorld.pets[0];
     if (!p) return;
     p.ground = () => petGround() - p.h - 2;
+    // 高度鎖在 PET_SIZE（2026.11.11）：桌寵引擎的 size 是相對倍率、會跟著視窗高度變，這裡先量 1 倍的高度再換算回固定高度；視窗改變大小時也維持
+    if (typeof p.resize === "function") {
+      const sized = p.resize.bind(p);
+      p.resize = () => { p.c.size = 120; sized(); if (p.h && p.h !== PET_SIZE) { p.c.size = 120 * PET_SIZE / p.h; sized(); } };
+      p.resize();
+    }
     // 從左邊或右邊走進來
     const left = Math.random() < 0.5;
     p.x = left ? 0 : Math.max(0, window.innerWidth - p.w);
@@ -5479,7 +5488,7 @@ async function petVisit() {
     p.y = p.ground();
     p.setMode("walk", 3 + Math.random() * 2);
     petShownAt = Date.now();
-    chatEl.style.setProperty("--pet-h", PET_SIZE + "px");
+    chatEl.style.setProperty("--pet-h", p.h + "px");
     chatEl.classList.add("petpad");
     scrollDown();
     requestAnimationFrame(() => stage.classList.add("on"));
