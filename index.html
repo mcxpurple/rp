@@ -437,6 +437,7 @@
   .charlist button small { display: block; font-family: "Iansui", sans-serif; color: var(--muted); font-size: 12px; margin-top: 4px; }
   /* 選角畫面：搜尋、分頁、分類標籤、分組 */
   #pickTools[hidden] { display: none; }
+  #thinkBox[hidden] { display: none; }
   .pick-search { display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 0 12px; }
   .pick-search input { border: 0; background: transparent; padding: 10px 0; font-size: 14.5px; }
   .pick-search input:focus { outline: none; }
@@ -1987,6 +1988,18 @@
     <div class="row">
       <select id="model"><option value="">先按「載入」</option></select>
       <button id="loadModels" type="button">載入</button>
+    </div>
+
+    <div id="thinkBox" hidden>
+    <label for="think">思考強度</label>
+    <select id="think">
+      <option value="">不指定（用模型預設）</option>
+      <option value="low">低</option>
+      <option value="medium">中</option>
+      <option value="high">高</option>
+      <option value="xhigh">極高（只有 Hydrogen）</option>
+    </select>
+    <p class="note" style="margin:6px 0 0">思考強度越高，回覆越慢，也越花錢（思考的字數也要算錢）。<br>不選就用模型自己的預設，每個模型不一樣：Hydrogen 預設高，Argon 預設中。</p>
     </div>
 
     <label for="character">角色</label>
@@ -5521,12 +5534,21 @@ function setBusy(on) {
   }
 }
 
+// ---------- 思考強度（2026.11.13）----------
+// 只有 Gemini 4 系列（gemini-4 開頭）能選；存在這支手機（rp_think），空白＝不指定，用模型自己的預設
+const THINK_LEVELS = ["low", "medium", "high", "xhigh"];
+function thinkFits(provider, model) { return provider === "gemini" && /^gemini-4/i.test(String(model || "")); }
+function thinkLevel() { const v = store.get("rp_think", ""); return THINK_LEVELS.includes(v) ? v : ""; }
+function updateThinkBox() { $("thinkBox").hidden = !thinkFits($("provider").value, $("model").value); }
+
 // ---------- 呼叫 Worker ----------
 async function callWorker(path, payload) {
+  const provider = payload.provider || settings.provider;
+  const think = thinkFits(provider, payload.model) ? thinkLevel() : "";
   const res = await fetch(WORKER_URL + path, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ invite: settings.invite, provider: settings.provider, ...payload }),
+    body: JSON.stringify({ invite: settings.invite, provider: settings.provider, ...payload, ...(think ? { thinking: think } : {}) }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -5783,6 +5805,7 @@ function openSettings(msg = "") {
   $("card").value = currentCard();
   $("away").value = store.get("rp_away", "off") === "on" ? "on" : "off";
   $("pet").value = petOn() ? "on" : "off";
+  $("think").value = thinkLevel();
   fillSelect($("model"), settings.model ? [{ id: settings.model, name: settings.model }] : [], settings.model, "先按「載入」");
   fillSelect($("character"), settings.character ? [{ id: settings.character, name: settings.characterName }] : [], settings.character, "先按「載入」");
   status(msg);
@@ -5791,6 +5814,7 @@ function openSettings(msg = "") {
 
 function fillSelect(sel, items, current, placeholder) {
   sel.innerHTML = "";
+  if (sel.id === "model") queueMicrotask(updateThinkBox); // 模型清單換了：重新判斷要不要顯示思考強度
   if (!items.length) {
     const o = document.createElement("option");
     o.value = ""; o.textContent = placeholder;
@@ -7173,6 +7197,9 @@ $("loadChars").onclick = async () => {
   } catch (e) { status(e.message, true); }
 };
 
+// 模型換了：Gemini 4 才顯示思考強度
+$("model").addEventListener("change", updateThinkBox);
+
 // 在設定裡切換角色時，角色卡欄位換成那個角色目前存檔的卡
 $("character").addEventListener("change", () => {
   $("card").value = (slotOf($("character").value) || {}).card || "";
@@ -7186,6 +7213,7 @@ $("saveSettings").onclick = () => {
   if (bad) { keyHint(); status(bad, true); return; }
   store.set("rp_away", $("away").value === "on" ? "on" : "off");
   store.set("rp_pet", $("pet").value === "off" ? "off" : "on");
+  store.set("rp_think", THINK_LEVELS.includes($("think").value) ? $("think").value : "");
   keepDraft();
   settings = {
     invite: $("invite").value.trim(),
