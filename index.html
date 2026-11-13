@@ -5397,10 +5397,12 @@ function usageText(u) {
   if (!u) return "";
   const parts = [`輸入 ${fmt(u.promptTokenCount)}`];
   if (u.cachedContentTokenCount) parts.push(`其中快取 ${fmt(u.cachedContentTokenCount)}`);
-  parts.push(`輸出 ${fmt(u.candidatesTokenCount)}`);
+  // Gemini 偶爾回 MALFORMED_RESPONSE：內容完整，但用量少給輸出那一欄 → 顯示「未回報」，不寫成 0（2026.11.13）
+  const noOut = u.candidatesTokenCount == null;
+  if (!noOut) parts.push(`輸出 ${fmt(u.candidatesTokenCount)}`);
   if (u.thoughtsTokenCount) parts.push(`思考 ${fmt(u.thoughtsTokenCount)}`);
   // 實際回答的模型版本（例：選 Pro Latest 時，Google 實際用的是哪一版）
-  return (u.modelVersion ? `${u.modelVersion}・` : "") + parts.join("・") + " token";
+  return (u.modelVersion ? `${u.modelVersion}・` : "") + parts.join("・") + " token" + (noOut ? "・輸出未回報" : "");
 }
 
 function scrollDown() { chatEl.scrollTop = chatEl.scrollHeight; }
