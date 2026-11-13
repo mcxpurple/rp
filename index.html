@@ -1997,7 +1997,6 @@
       <option value="low">低</option>
       <option value="medium">中</option>
       <option value="high">高</option>
-      <option value="xhigh">極高（只有 Hydrogen）</option>
     </select>
     <p class="note" style="margin:6px 0 0">思考強度越高，回覆越慢，也越花錢（思考的字數也要算錢）。<br>不選就用模型自己的預設，每個模型不一樣：Hydrogen 預設高，Argon 預設中。</p>
     </div>
@@ -5536,7 +5535,7 @@ function setBusy(on) {
 
 // ---------- 思考強度（2026.11.13）----------
 // 只有 Gemini 4 系列（gemini-4 開頭）能選；存在這支手機（rp_think），空白＝不指定，用模型自己的預設
-const THINK_LEVELS = ["low", "medium", "high", "xhigh"];
+const THINK_LEVELS = ["low", "medium", "high"]; // 極高（xhigh）不開放：RP 用不到、又最貴（2026.11.13 紫梓定）
 function thinkFits(provider, model) { return provider === "gemini" && /^gemini-4/i.test(String(model || "")); }
 function thinkLevel() { const v = store.get("rp_think", ""); return THINK_LEVELS.includes(v) ? v : ""; }
 function updateThinkBox() { $("thinkBox").hidden = !thinkFits($("provider").value, $("model").value); }
