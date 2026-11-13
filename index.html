@@ -153,10 +153,12 @@
   /* 媒體：照片、貼圖、語音、影片 */
   .im-row .bub.media { padding: 0; background: none; border: 0; }
   .im-media { display: flex; align-items: center; gap: 8px; border-radius: 14px; font-size: 13px; }
-  .im-media.photo { width: 150px; height: 112px; justify-content: center; flex-direction: column; gap: 4px; color: var(--muted);
+  /* 照片框寬高都跟著描述字數長：字少維持 150×112，字多先變寬（最寬到訊息列上限）再往下長（2026.11.13） */
+  .im-media.photo { width: fit-content; min-width: 150px; max-width: 100%; min-height: 112px; box-sizing: border-box; padding: 12px 4px;
+    justify-content: center; flex-direction: column; gap: 4px; color: var(--muted);
     background: linear-gradient(135deg, var(--panel-2), var(--accent-soft)); border: 1px solid var(--line); }
   .im-media.photo .ic { font-size: 26px; }
-  .im-media.photo .cap { font-size: 11.5px; padding: 0 8px; text-align: center; }
+  .im-media.photo .cap { font-size: 11.5px; padding: 0 8px; text-align: center; line-height: 1.55; overflow-wrap: anywhere; }
   .im-media.sticker { font-size: 46px; line-height: 1; padding: 2px 4px; }
   .im-media.stk-card { flex-direction: column; align-items: flex-start; gap: 2px; max-width: 170px; padding: 9px 12px;
     border: 1.5px dashed var(--accent-line); background: var(--accent-soft); border-radius: 18px; }
